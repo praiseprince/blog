@@ -1,0 +1,45 @@
+---
+import { getCollection, render } from 'astro:content';
+import EssayLayout from '../../layouts/EssayLayout.astro';
+import PhotoLayout from '../../layouts/PhotoLayout.astro';
+import WalkLayout from '../../layouts/WalkLayout.astro';
+import FragmentLayout from '../../layouts/FragmentLayout.astro';
+import TechnicalLayout from '../../layouts/TechnicalLayout.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map(entry => ({
+    params: { slug: entry.id.replace(/\.(md|mdx)$/, '') },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const type = entry.data.type;
+---
+{type === 'essay' && (
+  <EssayLayout entry={entry}>
+    <Content />
+  </EssayLayout>
+)}
+{type === 'photo' && (
+  <PhotoLayout entry={entry}>
+    <Content />
+  </PhotoLayout>
+)}
+{type === 'walk' && (
+  <WalkLayout entry={entry}>
+    <Content />
+  </WalkLayout>
+)}
+{type === 'fragment' && (
+  <FragmentLayout entry={entry}>
+    <Content />
+  </FragmentLayout>
+)}
+{type === 'technical' && (
+  <TechnicalLayout entry={entry}>
+    <Content />
+  </TechnicalLayout>
+)}

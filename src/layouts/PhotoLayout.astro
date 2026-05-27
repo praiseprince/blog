@@ -1,0 +1,95 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'posts'>;
+}
+const { entry } = Astro.props;
+const { data } = entry;
+const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+---
+<BaseLayout
+  title={`${data.title} — Praise Prince`}
+  description={data.excerpt}
+  activeNav="photo"
+  screenLabel="Photo"
+  mastheadRight={`Photographs${data.roll ? ` · Roll №${data.roll}` : ''}`}
+  colophonLeft="© Praise Prince"
+  colophonMiddle="Scanned by Lomography Lagos."
+  colophonRightHref="/archive/"
+  colophonRightLabel="→ All rolls"
+>
+  <main>
+    <section style="position: relative; padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 56px) 0;">
+      <div class="editorial-grid" style="align-items: end;">
+        <div style="grid-column: 1 / span 7;">
+          {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
+          <h1 class="display fade-in-2" style="font-size: clamp(2.8rem, 7vw, 5.6rem); margin: 16px 0 0;" set:html={data.title} />
+          {data.excerpt && <p class="caption fade-in-3" style="margin-top: 24px; max-width: 36ch;" set:html={data.excerpt} />}
+        </div>
+        <div style="grid-column: 9 / span 4; text-align: right;" class="meta fade-in-3">
+          {data.location ?? ''}<br/>
+          {data.coords && <>{data.coords}<br/></>}
+          {dateStr}
+        </div>
+      </div>
+
+      {data.cover && (
+        <figure class="fade-in-4" style="margin-top: 48px;">
+          <img src={data.cover.src} alt={data.cover.alt} />
+          {(data.cover.caption || data.cover.ix) && (
+            <figcaption>
+              {data.cover.ix && <span class="ix">{data.cover.ix}</span>}
+              <span set:html={data.cover.caption ?? ''} />
+            </figcaption>
+          )}
+        </figure>
+      )}
+    </section>
+
+    {data.gallery && data.gallery.length > 0 && (
+      <section style="padding: 80px clamp(20px, 5vw, 56px) 0;">
+        <div class="editorial-grid">
+          {data.gallery.map(g => {
+            const colstart = g.colstart ?? 1;
+            const colspan = g.colspan ?? 12;
+            return (
+              <figure style={`grid-column: ${colstart} / span ${colspan};`}>
+                <div class="thumb" style={g.aspect ? `aspect-ratio: ${g.aspect};` : undefined}>
+                  <img src={g.src} alt={g.alt} />
+                </div>
+                {(g.caption || g.ix) && (
+                  <figcaption>
+                    {g.ix && <span class="ix">{g.ix}</span>}
+                    <span set:html={g.caption ?? ''} />
+                  </figcaption>
+                )}
+              </figure>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    {data.rollNote && (
+      <aside class="column" style="margin-top: 96px;">
+        <hr class="rule rule-ink" />
+        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 28px; margin-top: 28px; align-items: start;">
+          <div class="smallcaps" style="color: var(--ink-fade); padding-top: 4px;">A note on the roll</div>
+          <div style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={data.rollNote} />
+        </div>
+        <div style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
+          {data.tags.map(t => <Tag name={t} />)}
+        </div>
+      </aside>
+    )}
+  </main>
+
+  <style>
+    @media (max-width: 720px) {
+      .editorial-grid figure { grid-column: 1 / -1 !important; }
+    }
+  </style>
+</BaseLayout>

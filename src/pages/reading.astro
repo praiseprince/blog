@@ -1,0 +1,137 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import { getCollection } from 'astro:content';
+
+const books = (await getCollection('books')).sort((a, b) => a.data.order - b.data.order);
+const active = books.filter(b => b.data.status === 'active');
+const stalled = books.filter(b => b.data.status === 'stalled');
+const finishedCount = books.filter(b => b.data.status === 'finished').length;
+---
+<BaseLayout
+  title="On the desk — Reading list — Praise Prince"
+  activeNav="reading"
+  screenLabel="Reading"
+  mastheadRight="Reading · On the desk"
+  colophonLeft="© Praise Prince"
+  colophonMiddle="No affiliate links. Buy from independent shops."
+  colophonRightHref="/about/"
+  colophonRightLabel="Colophon →"
+>
+  <Fragment slot="head">
+    <style is:inline>
+      .shelf { display: grid; grid-template-columns: 1fr 1fr; gap: 56px clamp(32px, 5vw, 80px); margin-top: 48px; }
+      @media (max-width: 800px) { .shelf { grid-template-columns: 1fr; gap: 40px; } }
+      .book {
+        display: grid;
+        grid-template-columns: 90px 1fr;
+        gap: 22px;
+        align-items: start;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .book .spine {
+        height: 130px;
+        background: var(--paper-deep);
+        border: 1px solid var(--ink);
+        position: relative;
+        display: flex; align-items: flex-end; justify-content: center;
+        font-family: var(--font-display); font-style: italic; font-size: 12px;
+        color: var(--ink-soft); padding: 8px 6px; text-align: center; line-height: 1.1;
+        overflow: hidden;
+      }
+      .book .spine::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 18px; background: var(--accent);
+      }
+      .book.tone-2 .spine { background: var(--ink); color: var(--paper); }
+      .book.tone-2 .spine::before { background: var(--paper); }
+      .book.tone-3 .spine { background: var(--accent); color: var(--paper); }
+      .book.tone-3 .spine::before { background: var(--ink); }
+      .book.tone-4 .spine { background: var(--paper); border-color: var(--accent); color: var(--accent); }
+      .book.tone-4 .spine::before { background: var(--accent); }
+      .book h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; line-height: 1.2; margin: 0 0 4px; }
+      .book h3 em { font-style: italic; }
+      .book .by { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-fade); margin-bottom: 12px; }
+      .book .note { font-family: var(--font-body); font-size: 15.5px; line-height: 1.55; color: var(--ink); margin: 0 0 10px; }
+      .book .stars { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.2em; }
+    </style>
+  </Fragment>
+
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+
+    <section class="editorial-grid" style="align-items: end;">
+      <div style="grid-column: 1 / span 8;">
+        <div class="eyebrow fade-in">Reading · A working list</div>
+        <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6vw, 4.6rem); margin: 14px 0 0; line-height: 1;">
+          On the <em>desk,</em> right now.
+        </h1>
+      </div>
+      <div style="grid-column: 10 / span 3; text-align: right;" class="fade-in-3 meta">
+        Updated {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}<br/>
+        {active.length} active · {stalled.length} stalled<br/>
+        {finishedCount} read this year
+      </div>
+    </section>
+
+    <hr class="rule rule-ink" style="margin: 48px 0 0;" />
+
+    {active.length > 0 && (
+      <section style="margin-top: 56px;">
+        <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 8px;">Reading now ·  active</div>
+        <div class="shelf">
+          {active.map(b => (
+            <div class={`book tone-${b.data.tone}`}>
+              <div class="spine" set:html={b.data.spine.replace(/\n/g, '<br/>')} />
+              <div>
+                <h3 set:html={b.data.title} />
+                <div class="by">{b.data.author}{b.data.year ? ` · ${b.data.year}` : ''}</div>
+                <p class="note">{b.data.note}</p>
+                {(b.data.stars || b.data.progress) && (
+                  <div class="stars">{b.data.stars}{b.data.progress ? `  · ${b.data.progress}` : ''}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {stalled.length > 0 && (
+      <section style="margin-top: 80px;">
+        <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 8px;">Stalled ·  on the side table</div>
+        <div class="shelf">
+          {stalled.map(b => (
+            <div class={`book tone-${b.data.tone}`}>
+              <div class="spine" set:html={b.data.spine.replace(/\n/g, '<br/>')} />
+              <div>
+                <h3 set:html={b.data.title} />
+                <div class="by">{b.data.author}{b.data.year ? ` · ${b.data.year}` : ''}</div>
+                <p class="note">{b.data.note}</p>
+                {(b.data.stars || b.data.progress) && (
+                  <div class="stars">{b.data.stars}{b.data.progress ? `  · ${b.data.progress}` : ''}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <div class="divider-glyph"></div>
+
+    <blockquote style="max-width: 720px; margin: 24px auto; font-family: var(--font-display); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.3; text-align: center; color: var(--ink); padding: 0 24px; border: none;">
+      "A book read twice is a different book." <br/><cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— note in the margin, anon.</cite>
+    </blockquote>
+
+    <hr class="rule" style="margin: 64px 0 24px;" />
+
+    <aside style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Tag name="reading" />
+        <Tag name="books" />
+        <Tag name="philosophy" />
+      </div>
+      <a class="arrow" href="/archive/">See full reading log</a>
+    </aside>
+  </main>
+</BaseLayout>

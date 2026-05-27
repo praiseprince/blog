@@ -1,0 +1,167 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import { getAllPosts, postUrl, kindLabel, getAllTags } from '../lib/posts';
+
+const posts = await getAllPosts();
+const lead = posts.find(p => p.data.type === 'essay') ?? posts[0];
+const sideKinds: Array<{ kind: typeof posts[number]['data']['type']; label: string }> = [
+  { kind: 'photo',     label: 'Photography' },
+  { kind: 'walk',      label: 'Walks' },
+  { kind: 'technical', label: 'Notes · Engineering' },
+  { kind: 'fragment',  label: 'Fragments' },
+];
+const sidePosts = sideKinds
+  .map(s => ({ ...s, post: posts.find(p => p.data.type === s.kind && p.id !== lead?.id) }))
+  .filter((s): s is typeof s & { post: typeof posts[number] } => Boolean(s.post));
+
+// Three more for the second tier (skip lead + side picks)
+const usedIds = new Set([lead?.id, ...sidePosts.map(s => s.post.id)]);
+const secondTier = posts.filter(p => !usedIds.has(p.id)).slice(0, 3);
+
+// Latest photo for the contact sheet strip
+const latestPhoto = posts.find(p => p.data.type === 'photo');
+const contactSheet = latestPhoto?.data.gallery?.slice(0, 6) ?? [];
+
+const tagMap = await getAllTags();
+const tags = [...tagMap.keys()];
+---
+<BaseLayout
+  title="Praise Prince — A field journal of one engineer's intellectual life"
+  activeNav="index"
+  mastheadVariant="home"
+  screenLabel="Index"
+>
+  <main>
+    <section class="h01-grid">
+      {lead && (
+        <article class="h01-lead fade-in">
+          <div class="eyebrow">{lead.data.eyebrow ?? `Issue's lead · ${kindLabel(lead.data.type)}`}</div>
+          <a href={postUrl(lead)}>
+            <h1 class="h01-lead-headline" set:html={`${lead.data.title}<span style="color: var(--accent);">.</span>`} />
+          </a>
+
+          <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end; margin-top: 24px;">
+            <div class="meta">By P.P.<br/>{lead.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{lead.data.readTime ? ` · ${lead.data.readTime}` : ''}</div>
+            {lead.data.excerpt && <p class="caption" style="max-width: 60ch; margin: 0;" set:html={lead.data.excerpt} />}
+          </div>
+
+          {lead.data.cover && (
+            <a href={postUrl(lead)} style="display: block; margin-top: 32px;">
+              <figure>
+                <img src={lead.data.cover.src} alt={lead.data.cover.alt} />
+                {(lead.data.cover.caption || lead.data.cover.ix) && (
+                  <figcaption>
+                    {lead.data.cover.ix && <span class="ix">{lead.data.cover.ix}</span>}
+                    <span set:html={lead.data.cover.caption ?? ''} />
+                  </figcaption>
+                )}
+              </figure>
+            </a>
+          )}
+
+          <a class="arrow" href={postUrl(lead)} style="margin-top: 24px;">Continue reading the {lead.data.type === 'essay' ? 'essay' : 'piece'}</a>
+        </article>
+      )}
+
+      <aside class="h01-side fade-in-2">
+        <div class="eyebrow" style="color: var(--accent);">Above the fold</div>
+        <hr class="rule" style="margin: 12px 0 16px;" />
+        {sidePosts.map((s, idx) => (
+          <a
+            href={postUrl(s.post)}
+            style={idx === 0
+              ? 'display: block; padding-bottom: 20px; border-bottom: 1px solid var(--rule);'
+              : (idx === sidePosts.length - 1
+                  ? 'display: block; padding: 20px 0;'
+                  : 'display: block; padding: 20px 0; border-bottom: 1px solid var(--rule);')}
+          >
+            <div class="meta" style="margin-bottom: 6px;">{s.label}</div>
+            <h3 class="display" style={`font-family: var(--font-display); font-weight: 400; ${s.kind === 'fragment' ? 'font-style: italic; color: var(--ink-soft);' : ''} font-size: 1.6rem; line-height: 1.1; margin: 0;`} set:html={s.post.data.title} />
+            {s.post.data.excerpt && <p class="caption" style="margin-top: 10px;" set:html={s.post.data.excerpt} />}
+          </a>
+        ))}
+      </aside>
+    </section>
+
+    {secondTier.length > 0 && (
+      <section class="h01-row-2">
+        <div class="h01-three">
+          {secondTier.map(p => (
+            <div>
+              <div class="meta" style="margin-bottom: 6px; color: var(--accent);">{kindLabel(p.data.type)}</div>
+              <a href={postUrl(p)}>
+                <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; margin: 0 0 12px;" set:html={p.data.title} />
+              </a>
+              {p.data.excerpt && <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 12px;" set:html={p.data.excerpt} />}
+              <div class="meta">{kindLabel(p.data.type)}{p.data.readTime ? ` · ${p.data.readTime}` : ''}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {latestPhoto && contactSheet.length > 0 && (
+      <section style="border-top: 1px solid var(--ink); padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
+        <div style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px;">
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Latest contact sheet</div>
+            <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 8px 0 0; font-weight: 400;" set:html={`From ${latestPhoto.data.title}`} />
+          </div>
+          <a class="arrow" href={postUrl(latestPhoto)}>See the full roll</a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;" class="contact-strip">
+          {contactSheet.map(g => (
+            <a href={postUrl(latestPhoto)}>
+              <div class="thumb"><img src={g.src} alt={g.alt} /></div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    {tags.length > 0 && (
+      <section style="padding: clamp(32px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
+        <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 14px;">Browse by topic</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          {tags.map(t => <Tag name={t} />)}
+        </div>
+      </section>
+    )}
+  </main>
+
+  <style>
+    .h01-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: clamp(20px, 2.5vw, 36px);
+      padding: clamp(32px, 5vw, 64px) clamp(20px, 5vw, 56px);
+    }
+    .h01-lead { grid-column: 1 / span 8; }
+    .h01-side { grid-column: 9 / span 4; border-left: 1px solid var(--rule); padding-left: clamp(20px, 2vw, 32px); }
+    .h01-lead-headline {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 7vw, 5.6rem);
+      line-height: 0.96;
+      letter-spacing: -0.02em;
+      margin: 12px 0 0;
+    }
+    .h01-lead-headline em { font-style: italic; }
+    .h01-row-2 { padding: clamp(20px, 3vw, 40px) clamp(20px, 5vw, 56px); border-top: 1px solid var(--ink); }
+    .h01-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 3vw, 56px); }
+    .h01-three > div { border-right: 1px solid var(--rule); padding-right: clamp(20px, 2vw, 32px); }
+    .h01-three > div:last-child { border-right: 0; padding-right: 0; }
+    @media (max-width: 900px) {
+      .h01-lead, .h01-side { grid-column: 1 / -1; }
+      .h01-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 28px; margin-top: 16px; }
+      .h01-three { grid-template-columns: 1fr; }
+      .h01-three > div { border-right: 0; padding-right: 0; padding-bottom: 24px; border-bottom: 1px solid var(--rule); }
+      .h01-three > div:last-child { border-bottom: 0; padding-bottom: 0; }
+    }
+    @media (max-width: 720px) {
+      .hide-mobile { display: none; }
+      .contact-strip { grid-template-columns: repeat(3, 1fr) !important; }
+    }
+  </style>
+</BaseLayout>

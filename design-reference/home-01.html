@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Praise Prince — A field journal of one engineer's intellectual life</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+  /* home-01 — "The Masthead" — newspaper cover, asymmetric editorial grid */
+  .h01-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(20px, 2.5vw, 36px);
+    padding: clamp(32px, 5vw, 64px) clamp(20px, 5vw, 56px);
+  }
+  .h01-lead { grid-column: 1 / span 8; }
+  .h01-side { grid-column: 9 / span 4; border-left: 1px solid var(--rule); padding-left: clamp(20px, 2vw, 32px); }
+  .h01-lead-headline {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 7vw, 5.6rem);
+    line-height: 0.96;
+    letter-spacing: -0.02em;
+    margin: 12px 0 0;
+  }
+  .h01-lead-headline em { font-style: italic; }
+  .h01-row-2 { padding: clamp(20px, 3vw, 40px) clamp(20px, 5vw, 56px); border-top: 1px solid var(--ink); }
+  .h01-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 3vw, 56px); }
+  .h01-three > div { border-right: 1px solid var(--rule); padding-right: clamp(20px, 2vw, 32px); }
+  .h01-three > div:last-child { border-right: 0; padding-right: 0; }
+  @media (max-width: 900px) {
+    .h01-lead, .h01-side { grid-column: 1 / -1; }
+    .h01-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 28px; margin-top: 16px; }
+    .h01-three { grid-template-columns: 1fr; }
+    .h01-three > div { border-right: 0; padding-right: 0; padding-bottom: 24px; border-bottom: 1px solid var(--rule); }
+    .h01-three > div:last-child { border-bottom: 0; padding-bottom: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Masthead: classical newspaper nameplate -->
+<header class="masthead" style="border-bottom-width: 4px; border-bottom-style: double; padding-bottom: 18px;" data-screen-label="01 Home — Masthead">
+  <div class="left">
+    EST. 2021<br/>
+    <span data-issue></span><br/>
+    Lagos · Cambridge
+  </div>
+  <div class="nameplate fade-in"><em>Praise</em> Prince</div>
+  <div class="right">
+    <span data-date></span><br/>
+    Independent · Irregular<br/>
+    Price: <em style="font-family: var(--font-display); font-style: italic;">your attention</em>
+  </div>
+</header>
+
+<!-- Sub-masthead motto strip -->
+<div style="border-bottom: 1px solid var(--ink); padding: 8px clamp(20px, 5vw, 56px); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);">
+  <span>A field journal of one engineer's intellectual life</span>
+  <span class="hide-mobile">"Look twice, walk slowly, write small."</span>
+</div>
+
+<!-- Site nav -->
+<nav class="sitenav">
+  <a href="home-01.html" class="is-active">Index</a>
+  <a href="archive.html">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html">Notes</a>
+  <a href="reading.html">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<!-- Lead + side -->
+<main>
+  <section class="h01-grid">
+
+    <!-- Lead story -->
+    <article class="h01-lead fade-in">
+      <div class="eyebrow">Issue's lead · Essay № 217</div>
+      <a href="essay.html">
+        <h1 class="h01-lead-headline">
+          On the habit of <em>looking</em> twice<span style="color: var(--accent);">.</span>
+        </h1>
+      </a>
+
+      <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end; margin-top: 24px;">
+        <div class="meta">By P.P.<br/>Nov 21 · 12 min</div>
+        <p class="caption" style="max-width: 60ch; margin: 0;">
+          There is a small, almost ceremonial discipline I am trying to keep this year: when something catches my eye, I look at it twice. Not to confirm — to <em>refuse</em> the first answer. On photography, debugging, and Bachelard.
+        </p>
+      </div>
+
+      <a href="essay.html" style="display: block; margin-top: 32px;">
+        <figure>
+          <img src="https://picsum.photos/seed/lookingtwice/1600/900?grayscale" alt="Doorway at dusk." />
+          <figcaption><span class="ix">FIG. 01</span><span><em>Doorway, Yaba.</em> Shot on a Yashica T4, late evening, no tripod.</span></figcaption>
+        </figure>
+      </a>
+
+      <a class="arrow" href="essay.html" style="margin-top: 24px;">Continue reading the essay</a>
+    </article>
+
+    <!-- Side column -->
+    <aside class="h01-side fade-in-2">
+      <div class="eyebrow" style="color: var(--accent);">Above the fold</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+
+      <a href="photo.html" style="display: block; padding-bottom: 20px; border-bottom: 1px solid var(--rule);">
+        <div class="meta" style="margin-bottom: 6px;">Photography · Roll 14</div>
+        <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; line-height: 1.1; margin: 0;"><em>Yaba,</em> in the rain.</h3>
+        <p class="caption" style="margin-top: 10px;">Twelve of thirty-six worth keeping. Wet October, expired Fuji 200.</p>
+      </a>
+
+      <a href="walk.html" style="display: block; padding: 20px 0; border-bottom: 1px solid var(--rule);">
+        <div class="meta" style="margin-bottom: 6px;">Walks · entry 21</div>
+        <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; line-height: 1.1; margin: 0;"><em>Third Mainland</em>, before the bridge woke up.</h3>
+        <p class="caption" style="margin-top: 10px;">5.2 km, 88 minutes, one sachet of water at 30 naira.</p>
+      </a>
+
+      <a href="technical.html" style="display: block; padding: 20px 0; border-bottom: 1px solid var(--rule);">
+        <div class="meta" style="margin-bottom: 6px;">Notes · Engineering</div>
+        <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.6rem; line-height: 1.1; margin: 0;">A small note on <em>Verlet</em> integration.</h3>
+        <p class="caption" style="margin-top: 10px;">On why a 1967 scheme keeps quietly running the games industry.</p>
+      </a>
+
+      <a href="fragments.html" style="display: block; padding: 20px 0;">
+        <div class="meta" style="margin-bottom: 6px;">Fragments № 88</div>
+        <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-style: italic; font-size: 1.6rem; line-height: 1.15; margin: 0; color: var(--ink-soft);">
+          "The kind of friend who asks one more question than is polite — that is the only kind worth keeping."
+        </h3>
+        <p class="caption" style="margin-top: 10px;">A loose stack of notebook scraps.</p>
+      </a>
+    </aside>
+  </section>
+
+  <!-- Three-column second tier (newspaper style) -->
+  <section class="h01-row-2">
+    <div class="h01-three">
+
+      <div>
+        <div class="meta" style="margin-bottom: 6px; color: var(--accent);">Recently · History</div>
+        <a href="essay.html"><h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; margin: 0 0 12px;">A small history of <em>silence</em> in early radio.</h3></a>
+        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 12px;">
+          When the BBC first broadcast deliberate silence, in 1929, it received complaints. The complaints, in retrospect, are the more interesting document.
+        </p>
+        <div class="meta">Essay · 9 min</div>
+      </div>
+
+      <div>
+        <div class="meta" style="margin-bottom: 6px; color: var(--accent);">From the workbench</div>
+        <a href="technical.html"><h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; margin: 0 0 12px;">Why <em>compilers</em> ought to be slower.</h3></a>
+        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 12px;">
+          An argument against the cult of fast feedback, and in favour of letting the machine think a little longer before you do.
+        </p>
+        <div class="meta">Note · CS · 7 min</div>
+      </div>
+
+      <div>
+        <div class="meta" style="margin-bottom: 6px; color: var(--accent);">Currently reading</div>
+        <a href="reading.html"><h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; margin: 0 0 12px;"><em>Invisible Cities</em> &amp; the use of pockets.</h3></a>
+        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 12px;">
+          Calvino is carried everywhere this autumn. Three pages at a time turns out to be the right dose. Also: Berger, Bachelard, and a brick of Knuth.
+        </p>
+        <a class="arrow" href="reading.html" style="font-size: 10px;">See the desk</a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Photo contact sheet strip -->
+  <section style="border-top: 1px solid var(--ink); padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
+    <div style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px;">
+      <div>
+        <div class="eyebrow" style="color: var(--accent);">Latest contact sheet</div>
+        <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 8px 0 0; font-weight: 400;">From <em>Roll 14</em> — Yaba, October.</h2>
+      </div>
+      <a class="arrow" href="photo.html">See the full roll</a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba02/500/625?grayscale" alt="" /></div></a>
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba04/500/625?grayscale" alt="" /></div></a>
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba05/500/625?grayscale" alt="" /></div></a>
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba06/500/625?grayscale" alt="" /></div></a>
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba07/500/625?grayscale" alt="" /></div></a>
+      <a href="photo.html"><div class="thumb"><img src="https://picsum.photos/seed/yaba09/500/625?grayscale" alt="" /></div></a>
+    </div>
+  </section>
+
+  <!-- Tags + browse -->
+  <section style="padding: clamp(32px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
+    <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 14px;">Browse by topic</div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <a class="tag" href="tag.html">attention</a>
+      <a class="tag" href="tag.html">photography</a>
+      <a class="tag" href="tag.html">phenomenology</a>
+      <a class="tag" href="tag.html">lagos</a>
+      <a class="tag" href="tag.html">cambridge</a>
+      <a class="tag" href="tag.html">walks</a>
+      <a class="tag" href="tag.html">point-and-shoot</a>
+      <a class="tag" href="tag.html">simulation</a>
+      <a class="tag" href="tag.html">numerical-methods</a>
+      <a class="tag" href="tag.html">history</a>
+      <a class="tag" href="tag.html">religion</a>
+      <a class="tag" href="tag.html">Bachelard</a>
+      <a class="tag" href="tag.html">Berger</a>
+      <a class="tag" href="tag.html">Calvino</a>
+      <a class="tag" href="tag.html">slow-internet</a>
+      <a class="tag" href="tag.html">notebook</a>
+      <a class="tag" href="tag.html">overheard</a>
+      <a class="tag" href="tag.html">harmattan</a>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025 — All rights gently reserved.</div>
+    <div style="text-align: center;">Set in Newsreader, Instrument Serif, Geist &amp; JetBrains Mono.</div>
+    <div class="right"><a href="about.html">Colophon →</a></div>
+  </footer>
+</main>
+
+<style>
+@media (max-width: 720px) {
+  .hide-mobile { display: none; }
+  section[style*="grid-template-columns: repeat(6, 1fr)"] { grid-template-columns: repeat(3, 1fr) !important; }
+}
+</style>
+</body>
+</html>

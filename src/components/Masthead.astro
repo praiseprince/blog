@@ -1,0 +1,48 @@
+---
+interface Props {
+  variant?: 'default' | 'home';
+  rightLine?: string;
+  leftLine?: string;
+  screenLabel?: string;
+}
+const { variant = 'default', rightLine, leftLine, screenLabel } = Astro.props;
+const isHome = variant === 'home';
+---
+{isHome ? (
+  <header
+    class="masthead"
+    style="border-bottom-width: 4px; border-bottom-style: double; padding-bottom: 18px;"
+    data-screen-label={screenLabel}
+  >
+    <div class="left">
+      EST. 2021<br/>
+      <span data-issue></span><br/>
+      Lagos · Cambridge
+    </div>
+    <div class="nameplate fade-in"><em>Praise</em> Prince</div>
+    <div class="right">
+      <span data-date></span><br/>
+      Independent · Irregular<br/>
+      Price: <em style="font-family: var(--font-display); font-style: italic;">your attention</em>
+    </div>
+  </header>
+) : (
+  <header class="masthead" data-screen-label={screenLabel}>
+    <div class="left">
+      {leftLine ?? 'Praise Prince'}<br/>
+      <span data-issue></span>
+    </div>
+    <a class="nameplate" href="/"><em>Praise</em> Prince</a>
+    <div class="right">
+      <span data-date></span><br/>
+      {rightLine}
+    </div>
+  </header>
+)}
+
+{isHome && (
+  <div style="border-bottom: 1px solid var(--ink); padding: 8px clamp(20px, 5vw, 56px); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);">
+    <span>A field journal of one engineer's intellectual life</span>
+    <span class="hide-mobile">"Look twice, walk slowly, write small."</span>
+  </div>
+)}

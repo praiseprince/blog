@@ -1,0 +1,19 @@
+---
+interface Props {
+  middle?: string;
+  rightHref?: string;
+  rightLabel?: string;
+  left?: string;
+}
+const {
+  middle = 'Set in Newsreader, Instrument Serif, Geist & JetBrains Mono.',
+  rightHref = '/about/',
+  rightLabel = 'Colophon →',
+  left = '© Praise Prince, ' + new Date().getFullYear() + ' — All rights gently reserved.',
+} = Astro.props;
+---
+<footer class="colophon">
+  <div>{left}</div>
+  <div style="text-align: center;">{middle}</div>
+  <div class="right"><a href={rightHref}>{rightLabel}</a></div>
+</footer>

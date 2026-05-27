@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>On the desk — Reading list — Praise Prince</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+.shelf { display: grid; grid-template-columns: 1fr 1fr; gap: 56px clamp(32px, 5vw, 80px); margin-top: 48px; }
+@media (max-width: 800px) { .shelf { grid-template-columns: 1fr; gap: 40px; } }
+.book {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 22px;
+  align-items: start;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.book .spine {
+  height: 130px;
+  background: var(--paper-deep);
+  border: 1px solid var(--ink);
+  position: relative;
+  display: flex; align-items: flex-end; justify-content: center;
+  font-family: var(--font-display); font-style: italic; font-size: 12px;
+  color: var(--ink-soft); padding: 8px 6px; text-align: center; line-height: 1.1;
+  overflow: hidden;
+}
+.book .spine::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 18px; background: var(--accent);
+}
+.book.tone-2 .spine { background: var(--ink); color: var(--paper); }
+.book.tone-2 .spine::before { background: var(--paper); }
+.book.tone-3 .spine { background: var(--accent); color: var(--paper); }
+.book.tone-3 .spine::before { background: var(--ink); }
+.book.tone-4 .spine { background: var(--paper); border-color: var(--accent); color: var(--accent); }
+.book.tone-4 .spine::before { background: var(--accent); }
+.book h3 { font-family: var(--font-display); font-weight: 400; font-size: 1.45rem; line-height: 1.2; margin: 0 0 4px; }
+.book h3 em { font-style: italic; }
+.book .by { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-fade); margin-bottom: 12px; }
+.book .note { font-family: var(--font-body); font-size: 15.5px; line-height: 1.55; color: var(--ink); margin: 0 0 10px; }
+.book .stars { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: 0.2em; }
+</style>
+</head>
+<body>
+
+<header class="masthead" data-screen-label="Reading">
+  <div class="left">Praise Prince<br/><span data-issue></span></div>
+  <a class="nameplate" href="home-01.html"><em>Praise</em> Prince</a>
+  <div class="right"><span data-date></span><br/>Reading · On the desk</div>
+</header>
+
+<nav class="sitenav">
+  <a href="home-01.html">Index</a>
+  <a href="archive.html">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html">Notes</a>
+  <a href="reading.html" class="is-active">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+
+  <section class="editorial-grid" style="align-items: end;">
+    <div style="grid-column: 1 / span 8;">
+      <div class="eyebrow fade-in">Reading · A working list</div>
+      <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6vw, 4.6rem); margin: 14px 0 0; line-height: 1;">
+        On the <em>desk,</em> right now.
+      </h1>
+    </div>
+    <div style="grid-column: 10 / span 3; text-align: right;" class="fade-in-3 meta" style="line-height: 1.7;">
+      Updated Nov. 20<br/>
+      4 active · 2 stalled<br/>
+      31 read this year
+    </div>
+  </section>
+
+  <hr class="rule rule-ink" style="margin: 48px 0 0;" />
+
+  <!-- Active reading -->
+  <section style="margin-top: 56px;">
+    <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 8px;">Reading now ·  active</div>
+    <div class="shelf">
+
+      <div class="book tone-1">
+        <div class="spine">Bachelard · Poetics<br/>of Reverie</div>
+        <div>
+          <h3><em>The Poetics</em> of Reverie</h3>
+          <div class="by">Gaston Bachelard · 1960</div>
+          <p class="note">
+            Slow. Generous. The kind of book you read at the pace of the room you happen to be in. He keeps saying things I have privately suspected for years, more elegantly than I would have.
+          </p>
+          <div class="stars">▣▣▣▣◇  · p. 142 / 218</div>
+        </div>
+      </div>
+
+      <div class="book tone-2">
+        <div class="spine">Berger · Ways<br/>of Seeing</div>
+        <div>
+          <h3><em>Ways of</em> Seeing</h3>
+          <div class="by">John Berger · 1972</div>
+          <p class="note">
+            Re-reading. Holds up almost embarrassingly well; the first essay still does more in 25 pages than most photo theory manages in 200.
+          </p>
+          <div class="stars">▣▣▣▣▣  · re-read №3</div>
+        </div>
+      </div>
+
+      <div class="book tone-3">
+        <div class="spine">Calvino<br/>Invisible Cities</div>
+        <div>
+          <h3><em>Invisible</em> Cities</h3>
+          <div class="by">Italo Calvino · 1972</div>
+          <p class="note">
+            Carried everywhere this autumn. Three pages at a time is the right dose. I have begun to lose track of which cities are real.
+          </p>
+          <div class="stars">▣▣▣▣▣  · for walks</div>
+        </div>
+      </div>
+
+      <div class="book tone-4">
+        <div class="spine">Knuth · TAOCP<br/>vol. 1</div>
+        <div>
+          <h3>The Art of Computer Programming, <em>vol. 1</em></h3>
+          <div class="by">Donald Knuth · 1968</div>
+          <p class="note">
+            A ten-page-a-week project. I do not pretend to understand all of it; I am here mainly for the prose. Knuth writes about algorithms the way a good historian writes about wars.
+          </p>
+          <div class="stars">▣▣◇◇◇  · p. 84 / 650</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Stalled / next up -->
+  <section style="margin-top: 80px;">
+    <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 8px;">Stalled ·  on the side table</div>
+    <div class="shelf">
+      <div class="book tone-2">
+        <div class="spine">Sontag · On<br/>Photography</div>
+        <div>
+          <h3>On <em>Photography</em></h3>
+          <div class="by">Susan Sontag · 1977</div>
+          <p class="note">Returned to twice; abandoned twice. I think the disagreement I have with her is what keeps me from finishing.</p>
+          <div class="stars">▣▣◇◇◇  · stalled, Aug</div>
+        </div>
+      </div>
+      <div class="book tone-1">
+        <div class="spine">Said · Beginnings</div>
+        <div>
+          <h3><em>Beginnings:</em> Intention &amp; Method</h3>
+          <div class="by">Edward Said · 1975</div>
+          <p class="note">Difficult. I will return when I am older or less impatient, whichever comes first.</p>
+          <div class="stars">▣◇◇◇◇  · stalled, Sep</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider-glyph"></div>
+
+  <!-- Quotation -->
+  <blockquote style="max-width: 720px; margin: 24px auto; font-family: var(--font-display); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.3; text-align: center; color: var(--ink); padding: 0 24px; border: none;">
+    "A book read twice is a different book." <br/><cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— note in the margin, anon.</cite>
+  </blockquote>
+
+  <hr class="rule" style="margin: 64px 0 24px;" />
+
+  <aside style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <a class="tag" href="tag.html">reading</a>
+      <a class="tag" href="tag.html">books</a>
+      <a class="tag" href="tag.html">philosophy</a>
+    </div>
+    <a class="arrow" href="archive.html">See full reading log</a>
+  </aside>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025</div>
+    <div style="text-align: center;">No affiliate links. Buy from independent shops.</div>
+    <div class="right"><a href="about.html">Colophon →</a></div>
+  </footer>
+</main>
+</body>
+</html>

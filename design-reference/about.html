@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Colophon — Praise Prince</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+</head>
+<body>
+
+<header class="masthead" data-screen-label="About">
+  <div class="left">Praise Prince<br/><span data-issue></span></div>
+  <a class="nameplate" href="home-01.html"><em>Praise</em> Prince</a>
+  <div class="right"><span data-date></span><br/>Colophon · About</div>
+</header>
+
+<nav class="sitenav">
+  <a href="home-01.html">Index</a>
+  <a href="archive.html">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html">Notes</a>
+  <a href="reading.html">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html" class="is-active">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<main class="page" style="padding-top: clamp(40px, 8vw, 120px); padding-bottom: 80px;">
+
+  <section class="editorial-grid" style="align-items: end;">
+    <div style="grid-column: 1 / span 8;">
+      <div class="eyebrow fade-in">Colophon · About this place</div>
+      <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6vw, 5rem); margin: 18px 0 0; line-height: 0.98;">
+        A reading room<br/>for <em>one engineer's</em><br/>intellectual life.
+      </h1>
+    </div>
+    <div style="grid-column: 10 / span 3;" class="fade-in-3 meta" style="text-align: right; line-height: 1.7;">
+      Edition 4<br/>
+      Hand-set in HTML/CSS<br/>
+      Last revised today
+    </div>
+  </section>
+
+  <hr class="rule rule-ink" style="margin: 64px 0 0;" />
+
+  <!-- Two-column about: portrait + bio -->
+  <section class="editorial-grid" style="margin-top: 64px; row-gap: 40px;">
+    <figure style="grid-column: 1 / span 4;">
+      <div class="thumb" style="aspect-ratio: 4/5;"><img src="https://picsum.photos/seed/portrait/800/1000?grayscale" alt="Portrait placeholder." /></div>
+      <figcaption><span class="ix">FIG. 01</span><span><em>Portrait of the author,</em> Yaba, October 2025. Photograph by a friend whose name I will keep.</span></figcaption>
+    </figure>
+
+    <div style="grid-column: 6 / span 7;">
+      <p class="lede dropcap-none" style="font-family: var(--font-display); font-style: italic; font-size: 1.6rem; line-height: 1.4; color: var(--ink-soft); margin: 0 0 1em;">
+        I am Praise Prince — an engineer by training, a reader by appetite, and a photographer by approximate accident.
+      </p>
+
+      <p style="font-family: var(--font-body); font-size: 17.5px; line-height: 1.65;">
+        I keep this site the way some people keep a garden: it is not the point, exactly, but it is where the work of paying attention happens. Most of what I publish here is small. A photograph from a walk, a fragment overheard, a note on something in computer science or physics that struck me as more beautiful than it had any right to be. Once or twice a season, an essay — longer, slower, less sure of itself.
+      </p>
+
+      <p style="font-family: var(--font-body); font-size: 17.5px; line-height: 1.65;">
+        I write between Lagos and Cambridge. I shoot mostly on a Yashica T4 my father gave me. I read more philosophy than is good for an engineer, and more code than is good for an essayist. The two halves do not always speak, but they share a room.
+      </p>
+
+      <p style="font-family: var(--font-body); font-size: 17.5px; line-height: 1.65;">
+        This place is private without being secret. It has no analytics, no email capture, no newsletter form. You are simply here. <em>Thank you for that.</em>
+      </p>
+
+      <p class="meta" style="margin-top: 32px;">— P.P., Lagos · 2025</p>
+    </div>
+  </section>
+
+  <div class="divider-glyph"></div>
+
+  <!-- Colophon proper (typography, tech, ethos) -->
+  <section class="editorial-grid" style="row-gap: 56px;">
+
+    <div style="grid-column: span 12;">
+      <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); font-style: italic; margin: 0; color: var(--ink);">
+        A note on how this is made.
+      </h2>
+    </div>
+
+    <div style="grid-column: span 4;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Typography</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+      <dl style="margin: 0; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.9;">
+        <dt style="color: var(--ink-fade);">Display</dt>
+        <dd style="margin: 0 0 8px; font-family: var(--font-display); font-style: italic; font-size: 1.4rem;">Instrument Serif</dd>
+        <dt style="color: var(--ink-fade);">Reading</dt>
+        <dd style="margin: 0 0 8px; font-family: var(--font-body); font-size: 1.2rem;">Newsreader, opsz</dd>
+        <dt style="color: var(--ink-fade);">Interface</dt>
+        <dd style="margin: 0 0 8px; font-family: var(--font-sans); font-size: 0.95rem;">Geist</dd>
+        <dt style="color: var(--ink-fade);">Metadata</dt>
+        <dd style="margin: 0; font-family: var(--font-mono); font-size: 0.85rem;">JetBrains Mono</dd>
+      </dl>
+    </div>
+
+    <div style="grid-column: span 4;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Construction</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+      <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0;">
+        Hand-written HTML and CSS. No frameworks, no build step. Images served raw. The grid is twelve columns; the rules are old. Reading mode reverses ink for paper. Everything works without JavaScript, except the things that benefit from it.
+      </p>
+    </div>
+
+    <div style="grid-column: span 4;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Ethos</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+      <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0;">
+        Slow over fast. Local over global. Suspicion of categories. Affection for what is partial. The reader is trusted; nothing here is performance. If anything on the site is wrong, please write — gently.
+      </p>
+    </div>
+
+    <div style="grid-column: span 6;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Equipment</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+      <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: 12.5px; line-height: 2; color: var(--ink-soft);">
+        <li>· Yashica T4 (1990) · Fuji 200, mostly</li>
+        <li>· Field Notes Pitch Black · Pilot Hi-Tec-C 0.4</li>
+        <li>· A 13" laptop I refuse to upgrade</li>
+        <li>· Whatever cup of tea is nearest</li>
+      </ul>
+    </div>
+
+    <div style="grid-column: span 6;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Elsewhere · Correspondence</div>
+      <hr class="rule" style="margin: 12px 0 16px;" />
+      <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.9;">
+        <li>Letters — <a href="#" style="border-bottom: 1px solid var(--accent);">praise@praiseprince.work</a></li>
+        <li>Reading list — <a href="reading.html" style="border-bottom: 1px solid var(--accent);">currently on the desk</a></li>
+        <li>RSS — <a href="#" style="border-bottom: 1px solid var(--accent);">/feed.xml</a> · for the patient</li>
+        <li>No social presence by design.</li>
+      </ul>
+    </div>
+
+  </section>
+
+  <hr class="rule rule-ink" style="margin: 80px 0 24px;" />
+
+  <p style="text-align: center; font-family: var(--font-display); font-style: italic; font-size: 1.4rem; color: var(--ink-soft); margin: 0;">
+    "We owe it to the fields that our houses will not be the only things to stand in them." — W. Berry
+  </p>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025</div>
+    <div style="text-align: center;">Made with affection, not optimisation.</div>
+    <div class="right"><a href="home-01.html">→ Back to the front page</a></div>
+  </footer>
+</main>
+
+<style>
+@media (max-width: 800px) {
+  .editorial-grid > div[style*="grid-column: 1 / span 8"],
+  .editorial-grid > div[style*="grid-column: 10 / span 3"],
+  .editorial-grid > figure[style*="grid-column: 1 / span 4"],
+  .editorial-grid > div[style*="grid-column: 6 / span 7"],
+  .editorial-grid > div[style*="grid-column: span 4"],
+  .editorial-grid > div[style*="grid-column: span 6"],
+  .editorial-grid > div[style*="grid-column: span 12"] {
+    grid-column: 1 / -1 !important;
+  }
+}
+</style>
+</body>
+</html>

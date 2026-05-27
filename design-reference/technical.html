@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>A small note on Verlet integration — Praise Prince</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+.tech-prose code, .tech-prose pre {
+  font-family: var(--font-mono);
+}
+.tech-prose pre {
+  background: var(--paper-deep);
+  border-left: 2px solid var(--accent);
+  padding: 18px 22px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  margin: 24px 0;
+  color: var(--ink);
+}
+.tech-prose code {
+  background: var(--paper-deep);
+  padding: 1px 6px;
+  font-size: 0.88em;
+}
+.tech-prose pre .kw { color: var(--accent); }
+.tech-prose pre .cm { color: var(--ink-fade); font-style: italic; }
+.tech-prose pre .st { color: var(--ink-soft); }
+[data-theme="night"] .tech-prose pre { background: #16140f; }
+.figmath {
+  border: 1px solid var(--rule);
+  padding: 28px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.9;
+  background: var(--paper);
+  text-align: center;
+  color: var(--ink);
+}
+.figmath em { font-family: var(--font-display); font-style: italic; font-size: 1.4em; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="read-progress"></div>
+
+<header class="masthead" data-screen-label="Technical">
+  <div class="left">Praise Prince<br/><span data-issue></span></div>
+  <a class="nameplate" href="home-01.html"><em>Praise</em> Prince</a>
+  <div class="right"><span data-date></span><br/>Notes · Engineering</div>
+</header>
+
+<nav class="sitenav">
+  <a href="home-01.html">Index</a>
+  <a href="archive.html">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html" class="is-active">Notes</a>
+  <a href="reading.html">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+
+  <!-- Article header, asymmetric -->
+  <section class="editorial-grid" style="align-items: end;">
+    <div style="grid-column: 1 / span 8;">
+      <div class="eyebrow fade-in">Notes · Computer science · Curiosity №34</div>
+      <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 5.5vw, 4.4rem); margin: 16px 0 0; line-height: 1;">
+        A small note on <em>Verlet</em> integration<br/>(and why we keep choosing it).
+      </h1>
+    </div>
+    <div style="grid-column: 10 / span 3; text-align: right;" class="fade-in-3">
+      <span class="stamp">Filed · Eng.</span>
+      <div class="meta" style="margin-top: 12px; line-height: 1.7;">
+        ~ 6 min read<br/>
+        Code: JS, ~40 lines<br/>
+        Last edit: today
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule rule-ink" style="margin: 48px 0 64px;" />
+
+  <!-- 2-col: prose left, marginalia right -->
+  <article class="editorial-grid tech-prose">
+    <div style="grid-column: 1 / span 8;">
+      <p class="lede" style="font-family: var(--font-display); font-style: italic; font-size: 1.5em; line-height: 1.35; color: var(--ink-soft); margin: 0 0 1.4em;">
+        Most game engines do not simulate <em>velocities.</em> They simulate <em>positions, twice.</em> The trick is older than you would expect — eighteenth-century, give or take — and it is, in its way, a small philosophical statement.
+      </p>
+
+      <p>The naive way to move a thing is the way most of us first learn:</p>
+
+      <pre><span class="cm">// Euler integration — honest, but lossy.</span>
+<span class="kw">for</span> (let i = 0; i &lt; steps; i++) {
+  vel.x += acc.x * dt;
+  vel.y += acc.y * dt;
+  pos.x += vel.x * dt;
+  pos.y += vel.y * dt;
+}</pre>
+
+      <p>
+        This is Euler's method, named for someone who would have had stronger words for what we have done with it. It is fine for slow systems. For fast ones, energy leaks out of it on every tick, like a balloon with a slow puncture, and after a hundred frames your pendulum has either died down or — depending on the sign of the error — flown away.
+      </p>
+
+      <h2 style="font-family: var(--font-display); font-weight: 400;">The Verlet trick</h2>
+
+      <p>
+        Verlet integration starts somewhere unusual: it does not store the velocity at all. It only remembers <em>where the particle was last frame</em>, and uses that to imply the velocity.
+      </p>
+
+      <pre><span class="cm">// Position Verlet.</span>
+<span class="kw">const</span> next = {
+  x: 2 * pos.x - prev.x + acc.x * dt * dt,
+  y: 2 * pos.y - prev.y + acc.y * dt * dt,
+};
+prev = pos;
+pos  = next;</pre>
+
+      <p>
+        That is the whole thing. Two multiplications, one subtraction, no separate state for velocity. And it is <em>time-symmetric</em>: run it backwards from any frame and you get the previous frame — which is the property that makes it stable.
+      </p>
+
+      <p>
+        I find this beautiful. We tend to think of motion as a primary quantity and position as a consequence. Verlet quietly inverts the relationship: position is what we measure; velocity is what we infer. It is closer to what a photograph actually does. Two stills, a known interval, and the motion is implicit.
+      </p>
+
+      <h2 style="font-family: var(--font-display); font-weight: 400;">Why this keeps coming back</h2>
+
+      <p>
+        The same scheme — under different names — runs cloth simulations, soft-body physics, most molecular dynamics, the constraint solvers in your favourite ragdoll, and, famously, the rope in <em>Hitman: Codename 47</em>. The reason is not speed (it is fast, but Euler is faster). The reason is that the wrong answer it gives <em>looks like</em> the right answer for much longer. Stability over accuracy, in a discipline that pretends to want the opposite.
+      </p>
+
+      <p>
+        There is, I think, a general lesson in there for engineering: the methods that survive are the ones whose <em>failure mode</em> is benign. Code that breaks gracefully will be used long after code that, when it works, is faster.
+      </p>
+
+      <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— P.P. · revised today</p>
+    </div>
+
+    <!-- Marginalia column -->
+    <aside style="grid-column: 10 / span 3;" class="marginalia">
+      <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 12px;">Marginalia</div>
+
+      <div style="border-left: 2px solid var(--accent); padding-left: 14px; margin-bottom: 28px;">
+        Loup Verlet, the physicist this is named after, was simulating argon gas in 1967. The trick had already appeared, more obliquely, in Newton's <em>Principia</em>.
+      </div>
+
+      <div class="figmath" style="margin-bottom: 28px;">
+        <em>x</em><sub>n+1</sub> = 2<em>x</em><sub>n</sub> − <em>x</em><sub>n−1</sub> + <em>a</em>·Δt²
+        <div style="font-family: var(--font-sans); font-size: 11px; color: var(--ink-fade); margin-top: 12px; letter-spacing: 0.05em;">— position Verlet</div>
+      </div>
+
+      <div style="border-top: 1px solid var(--rule); padding-top: 20px; margin-bottom: 28px;">
+        <strong style="font-family: var(--font-body); font-weight: 500;">Variants:</strong> Stör­mer–Verlet, velocity-Verlet, leap-frog. They are all the same idea worn in different hats.
+      </div>
+
+      <figure>
+        <div class="thumb" style="aspect-ratio: 1/1;"><img src="https://picsum.photos/seed/verlet/600/600?grayscale" alt="" /></div>
+        <figcaption><span class="ix">FIG. 01</span><span>A double pendulum, simulated with velocity-Verlet at Δt = 1/60s. It does not fall apart.</span></figcaption>
+      </figure>
+    </aside>
+  </article>
+
+  <hr class="rule" style="margin: 80px 0 32px;" />
+
+  <aside class="editorial-grid">
+    <div style="grid-column: span 6;">
+      <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
+      <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+        <a class="tag" href="tag.html">simulation</a>
+        <a class="tag" href="tag.html">numerical-methods</a>
+        <a class="tag" href="tag.html">physics</a>
+        <a class="tag" href="tag.html">engineering</a>
+      </div>
+    </div>
+    <div style="grid-column: span 6; text-align: right;">
+      <a class="arrow" href="essay.html">Companion essay → On the habit of looking twice</a>
+    </div>
+  </aside>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025</div>
+    <div style="text-align: center;">Code is MIT-licensed; the prose isn't.</div>
+    <div class="right"><a href="archive.html">→ Archive</a></div>
+  </footer>
+</main>
+
+<style>
+@media (max-width: 800px) {
+  .tech-prose > div[style*="grid-column: 1 / span 8"],
+  .tech-prose > aside[style*="grid-column: 10 / span 3"] {
+    grid-column: 1 / -1 !important;
+  }
+  .tech-prose > aside { margin-top: 32px; border-top: 1px solid var(--rule); padding-top: 24px; }
+}
+</style>
+</body>
+</html>

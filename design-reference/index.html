@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Praise Prince — Five ways into one journal</title>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body { background: #f1ece2; color: #1b1916; font-family: 'Geist', ui-sans-serif, system-ui, sans-serif; }
+  [data-theme="night"] body { background: #161410; color: #e8e2d3; }
+
+  /* Make iframe artboards visually clean */
+  .artboard-iframe {
+    width: 100%; height: 100%; border: 0; display: block; background: var(--paper);
+  }
+  /* Canvas top intro overlay (sits beside the canvas top, not above it because canvas takes full viewport) */
+  .canvas-intro {
+    position: fixed; top: 18px; left: 18px; z-index: 50;
+    background: rgba(241, 236, 226, 0.92);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0,0,0,0.12);
+    padding: 14px 18px;
+    max-width: 340px;
+    font-family: 'Geist', sans-serif;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #1b1916;
+  }
+  .canvas-intro .lab {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #8b3a2f;
+    margin-bottom: 4px;
+  }
+  .canvas-intro .name {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 22px; line-height: 1; margin: 0 0 4px;
+  }
+  .canvas-intro .name em { font-style: italic; }
+  [data-theme="night"] .canvas-intro {
+    background: rgba(22,20,15,0.92); color: #e8e2d3; border-color: rgba(255,255,255,0.18);
+  }
+</style>
+</head>
+<body data-screen-label="00 Canvas — Index">
+
+<!-- Intro card (always visible) -->
+<div class="canvas-intro">
+  <div class="lab">Praise Prince · presentation deck</div>
+  <h1 class="name"><em>Five ways</em> into one journal.</h1>
+  <p style="margin: 6px 0 0; color: #4a463f;">
+    Each board is the same site, entered differently. Open any board fullscreen (top-right of each card) to navigate the full prototype. Tweaks panel — bottom right — swaps palette &amp; light/dark across all boards.
+  </p>
+</div>
+
+<!-- React mount -->
+<div id="root"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const PP_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "palette": "tumblr",
+  "theme": "night"
+}/*EDITMODE-END*/;
+
+// ── PPArtboard: a DCArtboard holding a navigable iframe ─────────────
+function PPFrame({ src, palette, theme }) {
+  const ref = React.useRef(null);
+  // Build the URL with palette+theme params so the first load is correct.
+  const url = `${src}?palette=${encodeURIComponent(palette)}&theme=${encodeURIComponent(theme)}`;
+  // Whenever palette/theme change, postMessage into the iframe.
+  React.useEffect(() => {
+    const f = ref.current;
+    if (!f) return;
+    const send = () => {
+      try {
+        f.contentWindow.postMessage({ type: '__pp_palette', palette }, '*');
+        f.contentWindow.postMessage({ type: '__pp_theme', theme }, '*');
+      } catch (e) {}
+    };
+    send();
+  }, [palette, theme]);
+  return (
+    <iframe
+      ref={ref}
+      src={url}
+      className="artboard-iframe"
+      title={src}
+      loading="lazy"
+    />
+  );
+}
+
+const PALETTES = [
+  { id: 'newsprint', label: 'Newsprint · oxblood',  colors: ['#f2ede4', '#1b1916', '#8b3a2f'] },
+  { id: 'archive',   label: 'Cool archive',          colors: ['#e9e6dd', '#14213d', '#5a7794'] },
+  { id: 'tumblr',    label: 'Tumblr warm',           colors: ['#efe7da', '#2c2622', '#b06548'] },
+  { id: 'mono',      label: 'Monochrome',            colors: ['#ede9e1', '#15140f', '#45433c'] },
+];
+
+function PaletteSwatches({ value, onChange }) {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {PALETTES.map(p => {
+        const on = p.id === value;
+        return (
+          <button
+            key={p.id} type="button" title={p.label}
+            onClick={() => onChange(p.id)}
+            aria-pressed={on}
+            style={{
+              cursor: 'pointer', padding: 0, border: on ? '2px solid #1b1916' : '1px solid rgba(0,0,0,0.18)',
+              outline: 'none', background: 'transparent', borderRadius: 0,
+              boxShadow: on ? '0 0 0 2px #f2ede4 inset, 0 1px 4px rgba(0,0,0,0.12)' : 'none',
+            }}
+          >
+            <div style={{ display: 'flex', width: 64, height: 28 }}>
+              {p.colors.map((c, i) => (
+                <div key={i} style={{ background: c, flex: i === 0 ? 2 : 1 }} />
+              ))}
+            </div>
+            <div style={{
+              fontFamily: 'JetBrains Mono, ui-monospace, monospace',
+              fontSize: 9, letterSpacing: '0.12em', textTransform: 'uppercase',
+              padding: '4px 2px 2px', color: '#4a463f', textAlign: 'center',
+            }}>{p.id}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(PP_DEFAULTS);
+  // Apply theme to the canvas body so it visually matches
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', t.theme);
+    document.documentElement.setAttribute('data-palette', t.palette);
+  }, [t.theme, t.palette]);
+
+  // Each homepage variation
+  const variations = [
+    { id: 'h01', label: '01 · The Masthead', src: 'home-01.html', sub: 'Newspaper nameplate; asymmetric editorial grid; lead + three columns.' },
+    { id: 'h02', label: '02 · Atmospheric Splash', src: 'home-02.html', sub: 'Full-bleed cinematic cover; archive flows below as a contact sheet.' },
+    { id: 'h03', label: '03 · The Index', src: 'home-03.html', sub: 'Typographic table of contents; thumbnails appear on hover in the margin.' },
+    { id: 'h04', label: '04 · Magazine Cover', src: 'home-04.html', sub: 'Indie-magazine cover with contents pane; editor\'s letter below.' },
+    { id: 'h05', label: '05 · Notebook Stream', src: 'home-05.html', sub: 'Chronological journal with timeline rail and marginalia.' },
+  ];
+
+  const innerPages = [
+    { id: 'p-essay', label: 'Essay · long-form', src: 'essay.html' },
+    { id: 'p-photo', label: 'Photo entry · point-and-shoot', src: 'photo.html' },
+    { id: 'p-walk', label: 'Walk · observation', src: 'walk.html' },
+    { id: 'p-frag', label: 'Fragments · notebook', src: 'fragments.html' },
+    { id: 'p-tech', label: 'Note · engineering', src: 'technical.html' },
+    { id: 'p-arch', label: 'Archive · filter + grid', src: 'archive.html' },
+    { id: 'p-read', label: 'Reading · on the desk', src: 'reading.html' },
+    { id: 'p-about', label: 'Colophon · about', src: 'about.html' },
+    { id: 'p-tag', label: 'Tag · #attention', src: 'tag.html' },
+  ];
+
+  const mobilePages = [
+    { id: 'm-h01', label: 'Masthead · mobile', src: 'home-01.html' },
+    { id: 'm-h02', label: 'Splash · mobile', src: 'home-02.html' },
+    { id: 'm-h05', label: 'Notebook · mobile', src: 'home-05.html' },
+    { id: 'm-essay', label: 'Essay · mobile', src: 'essay.html' },
+    { id: 'm-photo', label: 'Photo · mobile', src: 'photo.html' },
+  ];
+
+  return (
+    <>
+      <DesignCanvas>
+        <DCSection
+          id="variations"
+          title="Five homepage variations."
+          subtitle="The same publication, five entries. Open any board fullscreen to navigate the full prototype."
+        >
+          {variations.map(v => (
+            <DCArtboard key={v.id} id={v.id} label={v.label} width={1280} height={880}>
+              <PPFrame src={v.src} palette={t.palette} theme={t.theme} />
+            </DCArtboard>
+          ))}
+        </DCSection>
+
+        <DCSection
+          id="mobile"
+          title="On the phone."
+          subtitle="The same compositions, responsive. (390 × 780 — iPhone-ish.)"
+        >
+          {mobilePages.map(p => (
+            <DCArtboard key={p.id} id={p.id} label={p.label} width={390} height={780}>
+              <PPFrame src={p.src} palette={t.palette} theme={t.theme} />
+            </DCArtboard>
+          ))}
+        </DCSection>
+
+        <DCSection
+          id="inner"
+          title="The full publication — inner pages."
+          subtitle="Each homepage links to this shared body of post types. Click into any board for the live page."
+        >
+          {innerPages.map(p => (
+            <DCArtboard key={p.id} id={p.id} label={p.label} width={1180} height={820}>
+              <PPFrame src={p.src} palette={t.palette} theme={t.theme} />
+            </DCArtboard>
+          ))}
+        </DCSection>
+      </DesignCanvas>
+
+      {/* TWEAKS PANEL */}
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Palette" />
+        <div style={{ padding: '4px 0 14px' }}>
+          <PaletteSwatches value={t.palette} onChange={(v) => setTweak('palette', v)} />
+        </div>
+
+        <TweakSection label="Light / dark" />
+        <TweakRadio
+          label="Mode"
+          value={t.theme}
+          options={[
+            { value: 'day',   label: '☼ Day' },
+            { value: 'night', label: '☾ Night' },
+          ]}
+          onChange={(v) => setTweak('theme', v)}
+        />
+
+        <TweakSection label="About this canvas" />
+        <div style={{ fontFamily: 'Geist, sans-serif', fontSize: 12, lineHeight: 1.55, color: '#5a564d' }}>
+          Each board is a live iframe of the homepage or inner page. Palette &amp; theme are broadcast to every board in real time. Click the <strong>↗</strong> on any board to open it fullscreen and navigate the full site.
+        </div>
+      </TweaksPanel>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

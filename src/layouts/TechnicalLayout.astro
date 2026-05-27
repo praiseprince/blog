@@ -1,0 +1,151 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'posts'>;
+}
+const { entry } = Astro.props;
+const { data } = entry;
+const tm = data.techMeta ?? {};
+---
+<BaseLayout
+  title={`${data.title} — Praise Prince`}
+  description={data.excerpt}
+  activeNav="technical"
+  showReadProgress
+  screenLabel="Technical"
+  mastheadRight="Notes · Engineering"
+  colophonLeft="© Praise Prince"
+  colophonMiddle="Code is MIT-licensed; the prose isn't."
+  colophonRightHref="/archive/"
+  colophonRightLabel="→ Archive"
+>
+  <Fragment slot="head">
+    <style is:inline>
+      .tech-prose code, .tech-prose pre { font-family: var(--font-mono); }
+      .tech-prose pre {
+        background: var(--paper-deep);
+        border-left: 2px solid var(--accent);
+        padding: 18px 22px;
+        font-size: 13px;
+        line-height: 1.6;
+        overflow-x: auto;
+        margin: 24px 0;
+        color: var(--ink);
+      }
+      .tech-prose :not(pre) > code {
+        background: var(--paper-deep);
+        padding: 1px 6px;
+        font-size: 0.88em;
+      }
+      [data-theme="night"] .tech-prose pre { background: #16140f; }
+      .tech-prose h2 { font-family: var(--font-display); font-weight: 400; }
+      .figmath {
+        border: 1px solid var(--rule);
+        padding: 28px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        line-height: 1.9;
+        background: var(--paper);
+        text-align: center;
+        color: var(--ink);
+      }
+      .figmath em { font-family: var(--font-display); font-style: italic; font-size: 1.4em; color: var(--accent); }
+    </style>
+  </Fragment>
+
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+    <section class="editorial-grid" style="align-items: end;">
+      <div style="grid-column: 1 / span 8;">
+        {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
+        <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 5.5vw, 4.4rem); margin: 16px 0 0; line-height: 1;" set:html={data.title} />
+      </div>
+      <div style="grid-column: 10 / span 3; text-align: right;" class="fade-in-3">
+        {tm.stamp && <span class="stamp">{tm.stamp}</span>}
+        <div class="meta" style="margin-top: 12px; line-height: 1.7;">
+          {tm.readTime && <>{tm.readTime}<br/></>}
+          {tm.lang && <>{tm.lang}<br/></>}
+          {tm.lastEdit && <>Last edit: {tm.lastEdit}</>}
+        </div>
+      </div>
+    </section>
+
+    <hr class="rule rule-ink" style="margin: 48px 0 64px;" />
+
+    <article class="editorial-grid tech-prose">
+      <div style="grid-column: 1 / span 8;">
+        {data.lede && <p class="lede" style="font-family: var(--font-display); font-style: italic; font-size: 1.5em; line-height: 1.35; color: var(--ink-soft); margin: 0 0 1.4em;" set:html={data.lede} />}
+        <slot />
+        <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— P.P.</p>
+      </div>
+
+      {data.marginalia && data.marginalia.length > 0 && (
+        <aside style="grid-column: 10 / span 3;" class="marginalia">
+          <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 12px;">Marginalia</div>
+          {data.marginalia.map(m => {
+            if (m.kind === 'note') {
+              return (
+                <div style="border-left: 2px solid var(--accent); padding-left: 14px; margin-bottom: 28px;" set:html={m.body ?? ''} />
+              );
+            }
+            if (m.kind === 'math') {
+              return (
+                <div class="figmath" style="margin-bottom: 28px;">
+                  <span set:html={m.math ?? ''} />
+                  {m.mathLabel && <div style="font-family: var(--font-sans); font-size: 11px; color: var(--ink-fade); margin-top: 12px; letter-spacing: 0.05em;">— {m.mathLabel}</div>}
+                </div>
+              );
+            }
+            if (m.kind === 'variants') {
+              return (
+                <div style="border-top: 1px solid var(--rule); padding-top: 20px; margin-bottom: 28px;">
+                  {m.label && <strong style="font-family: var(--font-body); font-weight: 500;">{m.label}:</strong>}{' '}<span set:html={m.body ?? ''} />
+                </div>
+              );
+            }
+            // figure
+            return (
+              <figure>
+                <div class="thumb" style="aspect-ratio: 1/1;"><img src={m.image ?? ''} alt="" /></div>
+                {(m.caption || m.ix) && (
+                  <figcaption>
+                    {m.ix && <span class="ix">{m.ix}</span>}
+                    <span set:html={m.caption ?? ''} />
+                  </figcaption>
+                )}
+              </figure>
+            );
+          })}
+        </aside>
+      )}
+    </article>
+
+    <hr class="rule" style="margin: 80px 0 32px;" />
+
+    <aside class="editorial-grid">
+      <div style="grid-column: span 6;">
+        <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
+        <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+          {data.tags.map(t => <Tag name={t} />)}
+        </div>
+      </div>
+      {data.nextHref && (
+        <div style="grid-column: span 6; text-align: right;">
+          <a class="arrow" href={data.nextHref}>{data.nextLabel ?? 'Next entry'}</a>
+        </div>
+      )}
+    </aside>
+  </main>
+
+  <style>
+    @media (max-width: 800px) {
+      .tech-prose > div[style*="grid-column: 1 / span 8"],
+      .tech-prose > aside[style*="grid-column: 10 / span 3"] {
+        grid-column: 1 / -1 !important;
+      }
+      .tech-prose > aside { margin-top: 32px; border-top: 1px solid var(--rule); padding-top: 24px; }
+    }
+  </style>
+</BaseLayout>

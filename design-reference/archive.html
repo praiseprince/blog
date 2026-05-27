@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Archive — Praise Prince</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+.filter-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 12px 0; }
+.filter-bar button {
+  font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+  padding: 6px 10px; cursor: pointer; transition: all .2s;
+}
+.filter-bar button:hover { color: var(--ink); border-color: var(--ink); }
+.filter-bar button.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.archive-row { opacity: 1; transition: opacity .3s; }
+.archive-row.is-hidden { display: none; }
+.view-toggle { margin-left: auto; display: flex; gap: 6px; }
+.archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: clamp(16px, 2.5vw, 32px); margin-top: 32px; }
+.archive-grid figcaption { padding-top: 10px; }
+.is-grid-view .toc { display: none; }
+.is-grid-view .archive-grid { display: grid; }
+.is-list-view .toc { display: block; }
+.is-list-view .archive-grid { display: none; }
+</style>
+</head>
+<body>
+
+<header class="masthead" data-screen-label="Archive">
+  <div class="left">Praise Prince<br/><span data-issue></span></div>
+  <a class="nameplate" href="home-01.html"><em>Praise</em> Prince</a>
+  <div class="right"><span data-date></span><br/>The whole archive</div>
+</header>
+
+<nav class="sitenav">
+  <a href="home-01.html">Index</a>
+  <a href="archive.html" class="is-active">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html">Notes</a>
+  <a href="reading.html">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<main class="page" id="archive-root" style="padding-top: clamp(40px, 7vw, 80px);">
+
+  <section style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end;">
+    <div>
+      <div class="eyebrow fade-in">All entries · 2021 — present</div>
+      <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 5.5vw, 4.6rem); margin: 14px 0 0; line-height: 1;">
+        The whole <em>archive,</em><br/>nothing hidden.
+      </h1>
+    </div>
+    <div class="fade-in-3 meta" style="text-align: right; line-height: 1.7;">
+      217 entries · 89 essays<br/>
+      72 photographs · 56 walks<br/>
+      <span style="color: var(--ink-fade);">Sorted: newest first</span>
+    </div>
+  </section>
+
+  <hr class="rule rule-ink" style="margin: 56px 0 16px;" />
+
+  <div class="filter-bar" role="tablist">
+    <button class="is-active" data-kind="all">All — 217</button>
+    <button data-kind="essay">Essays — 89</button>
+    <button data-kind="photo">Photographs — 72</button>
+    <button data-kind="walk">Walks — 26</button>
+    <button data-kind="fragments">Fragments — 18</button>
+    <button data-kind="technical">Notes — 12</button>
+    <div class="view-toggle">
+      <button class="view-btn is-active" data-view="list">List</button>
+      <button class="view-btn" data-view="grid">Grid</button>
+    </div>
+  </div>
+
+  <hr class="rule" style="margin: 0 0 24px;" />
+
+  <!-- LIST view -->
+  <ul class="toc">
+    <li class="archive-row" data-kind="essay"><span class="num">217</span>
+      <a href="essay.html" class="title"><em>On the habit of</em> looking twice.</a>
+      <span class="kind">Essay</span><span class="date">Nov 21 ’25</span></li>
+    <li class="archive-row" data-kind="photo"><span class="num">216</span>
+      <a href="photo.html" class="title"><em>Yaba,</em> in the rain.</a>
+      <span class="kind">Photo · Roll 14</span><span class="date">Nov 18 ’25</span></li>
+    <li class="archive-row" data-kind="walk"><span class="num">215</span>
+      <a href="walk.html" class="title"><em>Third Mainland,</em> before the bridge woke up.</a>
+      <span class="kind">Walk</span><span class="date">Nov 14 ’25</span></li>
+    <li class="archive-row" data-kind="fragments"><span class="num">214</span>
+      <a href="fragments.html" class="title">Fragments №88.</a>
+      <span class="kind">Fragments</span><span class="date">Nov 10 ’25</span></li>
+    <li class="archive-row" data-kind="technical"><span class="num">213</span>
+      <a href="technical.html" class="title">A small note on <em>Verlet</em> integration.</a>
+      <span class="kind">Note · Eng.</span><span class="date">Nov 04 ’25</span></li>
+    <li class="archive-row" data-kind="essay"><span class="num">212</span>
+      <a href="essay.html" class="title">On reading <em>at the speed of</em> the body.</a>
+      <span class="kind">Essay</span><span class="date">Oct 29 ’25</span></li>
+    <li class="archive-row" data-kind="photo"><span class="num">211</span>
+      <a href="photo.html" class="title">Roll 13 — Akure, end of August.</a>
+      <span class="kind">Photo · Roll 13</span><span class="date">Oct 21 ’25</span></li>
+    <li class="archive-row" data-kind="essay"><span class="num">210</span>
+      <a href="essay.html" class="title">What I learned from <em>writing</em> badly.</a>
+      <span class="kind">Essay</span><span class="date">Oct 17 ’25</span></li>
+    <li class="archive-row" data-kind="walk"><span class="num">209</span>
+      <a href="walk.html" class="title">A loop around <em>Freedom Park</em>, blue hour.</a>
+      <span class="kind">Walk</span><span class="date">Oct 09 ’25</span></li>
+    <li class="archive-row" data-kind="technical"><span class="num">208</span>
+      <a href="technical.html" class="title">Why <em>compilers</em> ought to be slower.</a>
+      <span class="kind">Note · CS</span><span class="date">Oct 02 ’25</span></li>
+    <li class="archive-row" data-kind="fragments"><span class="num">207</span>
+      <a href="fragments.html" class="title">Fragments №87.</a>
+      <span class="kind">Fragments</span><span class="date">Sep 28 ’25</span></li>
+    <li class="archive-row" data-kind="essay"><span class="num">206</span>
+      <a href="essay.html" class="title">On the difference between <em>belief</em> and conviction.</a>
+      <span class="kind">Essay · Religion</span><span class="date">Sep 22 ’25</span></li>
+    <li class="archive-row" data-kind="photo"><span class="num">205</span>
+      <a href="photo.html" class="title">Roll 12 — Cambridge, August.</a>
+      <span class="kind">Photo · Roll 12</span><span class="date">Sep 11 ’25</span></li>
+    <li class="archive-row" data-kind="essay"><span class="num">204</span>
+      <a href="essay.html" class="title">A small history of <em>silence</em> in early radio.</a>
+      <span class="kind">Essay · History</span><span class="date">Sep 03 ’25</span></li>
+    <li class="archive-row" data-kind="technical"><span class="num">203</span>
+      <a href="technical.html" class="title">The colour of <em>fluorescent</em> light, measured.</a>
+      <span class="kind">Note · Physics</span><span class="date">Aug 27 ’25</span></li>
+    <li class="archive-row" data-kind="walk"><span class="num">202</span>
+      <a href="walk.html" class="title"><em>Tafawa Balewa</em> Square, end of day.</a>
+      <span class="kind">Walk</span><span class="date">Aug 19 ’25</span></li>
+    <li class="archive-row" data-kind="photo"><span class="num">201</span>
+      <a href="photo.html" class="title">Roll 11 — overheard at the canal.</a>
+      <span class="kind">Photo · Roll 11</span><span class="date">Aug 12 ’25</span></li>
+    <li class="archive-row" data-kind="essay"><span class="num">200</span>
+      <a href="essay.html" class="title"><em>Two hundredth entry</em> — what I have not said.</a>
+      <span class="kind">Essay</span><span class="date">Aug 04 ’25</span></li>
+  </ul>
+
+  <!-- GRID view (contact-sheet) -->
+  <div class="archive-grid">
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch01/600/750?grayscale" alt="" /></div><figcaption><span class="ix">216</span><span><em>Yaba,</em> in the rain.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch02/600/750?grayscale" alt="" /></div><figcaption><span class="ix">211</span><span>Roll 13 — Akure.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch03/600/750?grayscale" alt="" /></div><figcaption><span class="ix">205</span><span>Roll 12 — Cambridge.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch04/600/750?grayscale" alt="" /></div><figcaption><span class="ix">201</span><span>Roll 11 — canal.</span></figcaption></figure></a>
+    <a href="walk.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch05/600/750?grayscale" alt="" /></div><figcaption><span class="ix">215</span><span>Third Mainland.</span></figcaption></figure></a>
+    <a href="walk.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch06/600/750?grayscale" alt="" /></div><figcaption><span class="ix">209</span><span>Freedom Park loop.</span></figcaption></figure></a>
+    <a href="walk.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch07/600/750?grayscale" alt="" /></div><figcaption><span class="ix">202</span><span>Tafawa Balewa Sq.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch08/600/750?grayscale" alt="" /></div><figcaption><span class="ix">195</span><span>Roll 10 — harmattan.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch09/600/750?grayscale" alt="" /></div><figcaption><span class="ix">188</span><span>Roll 09 — March light.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch10/600/750?grayscale" alt="" /></div><figcaption><span class="ix">183</span><span>Roll 08 — at home.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch11/600/750?grayscale" alt="" /></div><figcaption><span class="ix">176</span><span>Roll 07 — Onikan.</span></figcaption></figure></a>
+    <a href="photo.html"><figure><div class="thumb"><img src="https://picsum.photos/seed/arch12/600/750?grayscale" alt="" /></div><figcaption><span class="ix">169</span><span>Roll 06 — Ibadan.</span></figcaption></figure></a>
+  </div>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025</div>
+    <div style="text-align: center;">The archive is the work.</div>
+    <div class="right"><a href="reading.html">→ Reading</a></div>
+  </footer>
+</main>
+
+<script>
+(function(){
+  const root = document.getElementById('archive-root');
+  root.classList.add('is-list-view');
+  // Kind filter
+  document.querySelectorAll('.filter-bar [data-kind]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-bar [data-kind]').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      const kind = btn.dataset.kind;
+      document.querySelectorAll('.archive-row').forEach(r => {
+        r.classList.toggle('is-hidden', kind !== 'all' && r.dataset.kind !== kind);
+      });
+    });
+  });
+  // View toggle
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      root.classList.toggle('is-list-view', btn.dataset.view === 'list');
+      root.classList.toggle('is-grid-view', btn.dataset.view === 'grid');
+    });
+  });
+})();
+</script>
+</body>
+</html>

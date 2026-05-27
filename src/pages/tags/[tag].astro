@@ -1,0 +1,95 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Tag from '../../components/Tag.astro';
+import { getAllTags, postUrl, kindLabel, shortDate, type Post } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const tags = await getAllTags();
+  return [...tags.entries()].map(([tag, posts]) => ({
+    params: { tag },
+    props: { tag, posts },
+  }));
+}
+
+interface Props { tag: string; posts: Post[] }
+const { tag, posts } = Astro.props;
+const featured = posts.find(p => p.data.type === 'essay') ?? posts[0];
+
+// Adjacent tags: tags that co-occur with this tag
+const all = await getAllTags();
+const adjacent = new Map<string, number>();
+for (const p of posts) {
+  for (const t of p.data.tags) {
+    if (t === tag) continue;
+    adjacent.set(t, (adjacent.get(t) ?? 0) + 1);
+  }
+}
+const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t]) => t);
+---
+<BaseLayout
+  title={`#${tag} — Praise Prince`}
+  description={`All entries tagged #${tag}.`}
+  screenLabel="Tag"
+  mastheadRight="Tag · A topic page"
+  colophonLeft="© Praise Prince"
+  colophonMiddle="Tags are gardens, not folders."
+  colophonRightHref="/archive/"
+  colophonRightLabel="Browse all tags →"
+>
+  <main class="page" style="padding-top: clamp(40px, 8vw, 100px);">
+    <section style="text-align: center;">
+      <div class="eyebrow fade-in" style="color: var(--accent);">A tag · a topic · a thread</div>
+      <h1 class="display fade-in-2" style="font-size: clamp(3.4rem, 14vw, 10rem); line-height: 0.9; margin: 18px 0 0; letter-spacing: -0.03em;">
+        <span style="color: var(--accent);">#</span><em>{tag}</em>
+      </h1>
+      <p class="caption fade-in-3" style="max-width: 52ch; margin: 28px auto 0;">
+        Everything gathered under <em>#{tag}</em>. {posts.length} {posts.length === 1 ? 'entry' : 'entries'}.
+      </p>
+    </section>
+
+    <hr class="rule rule-ink" style="margin: 64px 0 0;" />
+
+    {adjacentList.length > 0 && (
+      <section style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+        <span class="smallcaps" style="color: var(--ink-fade); align-self: center; margin-right: 8px;">Adjacent —</span>
+        {adjacentList.map(t => <Tag name={t} />)}
+      </section>
+    )}
+
+    {featured && (
+      <section class="editorial-grid" style="margin-top: 80px; align-items: end;">
+        {featured.data.cover && (
+          <figure style="grid-column: 1 / span 7;">
+            <a href={postUrl(featured)}>
+              <div class="thumb" style="aspect-ratio: 16/10;"><img src={featured.data.cover.src} alt={featured.data.cover.alt} /></div>
+            </a>
+          </figure>
+        )}
+        <div style={`grid-column: ${featured.data.cover ? '9 / span 4' : '1 / -1'};`}>
+          <div class="eyebrow" style="color: var(--accent);">Featured · {kindLabel(featured.data.type).toLowerCase()}</div>
+          <a href={postUrl(featured)} style="display: block; margin-top: 14px;">
+            <h2 class="display" style="font-size: clamp(1.7rem, 2.6vw, 2.4rem); line-height: 1.05; margin: 0;" set:html={featured.data.title} />
+          </a>
+          {featured.data.excerpt && <p class="caption" style="margin-top: 16px; max-width: 36ch;" set:html={featured.data.excerpt} />}
+          <p class="meta" style="margin-top: 18px;">{shortDate(featured.data.date)}{featured.data.readTime ? ` · ${featured.data.readTime}` : ''}</p>
+        </div>
+      </section>
+    )}
+
+    <hr class="rule" style="margin: 64px 0 0;" />
+
+    <section style="margin-top: 48px;">
+      <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 16px;">All entries · #{tag}</div>
+      <ul class="toc">
+        {posts.map((p, i) => (
+          <li>
+            <span class="num">{String(posts.length - i).padStart(2, '0')}</span>
+            <a href={postUrl(p)} class="title" set:html={p.data.title} />
+            <span class="kind">{kindLabel(p.data.type)}</span>
+            <span class="date">{shortDate(p.data.date)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  </main>
+</BaseLayout>

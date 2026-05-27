@@ -1,0 +1,145 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'posts'>;
+}
+const { entry } = Astro.props;
+const { data } = entry;
+const fragLabel = data.fragmentNumber ? `Fragments №${data.fragmentNumber}` : 'Fragments';
+---
+<BaseLayout
+  title={`${data.title} — Praise Prince`}
+  description={data.excerpt}
+  activeNav="fragment"
+  screenLabel="Fragments"
+  mastheadRight={fragLabel}
+  colophonLeft="© Praise Prince"
+  colophonMiddle="From the notebooks."
+  colophonRightHref="/archive/?kind=fragment"
+  colophonRightLabel="More fragments →"
+>
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+    <section style="text-align: center;">
+      {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
+      <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6.5vw, 5rem); margin: 16px 0 0; line-height: 1;" set:html={data.title} />
+      {data.intro && <p class="caption fade-in-3" style="margin: 18px auto 0; max-width: 48ch;" set:html={data.intro} />}
+    </section>
+
+    <hr class="rule rule-ink" style="margin: 56px 0;" />
+
+    {data.items && data.items.length > 0 && (
+      <section class="editorial-grid" style="row-gap: 28px;">
+        {data.items.map(it => {
+          const colspan = it.colspan ?? 6;
+          const baseStyle = `grid-column: span ${colspan};`;
+          const tone = it.tone ?? 'plain';
+          const rotate = it.rotate ? ` transform: rotate(${it.rotate}deg);` : '';
+
+          // Style variations based on tone
+          let toneStyle = '';
+          let metaStyle = '';
+          if (tone === 'card') {
+            toneStyle = ' border: 1px solid var(--rule); padding: 28px 28px 24px; background: var(--paper-deep);';
+          } else if (tone === 'rule') {
+            toneStyle = ' border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); padding: 24px 0;';
+          } else if (tone === 'accent') {
+            toneStyle = ' border: 1px solid var(--accent); padding: 24px;';
+            metaStyle = ' color: var(--accent);';
+          } else if (tone === 'inverse') {
+            toneStyle = ' background: var(--ink); color: var(--paper); padding: 28px;';
+            metaStyle = ' color: var(--paper-deep);';
+          } else {
+            toneStyle = ' padding: 8px 0;';
+          }
+
+          const articleStyle = baseStyle + toneStyle + rotate;
+          const fullMeta = `№ ${it.number}${it.meta ? ` · ${it.meta}` : ''}`;
+
+          if (it.kind === 'photo') {
+            return (
+              <article style={`grid-column: span ${colspan};`}>
+                <figure>
+                  <div class="thumb" style="aspect-ratio: 4/5;">
+                    <img src={it.image ?? ''} alt="" />
+                  </div>
+                  <figcaption>
+                    <span class="ix">№ {it.number}</span>
+                    <span set:html={it.caption ?? ''} />
+                  </figcaption>
+                </figure>
+              </article>
+            );
+          }
+
+          if (it.kind === 'quote') {
+            return (
+              <article style={articleStyle}>
+                <div class="meta" style={`margin-bottom: 10px;${metaStyle}`}>{fullMeta}</div>
+                <p style="font-family: var(--font-display); font-style: italic; font-size: 1.45rem; line-height: 1.25; margin: 0;" set:html={it.content ?? ''} />
+                {it.caption && <p class="caption" style="margin-top: 12px;" set:html={it.caption} />}
+              </article>
+            );
+          }
+
+          if (it.kind === 'note') {
+            return (
+              <article style={articleStyle}>
+                <div class="meta" style={`margin-bottom: 10px;${metaStyle}`}>{fullMeta}</div>
+                <p style="font-family: var(--font-mono); font-size: 13px; line-height: 1.65; margin: 0; color: var(--ink-soft);" set:html={it.content ?? ''} />
+              </article>
+            );
+          }
+
+          if (it.kind === 'poem') {
+            return (
+              <article style={`${articleStyle} font-family: var(--font-mono); font-size: 12px; line-height: 1.6; color: var(--ink-soft); letter-spacing: 0.02em;`}>
+                <div class="meta" style={`margin-bottom: 10px;${metaStyle || ' color: var(--accent);'}`}>{fullMeta}</div>
+                <pre style="margin: 0; font: inherit; white-space: pre-wrap;">{it.content}</pre>
+              </article>
+            );
+          }
+
+          if (it.kind === 'screen-grab' || it.kind === 'mono') {
+            return (
+              <article style={articleStyle}>
+                <div class="meta" style={`margin-bottom: 10px;${metaStyle}`}>{fullMeta}</div>
+                <p style="font-family: var(--font-mono); font-size: 13.5px; line-height: 1.7; margin: 0;" set:html={it.content ?? ''} />
+              </article>
+            );
+          }
+
+          // prose (default)
+          return (
+            <article style={articleStyle}>
+              <div class="meta" style={`margin-bottom: 10px;${metaStyle}`}>{fullMeta}</div>
+              <p style="font-family: var(--font-body); font-size: 17.5px; line-height: 1.6; margin: 0;" set:html={it.content ?? ''} />
+              {it.caption && <p class="caption" style="margin-top: 10px;" set:html={it.caption} />}
+            </article>
+          );
+        })}
+      </section>
+    )}
+
+    <slot />
+
+    <hr class="rule" style="margin: 80px 0 0;" />
+
+    <aside style="margin-top: 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {data.tags.map(t => <Tag name={t} />)}
+      </div>
+      {data.nextHref && (
+        <a class="arrow" href={data.nextHref}>{data.nextLabel ?? 'Next entry'}</a>
+      )}
+    </aside>
+  </main>
+
+  <style>
+    @media (max-width: 720px) {
+      .editorial-grid > article { grid-column: 1 / -1 !important; }
+    }
+  </style>
+</BaseLayout>

@@ -1,0 +1,80 @@
+---
+import '../styles/global.css';
+import SiteNav from '../components/SiteNav.astro';
+import Masthead from '../components/Masthead.astro';
+import Colophon from '../components/Colophon.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  activeNav?: Parameters<typeof SiteNav>[0]['active'];
+  mastheadVariant?: 'default' | 'home';
+  mastheadRight?: string;
+  mastheadLeft?: string;
+  screenLabel?: string;
+  showReadProgress?: boolean;
+  colophonMiddle?: string;
+  colophonRightHref?: string;
+  colophonRightLabel?: string;
+  colophonLeft?: string;
+  bodyClass?: string;
+  bodyId?: string;
+}
+const stripHtml = (s: string) => s
+  .replace(/<br\s*\/?>/gi, ' ')
+  .replace(/<[^>]+>/g, '')
+  .replace(/&amp;/g, '&')
+  .replace(/&nbsp;/g, ' ')
+  .replace(/&shy;/g, '')
+  .replace(/\s+/g, ' ')
+  .trim();
+
+const {
+  title,
+  description = 'Praise Prince — a field journal of one engineer\'s intellectual life.',
+  activeNav,
+  mastheadVariant = 'default',
+  mastheadRight,
+  mastheadLeft,
+  screenLabel,
+  showReadProgress = false,
+  colophonMiddle,
+  colophonRightHref,
+  colophonRightLabel,
+  colophonLeft,
+  bodyClass,
+  bodyId,
+} = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content={stripHtml(description)} />
+<title>{stripHtml(title)}</title>
+<script src="/script.js" is:inline></script>
+<slot name="head" />
+</head>
+<body class={bodyClass} id={bodyId}>
+{showReadProgress && <div class="read-progress"></div>}
+
+<Masthead
+  variant={mastheadVariant}
+  rightLine={mastheadRight}
+  leftLine={mastheadLeft}
+  screenLabel={screenLabel}
+/>
+
+<SiteNav active={activeNav} />
+
+<slot />
+
+<Colophon
+  middle={colophonMiddle}
+  rightHref={colophonRightHref}
+  rightLabel={colophonRightLabel}
+  left={colophonLeft}
+/>
+</body>
+</html>

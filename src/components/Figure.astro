@@ -1,0 +1,28 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  caption?: string;
+  ix?: string;
+  aspect?: string;
+  asThumb?: boolean;
+  style?: string;
+  class?: string;
+}
+const { src, alt = '', caption, ix, aspect, asThumb = false, style, class: className } = Astro.props;
+---
+<figure class={className} style={style}>
+  {asThumb ? (
+    <div class="thumb" style={aspect ? `aspect-ratio: ${aspect};` : undefined}>
+      <img src={src} alt={alt} />
+    </div>
+  ) : (
+    <img src={src} alt={alt} style={aspect ? `aspect-ratio: ${aspect}; object-fit: cover; width: 100%;` : undefined} />
+  )}
+  {(caption || ix) && (
+    <figcaption>
+      {ix && <span class="ix">{ix}</span>}
+      <span set:html={caption ?? ''}></span>
+    </figcaption>
+  )}
+</figure>

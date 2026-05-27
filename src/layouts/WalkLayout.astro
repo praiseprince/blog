@@ -1,0 +1,148 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  entry: CollectionEntry<'posts'>;
+}
+const { entry } = Astro.props;
+const { data } = entry;
+const m = data.walkMeta ?? {};
+---
+<BaseLayout
+  title={`${data.title} — Praise Prince`}
+  description={data.excerpt}
+  activeNav="walk"
+  showReadProgress
+  screenLabel="Walk"
+  mastheadRight={data.issueLabel ?? 'Walks'}
+  colophonLeft="© Praise Prince"
+  colophonMiddle="Notebook — Field & Walks."
+  colophonRightHref="/archive/"
+  colophonRightLabel="→ Archive"
+>
+  <main class="page" style="padding-top: clamp(40px, 7vw, 88px);">
+    <section class="editorial-grid" style="align-items: end;">
+      <div style="grid-column: 1 / span 7;">
+        {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
+        <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 6vw, 4.6rem); margin: 16px 0 0; line-height: 0.98;" set:html={data.title} />
+      </div>
+      <div style="grid-column: 9 / span 4;" class="fade-in-3">
+        <div class="meta" style="line-height: 1.7;">
+          {m.start && m.end && <>{m.start} → {m.end}<br/></>}
+          {m.distance && <>{m.distance}{m.weather ? ` · ${m.weather}` : ''}<br/></>}
+          {m.route && <>{m.route}<br/></>}
+          {m.notebook && <>{m.notebook}</>}
+        </div>
+        {data.excerpt && <><hr class="rule" style="margin: 16px 0;" /><div class="caption" set:html={data.excerpt} /></>}
+      </div>
+    </section>
+
+    <hr class="rule rule-ink" style="margin-top: 56px;" />
+
+    {data.timeline && data.timeline.length > 0 && (
+      <section style="margin-top: 56px;">
+        <div class="editorial-grid" style="row-gap: 56px;">
+          {data.timeline.map(t => {
+            if (t.kind === 'wide-figure') {
+              return (
+                <figure style="grid-column: 1 / -1; margin: 24px 0;">
+                  {t.image && <img src={t.image} alt="" />}
+                  {(t.caption || t.ix) && (
+                    <figcaption style="max-width: 60ch;">
+                      {t.ix && <span class="ix">{t.ix}</span>}
+                      <span set:html={t.caption ?? ''} />
+                    </figcaption>
+                  )}
+                </figure>
+              );
+            }
+            if (t.kind === 'quote') {
+              return (
+                <>
+                  <div style="grid-column: 1 / span 2;" class="meta">{t.time}</div>
+                  <div style="grid-column: 3 / span 9;">
+                    <blockquote style="font-family: var(--font-display); font-style: italic; font-size: 1.7rem; line-height: 1.25; margin: 0; color: var(--ink); border-left: 1px solid var(--accent); padding-left: 24px;" set:html={t.body ?? ''} />
+                  </div>
+                </>
+              );
+            }
+            if (t.kind === 'prose-wide') {
+              return (
+                <>
+                  <div style="grid-column: 1 / span 2;" class="meta">{t.time}</div>
+                  <div style="grid-column: 3 / span 9;">
+                    {t.heading && <div class="display" style="font-size: 1.5rem; line-height: 1.25; margin-bottom: 12px;" set:html={t.heading} />}
+                    <p style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={t.body ?? ''} />
+                    {t.aside && <p style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-fade); letter-spacing: 0.04em; margin-top: 8px;" set:html={t.aside} />}
+                  </div>
+                </>
+              );
+            }
+            // 'prose' or 'figure'
+            return (
+              <>
+                <div style="grid-column: 1 / span 2;" class="meta">{t.time}</div>
+                <div style="grid-column: 3 / span 5;">
+                  {t.heading && <div class="display" style="font-size: 1.5rem; line-height: 1.25; margin-bottom: 12px;" set:html={t.heading} />}
+                  {t.body && <p style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={t.body} />}
+                  {t.aside && <p style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-fade); letter-spacing: 0.04em; margin-top: 8px;" set:html={t.aside} />}
+                </div>
+                {t.image && (
+                  <figure style="grid-column: 9 / span 4;">
+                    <div class="thumb" style="aspect-ratio: 4/5;"><img src={t.image} alt="" /></div>
+                    {(t.caption || t.ix) && (
+                      <figcaption>
+                        {t.ix && <span class="ix">{t.ix}</span>}
+                        <span set:html={t.caption ?? ''} />
+                      </figcaption>
+                    )}
+                  </figure>
+                )}
+              </>
+            );
+          })}
+        </div>
+      </section>
+    )}
+
+    <div class="divider-glyph"></div>
+
+    {data.coda && (
+      <section class="column" style="margin-top: 24px;">
+        <p style="font-family: var(--font-display); font-style: italic; font-size: 1.3rem; line-height: 1.5; color: var(--ink-soft); text-align: center;" set:html={data.coda} />
+      </section>
+    )}
+
+    <slot />
+
+    <aside class="column" style="margin-top: 80px;">
+      <hr class="rule rule-ink" />
+      <div class="editorial-grid" style="margin-top: 24px;">
+        <div style="grid-column: span 6;">
+          <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
+          <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
+            {data.tags.map(t => <Tag name={t} />)}
+          </div>
+        </div>
+        {data.nextHref && (
+          <div style="grid-column: span 6; text-align: right;">
+            <a class="arrow" href={data.nextHref}>{data.nextLabel ?? 'Next entry'}</a>
+          </div>
+        )}
+      </div>
+    </aside>
+  </main>
+
+  <style>
+    @media (max-width: 720px) {
+      .editorial-grid > div[style*="grid-column: 1 / span 2"],
+      .editorial-grid > div[style*="grid-column: 3 / span 5"],
+      .editorial-grid > div[style*="grid-column: 3 / span 9"],
+      .editorial-grid > figure[style*="grid-column: 9 / span 4"] {
+        grid-column: 1 / -1 !important;
+      }
+    }
+  </style>
+</BaseLayout>

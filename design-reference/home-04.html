@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Praise Prince — № 29 — A magazine of slow attention</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+  /* home-04 — "The Magazine Cover" — indie magazine cover with editorial contents */
+
+  .h04-cover {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    min-height: calc(100vh - 0px);
+    background: var(--paper);
+  }
+  @media (max-width: 900px) { .h04-cover { grid-template-columns: 1fr; min-height: 0; } }
+
+  /* Left: cover image with editorial frame */
+  .h04-cover-left {
+    position: relative;
+    background: var(--paper-deep);
+    padding: clamp(24px, 3vw, 40px);
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--ink);
+  }
+  .h04-cover-left .top-band {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-soft); padding-bottom: 14px; border-bottom: 1px solid var(--ink);
+  }
+  .h04-cover-left .mark {
+    text-align: center;
+    margin: clamp(16px, 2vw, 28px) 0 8px;
+  }
+  .h04-cover-left .mark .name {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 7vw, 5.8rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .h04-cover-left .mark .name em { font-style: italic; color: var(--accent); }
+  .h04-cover-left .mark .tag {
+    border: none; padding: 0;
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-top: 14px;
+  }
+  .h04-cover-left .mark .tag::before { content: ''; }
+
+  .h04-cover-img {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+    border: 1px solid var(--ink);
+    margin-top: 18px;
+    min-height: 420px;
+    background: #0a0908;
+  }
+  .h04-cover-img img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: contrast(1.04) saturate(0.92);
+  }
+  [data-theme="night"] .h04-cover-img img { filter: contrast(1.06) brightness(0.92) saturate(0.85); }
+
+  /* Cover title overlaid */
+  .h04-cover-title {
+    position: absolute;
+    inset: auto 24px 24px 24px;
+    color: var(--paper);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .h04-cover-title .label {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: rgba(245,241,234,0.85);
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(245,241,234,0.4);
+    margin-bottom: 12px;
+  }
+  .h04-cover-title h2 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.8rem, 3.4vw, 2.8rem);
+    line-height: 1.05;
+    margin: 0;
+  }
+  .h04-cover-title h2 em { font-style: italic; }
+  .h04-cover-title .by {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(245,241,234,0.78);
+    margin-top: 12px;
+  }
+
+  /* Cover lines (like magazine bullets) */
+  .h04-bullets {
+    position: absolute;
+    top: 24px; left: 24px;
+    max-width: 240px;
+  }
+  .h04-bullets li {
+    list-style: none;
+    color: var(--paper);
+    font-family: var(--font-display);
+    font-size: clamp(1rem, 1.7vw, 1.3rem);
+    line-height: 1.2;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(245,241,234,0.35);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .h04-bullets li em { font-style: italic; color: #f8cb8a; }
+  .h04-bullets li:last-child { border-bottom: 0; }
+  @media (max-width: 600px) { .h04-bullets { display: none; } }
+
+  .h04-bottom-band {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 14px; border-top: 1px solid var(--ink);
+    margin-top: 14px;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  /* Right: editorial contents */
+  .h04-cover-right {
+    padding: clamp(28px, 4vw, 56px) clamp(24px, 4vw, 56px);
+    display: flex; flex-direction: column;
+    background: var(--paper);
+  }
+  .h04-toc-title {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--ink-fade);
+  }
+  .h04-toc-title-large {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3.4vw, 2.8rem);
+    font-style: italic;
+    margin: 6px 0 0;
+    line-height: 1;
+  }
+
+  .h04-contents {
+    list-style: none; margin: 32px 0 0; padding: 0;
+    border-top: 1px solid var(--ink);
+  }
+  .h04-contents li {
+    display: grid;
+    grid-template-columns: 60px 1fr auto;
+    gap: 18px;
+    align-items: baseline;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .h04-contents li:hover { background: var(--paper-deep); }
+  .h04-contents .num {
+    font-family: var(--font-mono);
+    font-size: 11px; letter-spacing: 0.16em;
+    color: var(--ink-fade);
+  }
+  .h04-contents .title {
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 1.8vw, 1.45rem);
+    line-height: 1.15;
+    color: var(--ink);
+  }
+  .h04-contents .title em { font-style: italic; }
+  .h04-contents .title:hover { color: var(--accent); }
+  .h04-contents .title .sub {
+    display: block; font-family: var(--font-body);
+    font-size: 13.5px; font-style: italic; color: var(--ink-soft);
+    margin-top: 4px; line-height: 1.45;
+  }
+  .h04-contents .page {
+    font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--accent);
+    letter-spacing: 0.14em;
+  }
+
+  /* Departments */
+  .h04-deps {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  .h04-deps .col h4 {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 10px;
+    font-weight: 400;
+  }
+  .h04-deps .col ul { list-style: none; margin: 0; padding: 0; }
+  .h04-deps .col li { padding: 4px 0; font-family: var(--font-body); font-size: 14.5px; line-height: 1.4; color: var(--ink-soft); }
+  .h04-deps .col li em { font-style: italic; }
+  .h04-deps a { color: var(--ink); }
+  .h04-deps a:hover { color: var(--accent); }
+
+  /* Below the fold: editor's letter + recent items */
+  .h04-after {
+    padding: clamp(48px, 6vw, 96px) clamp(20px, 5vw, 56px);
+    border-top: 4px double var(--ink);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(40px, 5vw, 80px);
+  }
+  @media (max-width: 800px) { .h04-after { grid-template-columns: 1fr; } }
+  .h04-letter {
+    font-family: var(--font-body); font-size: 18px; line-height: 1.6;
+  }
+  .h04-letter .lab { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
+  .h04-letter h3 { font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: clamp(1.6rem, 2.6vw, 2.2rem); line-height: 1.2; margin: 12px 0 18px; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="h04-cover" data-screen-label="04 Home — Magazine Cover">
+
+  <!-- LEFT: cover -->
+  <section class="h04-cover-left">
+    <div class="top-band">
+      <span>Praise Prince · <span data-issue></span></span>
+      <span>№ 29 · Autumn / Winter ’25</span>
+    </div>
+
+    <div class="mark fade-in">
+      <div class="name"><em>Praise</em> Prince</div>
+      <div class="tag">A field journal of slow attention</div>
+    </div>
+
+    <div class="h04-cover-img">
+      <img src="https://picsum.photos/seed/h04-cover/1400/1800?grayscale" alt="" />
+
+      <ul class="h04-bullets">
+        <li>· On the habit of <em>looking</em> twice. <span style="display:block; font-family: var(--font-mono); font-size: 10.5px; opacity: 0.85; margin-top: 2px;">— the essay</span></li>
+        <li>· A morning along <em>Third Mainland.</em></li>
+        <li>· Verlet integration, <em>quietly</em>.</li>
+        <li>· Eleven things I almost <em>forgot</em>.</li>
+      </ul>
+
+      <div class="h04-cover-title">
+        <div class="label">Cover essay · № 217 · pp. 04 – 18</div>
+        <h2>On the habit of<br/><em>looking</em> twice.</h2>
+        <div class="by">By P.P. — photographs by the author — Lagos, October</div>
+      </div>
+    </div>
+
+    <div class="h04-bottom-band">
+      <span><span data-date></span></span>
+      <span>Independent · Irregular · since 2021</span>
+    </div>
+  </section>
+
+  <!-- RIGHT: contents -->
+  <section class="h04-cover-right">
+
+    <nav style="display: flex; gap: 20px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding-bottom: 18px; border-bottom: 1px solid var(--rule); margin-bottom: 24px;">
+      <a href="home-04.html" class="is-active" style="color: var(--ink); border-bottom: 1px solid var(--accent); padding-bottom: 2px;">Index</a>
+      <a href="archive.html" style="color: var(--ink-soft);">Archive</a>
+      <a href="reading.html" style="color: var(--ink-soft);">Reading</a>
+      <a href="about.html" style="color: var(--ink-soft);">Colophon</a>
+      <span style="flex: 1;"></span>
+      <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+    </nav>
+
+    <div>
+      <div class="h04-toc-title">Inside this issue</div>
+      <div class="h04-toc-title-large">Contents.</div>
+    </div>
+
+    <ol class="h04-contents fade-in-2">
+
+      <li>
+        <span class="num">№ 217</span>
+        <a href="essay.html" class="title">On the habit of <em>looking</em> twice.
+          <span class="sub">An essay on photography as a slowing-down, and what the second look is for.</span>
+        </a>
+        <span class="page">pp. 04—18</span>
+      </li>
+
+      <li>
+        <span class="num">№ 216</span>
+        <a href="photo.html" class="title"><em>Yaba,</em> in the rain.
+          <span class="sub">Roll 14, point-and-shoot. Nine frames worth keeping.</span>
+        </a>
+        <span class="page">pp. 20—33</span>
+      </li>
+
+      <li>
+        <span class="num">№ 215</span>
+        <a href="walk.html" class="title"><em>Third Mainland,</em> before the bridge woke up.
+          <span class="sub">A walk in five timestamped fragments.</span>
+        </a>
+        <span class="page">pp. 35—42</span>
+      </li>
+
+      <li>
+        <span class="num">№ 214</span>
+        <a href="fragments.html" class="title">A loose stack — <em>Fragments № 88.</em>
+          <span class="sub">Notebook scraps from November; eleven entries, numbered.</span>
+        </a>
+        <span class="page">pp. 43—49</span>
+      </li>
+
+      <li>
+        <span class="num">№ 213</span>
+        <a href="technical.html" class="title">A small note on <em>Verlet</em> integration.
+          <span class="sub">A 1967 scheme that keeps quietly running the games industry.</span>
+        </a>
+        <span class="page">pp. 50—54</span>
+      </li>
+
+      <li>
+        <span class="num">№ 212</span>
+        <a href="essay.html" class="title">On reading at the speed of <em>the body.</em>
+          <span class="sub">Walking, stretching, and what the stationary chair gets wrong.</span>
+        </a>
+        <span class="page">pp. 56—64</span>
+      </li>
+
+    </ol>
+
+    <!-- Departments -->
+    <div class="h04-deps">
+      <div class="col">
+        <h4>Departments</h4>
+        <ul>
+          <li><a href="essay.html"><em>Essays</em> &amp; observations</a></li>
+          <li><a href="photo.html"><em>Photographs</em> &amp; rolls</a></li>
+          <li><a href="walk.html"><em>Walks,</em> field notes</a></li>
+          <li><a href="fragments.html"><em>Fragments</em> &amp; scraps</a></li>
+          <li><a href="technical.html"><em>Notes</em> · CS / engineering / physics</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Also inside</h4>
+        <ul>
+          <li><a href="reading.html">On the desk — <em>a working reading list.</em></a></li>
+          <li><a href="tag.html">Thread — <em>#attention.</em></a></li>
+          <li><a href="archive.html">All 217 — <em>the back catalogue.</em></a></li>
+          <li><a href="about.html">Colophon &amp; <em>correspondence.</em></a></li>
+        </ul>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<!-- After-the-fold: editor's letter + recent on the side -->
+<main class="h04-after">
+  <article class="h04-letter">
+    <div class="lab">Editor's note · November</div>
+    <h3>"I do not know what walks are for. I keep doing them anyway."</h3>
+    <p>This issue collects three months of looking. There is a long essay at the heart of it that I have re-written more times than I would like to admit; the rest is the slow accumulation that makes the essay possible — photographs from a wet afternoon in Yaba, a dawn walk along the bridge, fragments from a notebook I cannot keep tidy.</p>
+    <p>I have begun to think of this site less as a publication and more as a <em>room</em>. The reader is welcome to wander; nothing has to be read in order. Most of what is here is small. The point, I think, is the smallness.</p>
+    <p style="margin-top: 28px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-fade);">
+      — P.P., Lagos · 21 Nov 2025
+    </p>
+  </article>
+
+  <aside>
+    <div class="lab" style="font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);">From the workbench · in progress</div>
+    <hr class="rule" style="margin: 8px 0 24px;" />
+    <ul style="list-style: none; padding: 0; margin: 0;">
+      <li style="padding: 14px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 60px 1fr 64px; gap: 18px; align-items: baseline;">
+        <span class="meta" style="font-size: 10.5px;">drafting</span>
+        <a href="essay.html" style="font-family: var(--font-display); font-size: 1.2rem; line-height: 1.2; color: var(--ink);">An attempt at <em>three definitions of grace.</em></a>
+        <span class="meta" style="font-size: 10.5px; text-align: right; color: var(--accent);">~ Dec</span>
+      </li>
+      <li style="padding: 14px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 60px 1fr 64px; gap: 18px; align-items: baseline;">
+        <span class="meta" style="font-size: 10.5px;">drafting</span>
+        <a href="technical.html" style="font-family: var(--font-display); font-size: 1.2rem; line-height: 1.2; color: var(--ink);">On the <em>colour</em> of fluorescent light, measured.</a>
+        <span class="meta" style="font-size: 10.5px; text-align: right; color: var(--accent);">~ Dec</span>
+      </li>
+      <li style="padding: 14px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: 60px 1fr 64px; gap: 18px; align-items: baseline;">
+        <span class="meta" style="font-size: 10.5px;">scanning</span>
+        <a href="photo.html" style="font-family: var(--font-display); font-size: 1.2rem; line-height: 1.2; color: var(--ink);">Roll 15 — <em>Cambridge,</em> hard frost.</a>
+        <span class="meta" style="font-size: 10.5px; text-align: right; color: var(--accent);">~ Jan</span>
+      </li>
+      <li style="padding: 14px 0; display: grid; grid-template-columns: 60px 1fr 64px; gap: 18px; align-items: baseline;">
+        <span class="meta" style="font-size: 10.5px;">reading</span>
+        <a href="reading.html" style="font-family: var(--font-display); font-size: 1.2rem; line-height: 1.2; color: var(--ink);"><em>Bachelard,</em> page 142 of 218.</a>
+        <span class="meta" style="font-size: 10.5px; text-align: right; color: var(--accent);">slow</span>
+      </li>
+    </ul>
+
+    <div style="margin-top: 36px;">
+      <div class="lab" style="font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent);">Threads · explore</div>
+      <hr class="rule" style="margin: 8px 0 16px;" />
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <a class="tag" href="tag.html">attention</a>
+        <a class="tag" href="tag.html">photography</a>
+        <a class="tag" href="tag.html">lagos</a>
+        <a class="tag" href="tag.html">slow-internet</a>
+        <a class="tag" href="tag.html">simulation</a>
+        <a class="tag" href="tag.html">Bachelard</a>
+        <a class="tag" href="tag.html">walks</a>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer class="colophon">
+  <div>© Praise Prince, 2025 — Issue № 29</div>
+  <div style="text-align: center;">Magazine made by one person, slowly.</div>
+  <div class="right"><a href="about.html">Colophon →</a></div>
+</footer>
+
+</body>
+</html>

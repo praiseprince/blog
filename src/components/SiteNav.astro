@@ -1,0 +1,25 @@
+---
+interface Props {
+  active?: 'index' | 'archive' | 'essay' | 'photo' | 'walk' | 'fragment' | 'technical' | 'reading' | 'about';
+}
+const { active } = Astro.props;
+
+const links: Array<{ key: NonNullable<Props['active']>; href: string; label: string }> = [
+  { key: 'index',     href: '/',                       label: 'Index' },
+  { key: 'archive',   href: '/archive/',               label: 'Archive' },
+  { key: 'essay',     href: '/archive/?kind=essay',    label: 'Essays' },
+  { key: 'photo',     href: '/archive/?kind=photo',    label: 'Photographs' },
+  { key: 'walk',      href: '/archive/?kind=walk',     label: 'Walks' },
+  { key: 'fragment',  href: '/archive/?kind=fragment', label: 'Fragments' },
+  { key: 'technical', href: '/archive/?kind=technical',label: 'Notes' },
+  { key: 'reading',   href: '/reading/',               label: 'Reading' },
+];
+---
+<nav class="sitenav">
+  {links.map(l => (
+    <a href={l.href} class:list={[{ 'is-active': active === l.key }]}>{l.label}</a>
+  ))}
+  <span class="spacer"></span>
+  <a href="/about/" class:list={[{ 'is-active': active === 'about' }]}>Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>

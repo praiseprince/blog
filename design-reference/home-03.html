@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Praise Prince — Index № 217</title>
+<link rel="stylesheet" href="styles.css" />
+<script src="script.js" defer></script>
+<style>
+  /* home-03 — "The Index" — typographic table of contents, archive-room feel */
+
+  body { background: var(--paper); }
+
+  .h03-head {
+    padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 56px) 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    align-items: end;
+  }
+  .h03-head .left { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); line-height: 1.7; }
+  .h03-head .right { text-align: right; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); line-height: 1.7; }
+  .h03-mark {
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: clamp(2.8rem, 8vw, 6rem);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .h03-mark em { font-style: italic; }
+  .h03-rule {
+    border: 0; border-top: 1px solid var(--ink);
+    margin: 32px clamp(20px, 5vw, 56px) 0;
+  }
+  .h03-tag {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--accent); text-align: center; padding: 12px 0;
+  }
+  .h03-rule2 {
+    border: 0; border-top: 1px solid var(--ink);
+    margin: 0 clamp(20px, 5vw, 56px);
+  }
+
+  /* Big TOC */
+  .h03-toc {
+    list-style: none;
+    margin: 0; padding: 0;
+  }
+  .h03-toc > li {
+    display: grid;
+    grid-template-columns: 80px 1fr 200px 100px;
+    gap: clamp(16px, 2.5vw, 36px);
+    align-items: baseline;
+    padding: clamp(20px, 2.4vw, 32px) clamp(20px, 5vw, 56px);
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    transition: background-color .25s;
+  }
+  .h03-toc > li:hover { background: var(--paper-deep); }
+  .h03-toc .num {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-fade);
+    align-self: start;
+    padding-top: 12px;
+  }
+  .h03-toc .title {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+    line-height: 1.05;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .h03-toc .title em { font-style: italic; }
+  .h03-toc .title:hover { color: var(--accent); }
+  .h03-toc .subtitle {
+    display: block;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    line-height: 1.4;
+  }
+  .h03-toc .kind {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--ink-soft);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .h03-toc .date {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-fade);
+    text-align: right;
+  }
+  .h03-toc .thumb-peek {
+    position: absolute;
+    right: clamp(20px, 5vw, 56px);
+    top: 50%;
+    transform: translateY(-50%) translateY(8px);
+    width: 140px;
+    aspect-ratio: 4/5;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s ease, transform .45s cubic-bezier(.2,.6,.2,1);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    overflow: hidden;
+    z-index: 5;
+  }
+  .h03-toc .thumb-peek img { width: 100%; height: 100%; object-fit: cover; }
+  .h03-toc > li:hover .thumb-peek { opacity: 1; transform: translateY(-50%) translateY(0); }
+
+  @media (max-width: 900px) {
+    .h03-head { grid-template-columns: 1fr; text-align: center; }
+    .h03-head .right { text-align: center; }
+    .h03-toc > li { grid-template-columns: 50px 1fr; row-gap: 8px; padding: 22px clamp(20px, 5vw, 56px); }
+    .h03-toc .kind { grid-column: 2; text-align: left; }
+    .h03-toc .date { grid-column: 2; text-align: left; }
+    .h03-toc .thumb-peek { display: none; }
+  }
+
+  /* Bottom band: sections + tags + reading */
+  .h03-bottom {
+    padding: clamp(48px, 6vw, 96px) clamp(20px, 5vw, 56px);
+    border-top: 4px double var(--ink);
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: clamp(40px, 5vw, 80px);
+  }
+  @media (max-width: 900px) { .h03-bottom { grid-template-columns: 1fr; gap: 48px; } }
+  .h03-bottom h3 {
+    font-family: var(--font-mono);
+    font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--ink-fade); margin: 0 0 18px; font-weight: 400;
+  }
+  .h03-sections a {
+    display: grid; grid-template-columns: 28px 1fr auto; gap: 16px; align-items: baseline;
+    padding: 12px 0; border-bottom: 1px solid var(--rule);
+    font-family: var(--font-display); font-size: 1.5rem; font-weight: 400;
+    color: var(--ink);
+  }
+  .h03-sections a:hover { color: var(--accent); }
+  .h03-sections a .num { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-fade); letter-spacing: 0.16em; }
+  .h03-sections a em { font-style: italic; }
+  .h03-sections a .count { font-family: var(--font-mono); font-size: 11px; color: var(--ink-fade); letter-spacing: 0.12em; }
+</style>
+</head>
+<body>
+
+<!-- Compact masthead, very quiet -->
+<section class="h03-head" data-screen-label="03 Home — Index">
+  <div class="left">
+    Praise Prince<br/>
+    <span data-issue></span>
+  </div>
+  <h1 class="h03-mark fade-in"><em>Praise</em> Prince</h1>
+  <div class="right">
+    <span data-date></span><br/>
+    A field journal, 2021 →
+  </div>
+</section>
+
+<hr class="h03-rule" />
+<div class="h03-tag">An index, in chronological order — № 217 entries</div>
+<hr class="h03-rule2" />
+
+<!-- Quiet site nav -->
+<nav class="sitenav" style="border-bottom: 0;">
+  <a href="home-03.html" class="is-active">Index</a>
+  <a href="archive.html">Archive</a>
+  <a href="essay.html">Essays</a>
+  <a href="photo.html">Photographs</a>
+  <a href="walk.html">Walks</a>
+  <a href="fragments.html">Fragments</a>
+  <a href="technical.html">Notes</a>
+  <a href="reading.html">Reading</a>
+  <span class="spacer"></span>
+  <a href="about.html">Colophon</a>
+  <button class="theme-toggle" onclick="PP.toggleTheme()">☾ NIGHT</button>
+</nav>
+
+<!-- THE INDEX -->
+<main>
+  <ol class="h03-toc fade-in-2">
+
+    <li>
+      <span class="num">№ 217</span>
+      <a href="essay.html" class="title">On the habit of <em>looking</em> twice.
+        <span class="subtitle">A small ceremonial discipline — on photography, debugging, &amp; Bachelard.</span>
+      </a>
+      <span class="kind">Essay · 12 min</span>
+      <span class="date">Nov 21 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/lookingtwice/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 216</span>
+      <a href="photo.html" class="title"><em>Yaba,</em> in the rain.
+        <span class="subtitle">Roll 14, point-and-shoot — twelve of thirty-six worth keeping.</span>
+      </a>
+      <span class="kind">Photo · 9 frames</span>
+      <span class="date">Nov 18 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/yaba01/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 215</span>
+      <a href="walk.html" class="title"><em>Third Mainland,</em> before the bridge woke up.
+        <span class="subtitle">5.2 km, 88 minutes, one sachet at 30 naira.</span>
+      </a>
+      <span class="kind">Walk</span>
+      <span class="date">Nov 14 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/walk03/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 214</span>
+      <a href="fragments.html" class="title">Fragments № 88.
+        <span class="subtitle">A loose stack of notebook scraps; eleven, numbered, mostly unedited.</span>
+      </a>
+      <span class="kind">Fragments</span>
+      <span class="date">Nov 10 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/frag01/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 213</span>
+      <a href="technical.html" class="title">A small note on <em>Verlet</em> integration.
+        <span class="subtitle">On a 1967 scheme that still quietly runs the games industry.</span>
+      </a>
+      <span class="kind">Note · Engineering · 6 min</span>
+      <span class="date">Nov 04 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/verlet/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 212</span>
+      <a href="essay.html" class="title">On reading at the speed of <em>the body.</em>
+        <span class="subtitle">On stretching, walking, and what reading on a stationary chair gets wrong.</span>
+      </a>
+      <span class="kind">Essay · 8 min</span>
+      <span class="date">Oct 29 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/arch03/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 211</span>
+      <a href="photo.html" class="title">Roll 13 — Akure, <em>end of August.</em>
+        <span class="subtitle">First roll back home. Heat, dogs, a chapel I had forgotten about.</span>
+      </a>
+      <span class="kind">Photo · 7 frames</span>
+      <span class="date">Oct 21 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/arch02/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 210</span>
+      <a href="essay.html" class="title">What I learned from writing <em>badly.</em>
+        <span class="subtitle">Three years of unposted drafts and the small grace they ended up offering.</span>
+      </a>
+      <span class="kind">Essay · 7 min</span>
+      <span class="date">Oct 17 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/arch10/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 209</span>
+      <a href="walk.html" class="title">A loop around <em>Freedom Park,</em> blue hour.
+        <span class="subtitle">The first walk after the rains stopped properly.</span>
+      </a>
+      <span class="kind">Walk</span>
+      <span class="date">Oct 09 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/arch06/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 208</span>
+      <a href="technical.html" class="title">Why <em>compilers</em> ought to be slower.
+        <span class="subtitle">Against the cult of fast feedback. In defence of letting the machine think.</span>
+      </a>
+      <span class="kind">Note · CS · 7 min</span>
+      <span class="date">Oct 02 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/verlet/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 206</span>
+      <a href="essay.html" class="title">On the difference between <em>belief</em> &amp; conviction.
+        <span class="subtitle">A piece I have not been able to finish; finishing it anyway.</span>
+      </a>
+      <span class="kind">Essay · Religion · 11 min</span>
+      <span class="date">Sep 22 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/walk01/500/625?grayscale" alt="" /></div>
+    </li>
+
+    <li>
+      <span class="num">№ 204</span>
+      <a href="essay.html" class="title">A small history of <em>silence</em> in early radio.
+        <span class="subtitle">The BBC, 1929, and the complaints letter as a historical document.</span>
+      </a>
+      <span class="kind">Essay · History · 9 min</span>
+      <span class="date">Sep 03 ’25</span>
+      <div class="thumb-peek"><img src="https://picsum.photos/seed/arch05/500/625?grayscale" alt="" /></div>
+    </li>
+
+  </ol>
+
+  <div style="padding: 32px clamp(20px, 5vw, 56px); border-top: 1px solid var(--rule); text-align: center;">
+    <a class="arrow" href="archive.html">All 217 entries · the full archive</a>
+  </div>
+
+  <!-- Bottom band -->
+  <section class="h03-bottom">
+
+    <div>
+      <h3>By kind</h3>
+      <div class="h03-sections">
+        <a href="essay.html"><span class="num">I.</span><span><em>Essays</em></span><span class="count">89</span></a>
+        <a href="photo.html"><span class="num">II.</span><span><em>Photographs</em></span><span class="count">72</span></a>
+        <a href="walk.html"><span class="num">III.</span><span><em>Walks</em></span><span class="count">26</span></a>
+        <a href="fragments.html"><span class="num">IV.</span><span><em>Fragments</em></span><span class="count">18</span></a>
+        <a href="technical.html"><span class="num">V.</span><span><em>Notes</em></span><span class="count">12</span></a>
+        <a href="reading.html"><span class="num">VI.</span><span><em>Reading</em></span><span class="count">/desk</span></a>
+      </div>
+    </div>
+
+    <div>
+      <h3>By topic</h3>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <a class="tag" href="tag.html">attention</a>
+        <a class="tag" href="tag.html">photography</a>
+        <a class="tag" href="tag.html">phenomenology</a>
+        <a class="tag" href="tag.html">lagos</a>
+        <a class="tag" href="tag.html">cambridge</a>
+        <a class="tag" href="tag.html">walks</a>
+        <a class="tag" href="tag.html">simulation</a>
+        <a class="tag" href="tag.html">history</a>
+        <a class="tag" href="tag.html">religion</a>
+        <a class="tag" href="tag.html">Bachelard</a>
+        <a class="tag" href="tag.html">Calvino</a>
+        <a class="tag" href="tag.html">notebook</a>
+      </div>
+    </div>
+
+    <div>
+      <h3>Correspondence</h3>
+      <p style="font-family: var(--font-body); font-size: 15.5px; line-height: 1.55; color: var(--ink-soft); margin: 0 0 14px;">
+        No newsletter. No social. Letters welcome — long ones especially. If something here is wrong, please write.
+      </p>
+      <a class="arrow" href="about.html">Colophon &amp; address</a>
+    </div>
+
+  </section>
+
+  <footer class="colophon">
+    <div>© Praise Prince, 2025</div>
+    <div style="text-align: center;">An index is a kind of patience.</div>
+    <div class="right"><a href="about.html">Colophon →</a></div>
+  </footer>
+
+</main>
+</body>
+</html>
