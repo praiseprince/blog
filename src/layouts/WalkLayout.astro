@@ -204,10 +204,16 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
   <style>
     @media (max-width: 720px) {
       .editorial-grid > div[style*="grid-column: 1 / span 2"],
+      .editorial-grid > div[style*="grid-column: 1 / span 7"],
       .editorial-grid > div[style*="grid-column: 3 / span 5"],
       .editorial-grid > div[style*="grid-column: 3 / span 9"],
+      .editorial-grid > div[style*="grid-column: 9 / span 4"],
       .editorial-grid > figure[style*="grid-column: 9 / span 4"] {
         grid-column: 1 / -1 !important;
+      }
+      /* Header meta block: gets a top rule and proper spacing once stacked under the title */
+      .editorial-grid > div[style*="grid-column: 9 / span 4"] {
+        margin-top: 24px;
       }
     }
   </style>

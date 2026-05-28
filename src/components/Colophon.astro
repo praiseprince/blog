@@ -12,5 +12,10 @@ const {
 ---
 <footer class="colophon">
   <div>{left}</div>
-  <div class="right"><a href={rightHref}>{rightLabel}</a></div>
+  <div class="right">
+    <a href="/feed.xml">Feed</a><span class="colophon-sep" aria-hidden="true"> · </span><a href={rightHref}>{rightLabel}</a>
+  </div>
 </footer>
+<style>
+  .colophon-sep { color: var(--ink-fade); }
+</style>

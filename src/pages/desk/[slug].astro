@@ -87,7 +87,7 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
         <p class="entry-note">{data.note}</p>
 
         {data.tags.length > 0 && (
-          <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+          <div class="entry-tags">
             {data.tags.map(t => <Tag name={t} />)}
           </div>
         )}
@@ -95,22 +95,26 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
     </section>
 
     {log.length > 0 && (
-      <section class="entry-log">
-        <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 16px;">Log · sessions</div>
-        <ol>
-          {log.map(e => (
-            <li>
-              <div class="log-date meta">{e.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-              {e.note && <p class="log-note">{e.note}</p>}
-            </li>
-          ))}
-        </ol>
+      <section class="editorial-grid entry-after">
+        <div class="entry-log">
+          <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 16px;">Log · sessions</div>
+          <ol>
+            {log.map(e => (
+              <li>
+                <div class="log-date meta">{e.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                {e.note && <p class="log-note">{e.note}</p>}
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     )}
 
-    <article class="column prose entry-body">
-      <Content />
-    </article>
+    <section class="editorial-grid entry-after">
+      <article class="prose entry-body">
+        <Content />
+      </article>
+    </section>
 
   </main>
 
@@ -138,6 +142,11 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
       background: var(--paper); border-color: var(--accent); color: var(--accent);
     }
     .cover-col-book .big-spine.tone-4::before { background: var(--accent); }
+
+    /* Cap the cover so it stays a focal point, not the whole left half on wide screens */
+    .cover-col-image .big-poster,
+    .cover-col-image .big-square { max-width: 320px; }
+    .cover-col-book .big-spine   { max-width: 240px; }
 
     .big-poster, .big-square {
       background: var(--paper-deep);
@@ -173,12 +182,15 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
       border-top: 1px solid var(--rule);
     }
 
+    /* Anchor log + body to the same column as the head's text (grid-column: 6 / span 7)
+       so the eye doesn't jump to a centered axis when scrolling past the head. */
+    .entry-after { margin-top: 80px; row-gap: 0; }
+    .entry-after .entry-log,
+    .entry-after .entry-body { grid-column: 6 / span 7; max-width: 660px; }
+
     .entry-log {
-      margin: 80px auto 0;
-      max-width: 720px;
-      padding: 32px clamp(0px, 0vw, 0px);
-      border-top: 1px solid var(--rule);
       padding-top: 32px;
+      border-top: 1px solid var(--rule);
     }
     .entry-log ol { list-style: none; padding: 0; margin: 0; }
     .entry-log li {
@@ -199,15 +211,29 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
       color: var(--ink);
     }
 
-    .entry-body { margin-top: 80px; max-width: 660px; }
     .entry-body:empty { display: none; }
+
+    .entry-tags {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
 
     @media (max-width: 800px) {
       .entry-head .cover-col-book,
-      .entry-head .cover-col-image { grid-column: 1 / -1 !important; max-width: 200px; }
-      .entry-head > div:last-child { grid-column: 1 / -1 !important; margin-top: 16px; }
+      .entry-head .cover-col-image {
+        grid-column: 1 / -1 !important;
+        max-width: 200px;
+      }
+      .entry-head > div:last-child {
+        grid-column: 1 / -1 !important;
+        margin-top: 16px;
+      }
       .entry-meta { grid-template-columns: 100px 1fr; column-gap: 14px; }
       .entry-log li { grid-template-columns: 1fr; gap: 4px; }
+      .entry-after .entry-log,
+      .entry-after .entry-body { grid-column: 1 / -1 !important; max-width: none; }
     }
     @media (max-width: 720px) {
       .entry-head .cover-col-book .big-spine,
@@ -216,8 +242,8 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
       .entry-meta { grid-template-columns: 90px 1fr; column-gap: 12px; font-size: 11px; }
       .entry-meta dt { font-size: 10px; }
       .entry-note { font-size: 1.15rem; padding-top: 14px; }
-      .entry-log { margin-top: 56px; padding-top: 24px; }
-      .entry-body { margin-top: 56px; }
+      .entry-after { margin-top: 56px; }
+      .entry-log { padding-top: 24px; }
     }
   </style>
 </BaseLayout>

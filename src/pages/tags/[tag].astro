@@ -53,15 +53,15 @@ const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0
     )}
 
     {featured && (
-      <section class="editorial-grid" style="margin-top: 80px; align-items: end;">
+      <section class="editorial-grid featured-block" style="margin-top: 80px; align-items: end;">
         {featured.data.cover && (
-          <figure style="grid-column: 1 / span 7;">
+          <figure class="featured-figure">
             <a href={postUrl(featured)}>
               <div class="thumb" style="aspect-ratio: 16/10;"><img src={featured.data.cover.src} alt={featured.data.cover.alt} /></div>
             </a>
           </figure>
         )}
-        <div style={`grid-column: ${featured.data.cover ? '9 / span 4' : '1 / -1'};`}>
+        <div class={featured.data.cover ? 'featured-meta' : 'featured-meta featured-meta--full'}>
           <div class="eyebrow" style="color: var(--accent);">Featured · {kindLabel(featured.data.type).toLowerCase()}</div>
           <a href={postUrl(featured)} style="display: block; margin-top: 14px;">
             <h2 class="display" style="font-size: clamp(1.7rem, 2.6vw, 2.4rem); line-height: 1.05; margin: 0;" set:html={featured.data.title} />
@@ -88,4 +88,18 @@ const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0
       </ul>
     </section>
   </main>
+
+  <style>
+    .featured-figure { grid-column: 1 / span 7; margin: 0; }
+    .featured-meta { grid-column: 9 / span 4; }
+    .featured-meta--full { grid-column: 1 / -1; }
+
+    @media (max-width: 800px) {
+      .featured-block { align-items: start; }
+      .featured-figure,
+      .featured-meta { grid-column: 1 / -1; }
+      .featured-meta { margin-top: 24px; }
+      .featured-meta .caption { max-width: none; }
+    }
+  </style>
 </BaseLayout>

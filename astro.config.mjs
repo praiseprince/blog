@@ -1,7 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://praiseprince.work',
+  site: 'https://praiseprince.com',
   output: 'static',
   build: {
     format: 'directory',

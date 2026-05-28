@@ -376,8 +376,6 @@ Currently all images are external picsum placeholders. When real images come in:
 - Sitemap
 - Strip HTML from frontmatter strings → use Markdown + inline renderer
 
-> **Explicitly not building:** an RSS feed. The author considered it and decided against (2026-05-28). If a future contributor wants to revisit, the counter-argument is that the slow-internet / independent-magazine audience this site courts is still the audience that uses feed readers, and RSS aligns with the "no email capture" policy better than newsletters do. But it's been decided against; don't re-add without asking.
-
 ### Recently completed (no longer backlog)
 
 - **Photo-viewer lightbox** for Photographs / Walks / Fragments — `<dialog>` with `@starting-style` fade-and-scale, editorial close control, mobile tap-highlight removed, click-outside-to-close.
@@ -385,6 +383,8 @@ Currently all images are external picsum placeholders. When real images come in:
 - **Favicon** — replaced the inline SVG with 32 / 192 / 512 PNGs + a 180×180 apple-touch-icon, generated from `favicon reference.png` (which was removed after wiring).
 - **Archive List/Grid toggle removed** — the grid view only ever showed photo posts, so the label was misleading. The toggle, the `.archive-grid` markup, the `is-list-view` / `is-grid-view` classes, and the `view-btn` JS are gone. The archive is now a single list; the Photographs filter chip is the photo-only path.
 - **Custom sort dropdown on /desk/** — replaced the native `<select>` (which inherited the host OS UI) with a button + popover styled like the filter chips. Keyboard: ↓/↑ moves, Enter selects, Esc / Tab / click-outside closes. Selected option marked with an oxblood dot.
+- **RSS feed** — `@astrojs/rss` powers `/feed.xml` (`src/pages/feed.xml.js`). Filters drafts, sorted newest-first, strips HTML from titles/excerpts, includes tags as `<category>`. Surfaced in three places: `<link rel="alternate">` in `<head>` for feed-reader auto-discovery, an "RSS feed" entry on the About page's Elsewhere list, and a `Feed · About →` link in the colophon (footer). The colophon component (`src/components/Colophon.astro`) is the source of truth for that footer link.
+- **Pretty XSL view for `/feed.xml`** — the feed declares `stylesheet: '/feed.xsl'`, and `public/feed.xsl` is a self-contained XSLT 1.0 stylesheet that turns the raw XML into a styled page when a human opens it in a browser. Feed readers ignore the stylesheet and consume the XML directly. The XSL uses inline CSS that mirrors the site's tokens (Newsreader/Instrument Serif/Geist/JetBrains Mono, paper/ink/accent palette, day/night via `prefers-color-scheme`). Note: the XSL is *standalone* — it doesn't share `localStorage` theme state with the main site, only the OS preference.
 
 ---
 
