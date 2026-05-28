@@ -9,7 +9,7 @@ wordCount: 2418
 excerpt: "There is a small, almost ceremonial discipline I am trying to keep this year: when something catches my eye, I look at it twice. Not to confirm — to <em>refuse</em> the first answer. On photography, debugging, and Bachelard."
 lede: "There is a small, almost ceremonial discipline I am trying to keep this year: when something catches my eye, I look at it twice. Not to confirm. To <em>refuse</em> the first answer."
 cover:
-  src: "https://picsum.photos/seed/lookingtwice/1600/900?grayscale"
+  src: "https://picsum.photos/seed/lookingtwice/1600/900"
   alt: "A doorway photographed at dusk."
   ix: "FIG. 01"
   caption: "<em>Doorway, Yaba.</em> Shot on a Yashica T4, late evening, no tripod. The second look came after the third."

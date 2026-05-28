@@ -1,38 +1,102 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Tag from '../components/Tag.astro';
-import { getAllPosts, postUrl, kindLabel, getAllTags } from '../lib/posts';
+import { getAllPosts, getFeaturedPosts, postUrl, kindLabel, getAllTags, type Post } from '../lib/posts';
+import { getAllMedia, mediaUrl, type Media } from '../lib/media';
 
+// LEAD logic:
+// 1. If any post is marked `featured: true`, use the highest-priority featured one.
+// 2. Otherwise fall back to the latest essay/photo/walk (skipping fragments + technical
+//    — they live in their own corners until promoted).
+const LEAD_KINDS = ['essay', 'photo', 'walk'] as const;
 const posts = await getAllPosts();
-const lead = posts.find(p => p.data.type === 'essay') ?? posts[0];
-const sideKinds: Array<{ kind: typeof posts[number]['data']['type']; label: string }> = [
-  { kind: 'photo',     label: 'Photography' },
-  { kind: 'walk',      label: 'Walks' },
-  { kind: 'technical', label: 'Notes · Engineering' },
-  { kind: 'fragment',  label: 'Fragments' },
+const featured = await getFeaturedPosts();
+const lead: Post | undefined =
+  featured[0]
+  ?? posts.find(p => (LEAD_KINDS as readonly string[]).includes(p.data.type))
+  ?? posts[0];
+
+function leadImage(post: Post | undefined) {
+  if (!post) return null;
+  if (post.data.cover) return post.data.cover;
+  if (post.data.type === 'walk' && post.data.timeline) {
+    const t = post.data.timeline.find(x => x.image);
+    if (t) return { src: t.image!, alt: '', caption: t.caption, ix: t.ix };
+  }
+  if (post.data.type === 'photo' && post.data.gallery && post.data.gallery.length > 0) {
+    const g = post.data.gallery[0];
+    return { src: g.src, alt: g.alt ?? '', caption: g.caption, ix: g.ix };
+  }
+  return null;
+}
+const leadCover = leadImage(lead);
+
+// SIDE COLUMN = remaining featured first, then latest cross-kind (excl. lead + technical)
+const sideCandidates: Post[] = [
+  ...featured.filter(p => p.id !== lead?.id),
+  ...posts.filter(p => p.id !== lead?.id && !p.data.featured && p.data.type !== 'technical'),
 ];
-const sidePosts = sideKinds
-  .map(s => ({ ...s, post: posts.find(p => p.data.type === s.kind && p.id !== lead?.id) }))
-  .filter((s): s is typeof s & { post: typeof posts[number] } => Boolean(s.post));
+const sidePosts: Post[] = [];
+const seenSide = new Set<string>();
+for (const p of sideCandidates) {
+  if (seenSide.has(p.id)) continue;
+  seenSide.add(p.id);
+  sidePosts.push(p);
+  if (sidePosts.length === 4) break;
+}
 
-// Three more for the second tier (skip lead + side picks)
-const usedIds = new Set([lead?.id, ...sidePosts.map(s => s.post.id)]);
-const secondTier = posts.filter(p => !usedIds.has(p.id)).slice(0, 3);
+// 3-COL TIER = next 3 posts, also excluding technical (notes don't belong on the front)
+const usedIds = new Set([lead?.id, ...sidePosts.map(p => p.id)]);
+const secondTier: Post[] = posts
+  .filter(p => !usedIds.has(p.id) && p.data.type !== 'technical')
+  .slice(0, 3);
 
-// Latest photo for the contact sheet strip
-const latestPhoto = posts.find(p => p.data.type === 'photo');
-const contactSheet = latestPhoto?.data.gallery?.slice(0, 6) ?? [];
+// LATEST PHOTOS = uniform thumbnail grid from the most recent photo post's gallery
+const recentPhoto = posts.slice(0, 6).find(p => p.data.type === 'photo');
+const photoThumbs = recentPhoto?.data.gallery?.slice(0, 6) ?? [];
+
+// CURRENTLY ON THE DESK = up to 4 active media, varied kinds, kind-first then fill
+const allMedia = await getAllMedia();
+const deskActive: Media[] = [];
+const seenKinds = new Set<string>();
+for (const m of allMedia.filter(m => m.data.status === 'consuming')) {
+  if (!seenKinds.has(m.data.kind)) { deskActive.push(m); seenKinds.add(m.data.kind); }
+  if (deskActive.length === 4) break;
+}
+for (const m of allMedia.filter(m => m.data.status === 'consuming')) {
+  if (deskActive.length === 4) break;
+  if (!deskActive.includes(m)) deskActive.push(m);
+}
+
+// LAST UPDATE = max date across all posts and media (lastAt fallback)
+const allDateMs: number[] = [
+  ...posts.map(p => p.data.date.getTime()),
+  ...allMedia.map(m => (m.data.lastAt ?? m.data.firstAt)?.getTime() ?? 0),
+];
+const lastUpdate = new Date(Math.max(...allDateMs, 0));
+const lastUpdateStr = lastUpdate.toLocaleDateString('en-US', {
+  month: 'short', day: 'numeric', year: 'numeric',
+});
 
 const tagMap = await getAllTags();
 const tags = [...tagMap.keys()];
+
+const leadKindNoun =
+  lead?.data.type === 'essay'    ? 'essay' :
+  lead?.data.type === 'photo'    ? 'roll' :
+  lead?.data.type === 'walk'     ? 'walk' :
+  lead?.data.type === 'fragment' ? 'fragments' : 'entry';
 ---
 <BaseLayout
-  title="Praise Prince — A field journal of one engineer's intellectual life"
+  title="Postcards from Far Away"
   activeNav="index"
   mastheadVariant="home"
+  mastheadLastUpdate={lastUpdateStr}
+  mastheadSubtitle="A notebook, sometimes."
   screenLabel="Index"
 >
   <main>
+    <!-- LEAD + SIDE -->
     <section class="h01-grid">
       {lead && (
         <article class="h01-lead fade-in">
@@ -46,44 +110,49 @@ const tags = [...tagMap.keys()];
             {lead.data.excerpt && <p class="caption" style="max-width: 60ch; margin: 0;" set:html={lead.data.excerpt} />}
           </div>
 
-          {lead.data.cover && (
+          {leadCover && (
             <a href={postUrl(lead)} style="display: block; margin-top: 32px;">
               <figure>
-                <img src={lead.data.cover.src} alt={lead.data.cover.alt} />
-                {(lead.data.cover.caption || lead.data.cover.ix) && (
+                <img src={leadCover.src} alt={leadCover.alt ?? ''} />
+                {(leadCover.caption || leadCover.ix) && (
                   <figcaption>
-                    {lead.data.cover.ix && <span class="ix">{lead.data.cover.ix}</span>}
-                    <span set:html={lead.data.cover.caption ?? ''} />
+                    {leadCover.ix && <span class="ix">{leadCover.ix}</span>}
+                    <span set:html={leadCover.caption ?? ''} />
                   </figcaption>
                 )}
               </figure>
             </a>
           )}
 
-          <a class="arrow" href={postUrl(lead)} style="margin-top: 24px;">Continue reading the {lead.data.type === 'essay' ? 'essay' : 'piece'}</a>
+          <a class="arrow" href={postUrl(lead)} style="margin-top: 24px;">Continue to the {leadKindNoun}</a>
         </article>
       )}
 
       <aside class="h01-side fade-in-2">
-        <div class="eyebrow" style="color: var(--accent);">Above the fold</div>
+        <div class="eyebrow" style="color: var(--accent);">Latest, all kinds</div>
         <hr class="rule" style="margin: 12px 0 16px;" />
-        {sidePosts.map((s, idx) => (
-          <a
-            href={postUrl(s.post)}
-            style={idx === 0
-              ? 'display: block; padding-bottom: 20px; border-bottom: 1px solid var(--rule);'
-              : (idx === sidePosts.length - 1
-                  ? 'display: block; padding: 20px 0;'
-                  : 'display: block; padding: 20px 0; border-bottom: 1px solid var(--rule);')}
-          >
-            <div class="meta" style="margin-bottom: 6px;">{s.label}</div>
-            <h3 class="display" style={`font-family: var(--font-display); font-weight: 400; ${s.kind === 'fragment' ? 'font-style: italic; color: var(--ink-soft);' : ''} font-size: 1.6rem; line-height: 1.1; margin: 0;`} set:html={s.post.data.title} />
-            {s.post.data.excerpt && <p class="caption" style="margin-top: 10px;" set:html={s.post.data.excerpt} />}
-          </a>
-        ))}
+        {sidePosts.map((p, idx) => {
+          const isLast = idx === sidePosts.length - 1;
+          const isFirst = idx === 0;
+          const base = 'display: block;';
+          const styleStr = isFirst
+            ? `${base} padding-bottom: 20px; border-bottom: 1px solid var(--rule);`
+            : isLast
+              ? `${base} padding: 20px 0;`
+              : `${base} padding: 20px 0; border-bottom: 1px solid var(--rule);`;
+          const fragStyle = p.data.type === 'fragment' ? 'font-style: italic; color: var(--ink-soft);' : '';
+          return (
+            <a href={postUrl(p)} style={styleStr}>
+              <div class="meta" style="margin-bottom: 6px;">{kindLabel(p.data.type)} · {p.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+              <h3 class="display" style={`font-family: var(--font-display); font-weight: 400; ${fragStyle} font-size: 1.6rem; line-height: 1.1; margin: 0;`} set:html={p.data.title} />
+              {p.data.excerpt && <p class="caption" style="margin-top: 10px;" set:html={p.data.excerpt} />}
+            </a>
+          );
+        })}
       </aside>
     </section>
 
+    <!-- 3-COL TIER -->
     {secondTier.length > 0 && (
       <section class="h01-row-2">
         <div class="h01-three">
@@ -101,26 +170,59 @@ const tags = [...tagMap.keys()];
       </section>
     )}
 
-    {latestPhoto && contactSheet.length > 0 && (
-      <section style="border-top: 1px solid var(--ink); padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
-        <div style="display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px;">
+    <!-- LATEST PHOTOS — uniform thumbnail grid -->
+    {recentPhoto && photoThumbs.length > 0 && (
+      <section class="contact-section">
+        <div class="contact-head">
           <div>
-            <div class="eyebrow" style="color: var(--accent);">Latest contact sheet</div>
-            <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 8px 0 0; font-weight: 400;" set:html={`From ${latestPhoto.data.title}`} />
+            <div class="eyebrow" style="color: var(--accent);">Latest photos</div>
+            <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 8px 0 0; font-weight: 400;" set:html={`From ${recentPhoto.data.title}`} />
           </div>
-          <a class="arrow" href={postUrl(latestPhoto)}>See the full roll</a>
+          <a class="arrow" href={postUrl(recentPhoto)}>See the full roll</a>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;" class="contact-strip">
-          {contactSheet.map(g => (
-            <a href={postUrl(latestPhoto)}>
-              <div class="thumb"><img src={g.src} alt={g.alt} /></div>
+        <div class="contact-grid">
+          {photoThumbs.map(g => (
+            <a href={postUrl(recentPhoto)}>
+              <div class="thumb"><img src={g.src} alt={g.alt ?? ''} /></div>
             </a>
           ))}
         </div>
       </section>
     )}
 
+    <!-- ON THE DESK — letterboxed uniform frames -->
+    {deskActive.length > 0 && (
+      <section class="desk-strip">
+        <div class="desk-strip-head">
+          <div>
+            <div class="eyebrow" style="color: var(--accent);">Currently on the desk</div>
+            <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 8px 0 0; font-weight: 400;"><em>What I've been</em> around.</h2>
+          </div>
+          <a class="arrow" href="/desk/">See the whole desk</a>
+        </div>
+
+        <div class="desk-strip-grid">
+          {deskActive.map(m => (
+            <a href={mediaUrl(m)} class={`desk-tile desk-tile-${m.data.kind}`}>
+              <div class="desk-tile-frame">
+                {m.data.kind === 'book' ? (
+                  <div class={`tile-spine tone-${m.data.tone}`} set:html={(m.data.spine ?? m.data.title).replace(/\n/g, '<br/>')} />
+                ) : (
+                  m.data.cover && <img src={m.data.cover} alt={m.data.title.replace(/<[^>]+>/g, '')} />
+                )}
+              </div>
+              <div class="desk-tile-meta">
+                <div class="desk-kind meta">{m.data.kind}</div>
+                <div class="desk-title display" set:html={m.data.title} />
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- TAGS -->
     {tags.length > 0 && (
       <section style="padding: clamp(32px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;">
         <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 14px;">Browse by topic</div>
@@ -152,16 +254,125 @@ const tags = [...tagMap.keys()];
     .h01-three { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 3vw, 56px); }
     .h01-three > div { border-right: 1px solid var(--rule); padding-right: clamp(20px, 2vw, 32px); }
     .h01-three > div:last-child { border-right: 0; padding-right: 0; }
+
+    /* Contact sheet: hero + 4 thumbs underneath */
+    .contact-section {
+      border-top: 1px solid var(--ink);
+      padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;
+    }
+    .contact-head {
+      display: flex; justify-content: space-between; align-items: end;
+      gap: 16px; flex-wrap: wrap; margin-bottom: 24px;
+    }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    @media (max-width: 720px) { .contact-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 420px) { .contact-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    /* Desk strip: uniform 4:5 frames, cover letterboxed inside, books fill */
+    .desk-strip {
+      border-top: 1px solid var(--ink);
+      padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;
+      margin-top: clamp(28px, 4vw, 56px);
+    }
+    .desk-strip-head {
+      display: flex; justify-content: space-between; align-items: end;
+      margin-bottom: 24px; gap: 16px; flex-wrap: wrap;
+    }
+    .desk-strip-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: clamp(16px, 2vw, 28px);
+    }
+    .desk-tile {
+      display: flex; flex-direction: column; gap: 12px;
+      color: var(--ink); text-decoration: none;
+      transition: opacity .2s;
+    }
+    .desk-tile:hover { opacity: 0.78; }
+
+    /* Uniform 4:5 outer frame; cover sits inside at its native aspect with letterbox bars.
+       Absolute positioning + explicit width/height ensures the image can never escape. */
+    .desk-tile-frame {
+      aspect-ratio: 4/5;
+      position: relative;
+      background: var(--paper-deep);
+      overflow: hidden;
+    }
+    /* Image-based covers (films/shows/albums/tracks) get a subtle inner frame and padding */
+    .desk-tile:not(.desk-tile-book) .desk-tile-frame {
+      border: 1px solid var(--rule);
+    }
+    .desk-tile-frame > img {
+      position: absolute;
+      top: 12px; left: 12px;
+      width: calc(100% - 24px);
+      height: calc(100% - 24px);
+      object-fit: contain;
+      display: block;
+      transition: transform .6s cubic-bezier(.2, .6, .2, 1);
+    }
+    .desk-tile:hover .desk-tile-frame > img { transform: scale(1.03); }
+    /* Book spines fill their frame edge-to-edge (no padding, the spine IS the visual) */
+    .desk-tile-book .desk-tile-frame > .tile-spine {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Books: spine fills the frame (no padding, no internal border) */
+    .tile-spine {
+      width: 100%; height: 100%;
+      background: var(--paper-deep);
+      border: 1px solid var(--ink);
+      position: relative;
+      display: flex; align-items: flex-end; justify-content: center;
+      font-family: var(--font-display); font-style: italic; font-size: 13px;
+      color: var(--ink-soft); padding: 12px 8px; text-align: center; line-height: 1.15;
+      overflow: hidden;
+    }
+    .tile-spine::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 22px; background: var(--accent);
+    }
+    .tile-spine.tone-2 { background: var(--ink); color: var(--paper); }
+    .tile-spine.tone-2::before { background: var(--paper); }
+    .tile-spine.tone-3 { background: var(--accent); color: var(--paper); }
+    .tile-spine.tone-3::before { background: var(--ink); }
+    .tile-spine.tone-4 {
+      background: var(--paper); border-color: var(--accent); color: var(--accent);
+    }
+    .tile-spine.tone-4::before { background: var(--accent); }
+
+    .desk-tile-meta { display: flex; flex-direction: column; gap: 4px; }
+    .desk-kind {
+      font-family: var(--font-mono); font-size: 10px;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--ink-fade);
+    }
+    .desk-title {
+      font-family: var(--font-display); font-weight: 400;
+      font-size: 1.15rem; line-height: 1.2;
+    }
+    .desk-title em { font-style: italic; }
+
     @media (max-width: 900px) {
       .h01-lead, .h01-side { grid-column: 1 / -1; }
       .h01-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); padding-top: 28px; margin-top: 16px; }
       .h01-three { grid-template-columns: 1fr; }
       .h01-three > div { border-right: 0; padding-right: 0; padding-bottom: 24px; border-bottom: 1px solid var(--rule); }
       .h01-three > div:last-child { border-bottom: 0; padding-bottom: 0; }
+      .desk-strip-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 720px) {
-      .hide-mobile { display: none; }
-      .contact-strip { grid-template-columns: repeat(3, 1fr) !important; }
+      .contact-section, .desk-strip { padding-left: 16px; padding-right: 16px; }
+    }
+    @media (max-width: 420px) {
+      .desk-strip-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+      .desk-title { font-size: 1rem; }
     }
   </style>
 </BaseLayout>

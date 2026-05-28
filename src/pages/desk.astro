@@ -1,0 +1,360 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MediaCard from '../components/MediaCard.astro';
+import Tag from '../components/Tag.astro';
+import {
+  getAllMedia, groupByKind, groupByStatus,
+  SECTION_LABEL, STATUS_LABEL, KIND_ORDER,
+  type MediaKind,
+} from '../lib/media';
+
+const all = await getAllMedia();
+const byKind = groupByKind(all);
+
+// Totals for header
+const total = all.length;
+const counts = {
+  book:  byKind.get('book')!.length,
+  film:  byKind.get('film')!.length,
+  show:  byKind.get('show')!.length,
+  album: byKind.get('album')!.length,
+  track: byKind.get('track')!.length,
+};
+
+const sectionGridClass: Record<MediaKind, string> = {
+  book:  'grid-books',
+  film:  'grid-posters',
+  show:  'grid-posters',
+  album: 'grid-squares',
+  track: 'grid-tracks',
+};
+---
+<BaseLayout
+  title="On the desk — Postcards from Far Away"
+  description="Books, films, shows, albums and tracks I'm consuming."
+  activeNav="desk"
+  screenLabel="Desk"
+  mastheadRight="The desk · In and around"
+>
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+
+    <section class="desk-head">
+      <div class="desk-head-main">
+        <div class="eyebrow fade-in">The desk · books, films, shows, albums, tracks</div>
+        <h1 class="display fade-in-2" style="font-size: clamp(2rem, 6vw, 4.6rem); margin: 14px 0 0; line-height: 1;">
+          On the <em>desk,</em> right now.
+        </h1>
+      </div>
+      <div class="desk-head-meta fade-in-3 meta">
+        Updated {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}<br/>
+        {total} entries · {counts.book} books<br/>
+        {counts.film} films · {counts.show} shows · {counts.album} albums
+      </div>
+    </section>
+
+    <hr class="rule rule-ink" style="margin: 48px 0 0;" />
+
+    <div class="desk-controls" id="desk-controls">
+      <div class="filter-bar" role="tablist" aria-label="Filter by kind">
+        <button class="is-active" data-kind="all">All — {total}</button>
+        <button data-kind="book">Books — {counts.book}</button>
+        <button data-kind="film">Films — {counts.film}</button>
+        <button data-kind="show">Shows — {counts.show}</button>
+        <button data-kind="album">Albums — {counts.album}</button>
+        <button data-kind="track">Tracks — {counts.track}</button>
+      </div>
+      <label class="sort-control">
+        <span class="sort-label meta">Sort —</span>
+        <select id="desk-sort">
+          <option value="default">By status (default)</option>
+          <option value="recent">Recently updated</option>
+          <option value="az">A → Z</option>
+          <option value="rating">Rating ▼</option>
+          <option value="revisits">Most revisited</option>
+          <option value="earliest">Earliest first</option>
+        </select>
+      </label>
+    </div>
+
+    {KIND_ORDER.map(kind => {
+      const items = byKind.get(kind)!;
+      if (items.length === 0) return null;
+      const byStatus = groupByStatus(items);
+      return (
+        <section class="kind-section" data-kind={kind}>
+          <header class="kind-header">
+            <h2 class="kind-label">{SECTION_LABEL[kind]}</h2>
+            <div class="kind-count meta">{items.length} {items.length === 1 ? 'entry' : 'entries'}</div>
+          </header>
+
+          {[...byStatus.entries()].map(([status, list]) => (
+            <div class="status-group">
+              <div class="status-label meta">{STATUS_LABEL[kind][status] ?? status}</div>
+              <div class={`media-grid ${sectionGridClass[kind]}`}>
+                {list.map(item => <MediaCard item={item} />)}
+              </div>
+            </div>
+          ))}
+        </section>
+      );
+    })}
+
+    <div class="divider-glyph"></div>
+
+    <blockquote style="max-width: 720px; margin: 24px auto; font-family: var(--font-display); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.3; text-align: center; color: var(--ink); padding: 0 24px; border: none;">
+      "A book read twice is a different book."
+      <cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— note in the margin, anon.</cite>
+    </blockquote>
+
+    <hr class="rule" style="margin: 64px 0 24px;" />
+
+    <aside style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <Tag name="reading" />
+        <Tag name="film" />
+        <Tag name="album" />
+      </div>
+      <a class="arrow" href="/archive/">See full archive</a>
+    </aside>
+  </main>
+
+  <script is:inline>
+    (function(){
+      // Stash each card's original parent so "Default" sort can restore the status-grouped layout
+      document.querySelectorAll('.media-card').forEach((card, idx) => {
+        const grid = card.parentElement;
+        if (!grid.id) grid.id = 'og-grid-' + idx;
+        card.dataset.originalParent = grid.id;
+      });
+
+      const sortSelect = document.getElementById('desk-sort');
+      const kindButtons = document.querySelectorAll('.desk-controls [data-kind]');
+
+      function comparator(key) {
+        return (a, b) => {
+          if (key === 'az')       return a.dataset.title.localeCompare(b.dataset.title);
+          if (key === 'recent')   return (b.dataset.updated || '').localeCompare(a.dataset.updated || '');
+          if (key === 'rating')   return parseFloat(b.dataset.rating) - parseFloat(a.dataset.rating);
+          if (key === 'revisits') return parseInt(b.dataset.revisits, 10) - parseInt(a.dataset.revisits, 10);
+          if (key === 'earliest') return (a.dataset.first || '9999').localeCompare(b.dataset.first || '9999');
+          return 0;
+        };
+      }
+
+      function applyKindFilter(kind) {
+        document.querySelectorAll('.kind-section').forEach(sec => {
+          const matches = (kind === 'all') || (sec.dataset.kind === kind);
+          sec.style.display = matches ? '' : 'none';
+        });
+      }
+
+      function applySort(key) {
+        const isDefault = key === 'default';
+        document.querySelectorAll('.kind-section').forEach(section => {
+          const statusGroups = section.querySelectorAll('.status-group');
+          const cards = section.querySelectorAll('.media-card');
+          if (isDefault) {
+            // Restore status-grouped layout
+            cards.forEach(card => {
+              const og = document.getElementById(card.dataset.originalParent);
+              if (og && card.parentElement !== og) og.appendChild(card);
+            });
+            statusGroups.forEach(g => {
+              g.style.display = '';
+              const label = g.querySelector('.status-label');
+              if (label) label.style.display = '';
+              // Hide group only if it has no cards
+              if (g.querySelectorAll('.media-card').length === 0) g.style.display = 'none';
+            });
+          } else {
+            // Flatten: hide status labels, move all cards into the first grid
+            const firstGrid = section.querySelector('.media-grid');
+            if (!firstGrid) return;
+            const sorted = [...cards].sort(comparator(key));
+            sorted.forEach(card => firstGrid.appendChild(card));
+            statusGroups.forEach((g, i) => {
+              const label = g.querySelector('.status-label');
+              if (label) label.style.display = 'none';
+              // Hide all status-groups after the first (they're now empty)
+              if (i > 0) g.style.display = 'none';
+              else g.style.display = '';
+            });
+          }
+        });
+      }
+
+      kindButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          kindButtons.forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+          applyKindFilter(btn.dataset.kind);
+        });
+      });
+
+      sortSelect.addEventListener('change', () => applySort(sortSelect.value));
+    })();
+  </script>
+
+  <style>
+    .desk-controls {
+      margin: 24px 0 12px;
+      display: flex;
+      gap: 18px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--rule);
+    }
+    .desk-controls .filter-bar {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .desk-controls .filter-bar button {
+      font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em;
+      text-transform: uppercase;
+      background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+      padding: 6px 10px; cursor: pointer; transition: all .2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .desk-controls .filter-bar button:hover { color: var(--ink); border-color: var(--ink); }
+    .desk-controls .filter-bar button.is-active {
+      background: var(--ink); color: var(--paper); border-color: var(--ink);
+    }
+    .sort-control {
+      display: flex; align-items: center; gap: 10px;
+      white-space: nowrap;
+    }
+    .sort-label {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-fade);
+    }
+    .desk-controls select {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      padding: 6px 26px 6px 10px;
+      cursor: pointer;
+      border-radius: 0;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%), linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+      background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+      background-size: 5px 5px;
+      background-repeat: no-repeat;
+    }
+    .desk-controls select:hover { border-color: var(--ink); }
+
+    @media (max-width: 720px) {
+      .desk-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        position: relative;
+      }
+      .desk-controls .filter-bar {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        margin: 0 -16px;
+        padding: 4px 16px;
+        -webkit-overflow-scrolling: touch;
+        width: calc(100% + 32px);
+        max-width: none;
+      }
+      .desk-controls .filter-bar::-webkit-scrollbar { display: none; }
+      .desk-controls .filter-bar::after {
+        content: '';
+        flex: 0 0 4px;
+      }
+      .sort-control { justify-content: flex-start; }
+    }
+
+    .desk-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: end;
+    }
+    .desk-head-meta { text-align: right; line-height: 1.7; }
+    @media (max-width: 720px) {
+      .desk-head { grid-template-columns: 1fr; gap: 16px; }
+      .desk-head-meta { text-align: left; }
+    }
+
+    .kind-section {
+      margin-top: 64px;
+      padding-top: 32px;
+      border-top: 1px solid var(--rule);
+    }
+    .kind-section:first-of-type { border-top: 0; }
+    .kind-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .kind-label {
+      font-family: var(--font-display);
+      font-weight: 400;
+      font-style: italic;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      line-height: 1;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+      margin: 0;
+    }
+    .kind-label::before {
+      content: '— ';
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .status-group { margin-top: 28px; }
+    .status-group:first-of-type { margin-top: 0; }
+    .status-label {
+      margin-bottom: 16px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--rule);
+      color: var(--ink-soft);
+      font-size: 10.5px;
+    }
+
+    .media-grid { display: grid; gap: clamp(20px, 3vw, 36px); }
+    .grid-books   { grid-template-columns: repeat(2, 1fr); gap: 56px clamp(32px, 5vw, 80px); }
+    .grid-posters { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+    .grid-squares { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .grid-tracks  { grid-template-columns: 1fr; gap: 0; }
+
+    @media (max-width: 800px) {
+      .grid-books { grid-template-columns: 1fr; gap: 32px; }
+    }
+    @media (max-width: 720px) {
+      .kind-section { margin-top: 40px; padding-top: 24px; }
+      .kind-header { margin-bottom: 16px; }
+      .status-group { margin-top: 20px; }
+      .status-label { font-size: 10px; margin-bottom: 12px; }
+    }
+    @media (max-width: 600px) {
+      .grid-posters { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .grid-squares { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .media-grid { gap: 18px; }
+    }
+    @media (max-width: 420px) {
+      .grid-posters { grid-template-columns: 1fr 1fr; }
+      .grid-squares { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</BaseLayout>

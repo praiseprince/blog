@@ -25,7 +25,7 @@ items:
   - number: "088.03"
     kind: photo
     colspan: 4
-    image: "https://picsum.photos/seed/frag01/600/750?grayscale"
+    image: "https://picsum.photos/seed/frag01/600/750"
     caption: "<em>Curtains, half drawn.</em> Reading light, 6 p.m."
   - number: "088.04"
     meta: "note to self"
@@ -52,7 +52,7 @@ items:
   - number: "088.08"
     kind: photo
     colspan: 3
-    image: "https://picsum.photos/seed/frag02/600/600?grayscale"
+    image: "https://picsum.photos/seed/frag02/600/600"
     caption: "Match, just gone out."
   - number: "088.09"
     meta: "reading, Bachelard"

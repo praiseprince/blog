@@ -1,0 +1,91 @@
+---
+interface Props {
+  src: string;
+  poster?: string;
+  caption?: string;
+  ix?: string;
+  aspect?: string;      // e.g. "16/9"; default 16/9
+  autoplay?: boolean;
+  loop?: boolean;
+  muted?: boolean;
+}
+const {
+  src,
+  poster,
+  caption,
+  ix,
+  aspect = '16/9',
+  autoplay = false,
+  loop = false,
+  muted = false,
+} = Astro.props;
+
+function youtubeId(url: string): string | null {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+function vimeoId(url: string): string | null {
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return m ? m[1] : null;
+}
+
+const yt = youtubeId(src);
+const vm = vimeoId(src);
+const embedUrl = yt
+  ? `https://www.youtube-nocookie.com/embed/${yt}${autoplay ? '?autoplay=1' : ''}`
+  : vm
+    ? `https://player.vimeo.com/video/${vm}${autoplay ? '?autoplay=1' : ''}`
+    : null;
+const plainCaption = (caption ?? '').replace(/<[^>]+>/g, '').trim() || 'Embedded video';
+---
+<figure class="pp-video">
+  <div class="pp-video-frame" style={`aspect-ratio: ${aspect};`}>
+    {embedUrl ? (
+      <iframe
+        src={embedUrl}
+        title={plainCaption}
+        loading="lazy"
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        frameborder="0"
+      ></iframe>
+    ) : (
+      <video
+        src={src}
+        poster={poster}
+        controls
+        playsinline
+        preload="metadata"
+        autoplay={autoplay}
+        loop={loop}
+        muted={muted}
+      ></video>
+    )}
+  </div>
+  {(caption || ix) && (
+    <figcaption>
+      {ix && <span class="ix">{ix}</span>}
+      <span set:html={caption ?? ''}></span>
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .pp-video { margin: 0; }
+  .pp-video-frame {
+    position: relative;
+    width: 100%;
+    background: var(--paper-deep);
+    overflow: hidden;
+  }
+  .pp-video-frame > iframe,
+  .pp-video-frame > video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    background: #000;
+  }
+</style>

@@ -2,14 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
-  title="Colophon — Praise Prince"
+  title="Colophon — Postcards from Far Away"
   activeNav="about"
   screenLabel="About"
   mastheadRight="Colophon · About"
-  colophonLeft="© Praise Prince"
-  colophonMiddle="Made with affection, not optimisation."
-  colophonRightHref="/"
-  colophonRightLabel="→ Back to the front page"
 >
   <main class="page" style="padding-top: clamp(40px, 8vw, 120px); padding-bottom: 80px;">
 
@@ -31,7 +27,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
     <section class="editorial-grid" style="margin-top: 64px; row-gap: 40px;">
       <figure style="grid-column: 1 / span 4;">
-        <div class="thumb" style="aspect-ratio: 4/5;"><img src="https://picsum.photos/seed/portrait/800/1000?grayscale" alt="Portrait placeholder." /></div>
+        <div class="thumb" style="aspect-ratio: 4/5;"><img src="https://picsum.photos/seed/portrait/800/1000" alt="Portrait placeholder." /></div>
         <figcaption><span class="ix">FIG. 01</span><span><em>Portrait of the author,</em> Yaba, October 2025. Photograph by a friend whose name I will keep.</span></figcaption>
       </figure>
 
@@ -113,7 +109,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <hr class="rule" style="margin: 12px 0 16px;" />
         <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.9;">
           <li>Letters — <a href="mailto:praise@praiseprince.work" style="border-bottom: 1px solid var(--accent);">praise@praiseprince.work</a></li>
-          <li>Reading list — <a href="/reading/" style="border-bottom: 1px solid var(--accent);">currently on the desk</a></li>
+          <li>The desk — <a href="/desk/" style="border-bottom: 1px solid var(--accent);">books, films, shows, albums</a></li>
           <li>RSS — <a href="/feed.xml" style="border-bottom: 1px solid var(--accent);">/feed.xml</a> · for the patient</li>
           <li>No social presence by design.</li>
         </ul>

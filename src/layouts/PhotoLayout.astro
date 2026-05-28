@@ -11,15 +11,11 @@ const { data } = entry;
 const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 ---
 <BaseLayout
-  title={`${data.title} — Praise Prince`}
+  title={`${data.title} — Postcards from Far Away`}
   description={data.excerpt}
-  activeNav="photo"
+  activeNav="archive"
   screenLabel="Photo"
   mastheadRight={`Photographs${data.roll ? ` · Roll №${data.roll}` : ''}`}
-  colophonLeft="© Praise Prince"
-  colophonMiddle="Scanned by Lomography Lagos."
-  colophonRightHref="/archive/"
-  colophonRightLabel="→ All rolls"
 >
   <main>
     <section style="position: relative; padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 56px) 0;">

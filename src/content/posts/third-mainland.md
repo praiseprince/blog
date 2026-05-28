@@ -18,7 +18,7 @@ timeline:
     kind: prose
     heading: "<em>The first stretch.</em>"
     body: "The bridge is never really still, but at this hour it pretends. The lagoon underneath is the colour of a pewter spoon. A solitary canoe — fisherman, alone — moves so slowly it might be drawn. I stop to watch and lose four minutes I had not planned to lose."
-    image: "https://picsum.photos/seed/walk01/800/1000?grayscale"
+    image: "https://picsum.photos/seed/walk01/800/1000"
     ix: "01"
     caption: "Fisherman, mid-stroke."
   - time: "06:31"
@@ -29,7 +29,7 @@ timeline:
     heading: "<em>Light, arriving.</em>"
     body: "The sun comes up the way an old printer warms — first the orange, then everything else. The towers behind me catch it ten minutes before the water does. There is, somewhere, a phrase by Calvino about the city as a system of mirrors, but I can't find it without my phone, and I won't."
     aside: "<em>(I looked it up later. He was talking about Valdrada.)</em>"
-    image: "https://picsum.photos/seed/walk02/800/1000?grayscale"
+    image: "https://picsum.photos/seed/walk02/800/1000"
     ix: "02"
     caption: "The light at 06:53, give or take."
   - time: "07:10"
@@ -37,7 +37,7 @@ timeline:
     body: "A boy selling sachet water spots me writing. He asks if I am a student. I say yes — and it is technically still true, in some part of my life. He nods like this confirms something he had suspected. Hands me a sachet. I drink it. It costs 30 naira. We do not speak again."
   - time: ""
     kind: wide-figure
-    image: "https://picsum.photos/seed/walk03/2100/900?grayscale"
+    image: "https://picsum.photos/seed/walk03/2100/900"
     ix: "03"
     caption: "<em>Third Mainland, 07:18.</em> The first two trailers of the morning, in convoy, going east."
   - time: "07:42"

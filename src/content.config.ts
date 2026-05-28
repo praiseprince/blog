@@ -25,6 +25,10 @@ const posts = defineCollection({
     readTime: z.string().optional(),
     wordCount: z.number().optional(),
     issueLabel: z.string().optional(),
+    // Manual homepage curation
+    featured: z.boolean().default(false),
+    featuredOrder: z.number().optional(),
+    draft: z.boolean().default(false),
 
     cover: figure.optional(),
     nextLabel: z.string().optional(),
@@ -57,11 +61,14 @@ const posts = defineCollection({
     }).optional(),
     timeline: z.array(z.object({
       time: z.string(),
-      kind: z.enum(['prose', 'quote', 'figure', 'wide-figure', 'prose-wide']),
+      kind: z.enum(['prose', 'quote', 'figure', 'wide-figure', 'prose-wide', 'video', 'wide-video']),
       heading: z.string().optional(),
       body: z.string().optional(),
       aside: z.string().optional(),
       image: z.string().optional(),
+      video: z.string().optional(),
+      poster: z.string().optional(),
+      aspect: z.string().optional(),
       caption: z.string().optional(),
       ix: z.string().optional(),
     })).optional(),
@@ -102,20 +109,76 @@ const posts = defineCollection({
   }),
 });
 
-const books = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/books' }),
-  schema: z.object({
-    title: z.string(),
-    author: z.string(),
-    year: z.string().optional(),
-    status: z.enum(['active', 'stalled', 'finished']),
-    spine: z.string(),
-    tone: z.enum(['1', '2', '3', '4']).default('1'),
-    note: z.string(),
-    stars: z.string().optional(),
-    progress: z.string().optional(),
-    order: z.number().default(0),
-  }),
+const mediaBase = {
+  title: z.string(),
+  status: z.enum(['consuming', 'finished', 'stalled', 'queued', 'abandoned']),
+  rating: z.number().min(1).max(5).optional(),
+  note: z.string(),
+  tags: z.array(z.string()).default([]),
+  cover: z.string().optional(),
+  firstAt: z.coerce.date().optional(),
+  lastAt: z.coerce.date().optional(),
+  consumptionCount: z.number().default(1),
+  order: z.number().default(0),
+  log: z.array(z.object({
+    date: z.coerce.date(),
+    note: z.string().optional(),
+  })).optional(),
+};
+
+const bookSchema = z.object({
+  kind: z.literal('book'),
+  ...mediaBase,
+  author: z.string(),
+  year: z.string().optional(),
+  pages: z.number().optional(),
+  currentPage: z.number().optional(),
+  spine: z.string().optional(),
+  tone: z.enum(['1', '2', '3', '4']).default('1'),
 });
 
-export const collections = { posts, books };
+const filmSchema = z.object({
+  kind: z.literal('film'),
+  ...mediaBase,
+  director: z.string(),
+  year: z.string(),
+  runtime: z.string().optional(),
+  language: z.string().optional(),
+});
+
+const showSchema = z.object({
+  kind: z.literal('show'),
+  ...mediaBase,
+  creator: z.string(),
+  year: z.string(),
+  currentSeason: z.number().optional(),
+  currentEpisode: z.number().optional(),
+  network: z.string().optional(),
+});
+
+const albumSchema = z.object({
+  kind: z.literal('album'),
+  ...mediaBase,
+  artist: z.string(),
+  year: z.string(),
+  length: z.string().optional(),
+  label: z.string().optional(),
+});
+
+const trackSchema = z.object({
+  kind: z.literal('track'),
+  ...mediaBase,
+  artist: z.string(),
+  album: z.string().optional(),
+  year: z.string().optional(),
+  duration: z.string().optional(),
+});
+
+const media = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/media' }),
+  schema: z.discriminatedUnion('kind', [
+    bookSchema, filmSchema, showSchema, albumSchema, trackSchema,
+  ]),
+});
+
+export const collections = { posts, media };

@@ -11,16 +11,12 @@ const { data } = entry;
 const tm = data.techMeta ?? {};
 ---
 <BaseLayout
-  title={`${data.title} — Praise Prince`}
+  title={`${data.title} — Postcards from Far Away`}
   description={data.excerpt}
-  activeNav="technical"
+  activeNav="archive"
   showReadProgress
   screenLabel="Technical"
   mastheadRight="Notes · Engineering"
-  colophonLeft="© Praise Prince"
-  colophonMiddle="Code is MIT-licensed; the prose isn't."
-  colophonRightHref="/archive/"
-  colophonRightLabel="→ Archive"
 >
   <Fragment slot="head">
     <style is:inline>

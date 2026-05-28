@@ -11,13 +11,12 @@ const { data } = entry;
 const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 ---
 <BaseLayout
-  title={`${data.title} — Praise Prince`}
+  title={`${data.title} — Postcards from Far Away`}
   description={data.excerpt}
-  activeNav="essay"
+  activeNav="archive"
   showReadProgress
   screenLabel="Essay"
   mastheadRight={`Essay · ${data.readTime ?? '12 min'}`}
-  colophonLeft="© Praise Prince — All notes available for re-reading."
 >
   <main class="page">
     <article class="column" style="padding-top: clamp(40px, 7vw, 88px);">

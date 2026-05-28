@@ -21,7 +21,7 @@ marginalia:
     label: "Variants"
     body: "Stör&shy;mer–Verlet, velocity-Verlet, leap-frog. They are all the same idea worn in different hats."
   - kind: figure
-    image: "https://picsum.photos/seed/verlet/600/600?grayscale"
+    image: "https://picsum.photos/seed/verlet/600/600"
     ix: "FIG. 01"
     caption: "A double pendulum, simulated with velocity-Verlet at Δt = 1/60s. It does not fall apart."
 nextLabel: "Companion essay → On the habit of looking twice"

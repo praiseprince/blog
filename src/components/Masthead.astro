@@ -4,8 +4,17 @@ interface Props {
   rightLine?: string;
   leftLine?: string;
   screenLabel?: string;
+  lastUpdate?: string;   // formatted date string, home variant only
+  subtitle?: string;     // sub-masthead strip, home variant only
 }
-const { variant = 'default', rightLine, leftLine, screenLabel } = Astro.props;
+const {
+  variant = 'default',
+  rightLine,
+  leftLine,
+  screenLabel,
+  lastUpdate,
+  subtitle = 'A notebook, sometimes.',
+} = Astro.props;
 const isHome = variant === 'home';
 ---
 {isHome ? (
@@ -14,35 +23,33 @@ const isHome = variant === 'home';
     style="border-bottom-width: 4px; border-bottom-style: double; padding-bottom: 18px;"
     data-screen-label={screenLabel}
   >
-    <div class="left">
-      EST. 2021<br/>
-      <span data-issue></span><br/>
-      Lagos · Cambridge
-    </div>
-    <div class="nameplate fade-in"><em>Praise</em> Prince</div>
-    <div class="right">
-      <span data-date></span><br/>
-      Independent · Irregular<br/>
-      Price: <em style="font-family: var(--font-display); font-style: italic;">your attention</em>
-    </div>
+    <div class="left">Waterloo</div>
+    <div class="nameplate fade-in"><em>Postcards</em> from Far Away</div>
+    <div class="right">{lastUpdate ?? ''}</div>
   </header>
 ) : (
   <header class="masthead" data-screen-label={screenLabel}>
-    <div class="left">
-      {leftLine ?? 'Praise Prince'}<br/>
-      <span data-issue></span>
-    </div>
-    <a class="nameplate" href="/"><em>Praise</em> Prince</a>
-    <div class="right">
-      <span data-date></span><br/>
-      {rightLine}
-    </div>
+    <div class="left">{leftLine ?? 'Praise Prince'}</div>
+    <a class="nameplate" href="/"><em>Postcards</em> from Far Away</a>
+    <div class="right">{rightLine ?? ''}</div>
   </header>
 )}
 
 {isHome && (
-  <div style="border-bottom: 1px solid var(--ink); padding: 8px clamp(20px, 5vw, 56px); display: flex; justify-content: space-between; align-items: center; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft);">
-    <span>A field journal of one engineer's intellectual life</span>
-    <span class="hide-mobile">"Look twice, walk slowly, write small."</span>
+  <div class="masthead-sub">
+    <span>{subtitle}</span>
   </div>
 )}
+
+<style>
+  .masthead-sub {
+    border-bottom: 1px solid var(--ink);
+    padding: 8px clamp(20px, 5vw, 56px);
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+</style>

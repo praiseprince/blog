@@ -1,0 +1,229 @@
+---
+import type { Media } from '../lib/media';
+import { mediaUrl, STATUS_LABEL, starRow } from '../lib/media';
+
+interface Props { item: Media }
+const { item } = Astro.props;
+const { data } = item;
+const url = mediaUrl(item);
+const statusLabel = STATUS_LABEL[data.kind][data.status] ?? data.status;
+const stars = starRow(data.rating);
+
+// Data attributes for client-side sort/filter on the desk page
+const plainTitle = data.title.replace(/<[^>]+>/g, '').trim().toLowerCase();
+const dataAttrs = {
+  'data-kind':     data.kind,
+  'data-status':   data.status,
+  'data-title':    plainTitle,
+  'data-rating':   String(data.rating ?? 0),
+  'data-updated':  data.lastAt ? data.lastAt.toISOString().slice(0, 10) : '',
+  'data-first':    data.firstAt ? data.firstAt.toISOString().slice(0, 10) : '',
+  'data-revisits': String(data.consumptionCount ?? 1),
+};
+
+// Per-kind subtitle (creator + year)
+const subtitle: string =
+  data.kind === 'book'  ? `${data.author}${data.year ? ` · ${data.year}` : ''}` :
+  data.kind === 'film'  ? `${data.director} · ${data.year}` :
+  data.kind === 'show'  ? `${data.creator} · ${data.year}` :
+  data.kind === 'album' ? `${data.artist} · ${data.year}` :
+  data.kind === 'track' ? `${data.artist}${data.album ? ` · ${data.album}` : ''}` :
+  '';
+
+// Per-kind extras shown below note
+const extra: string =
+  data.kind === 'book' && data.currentPage && data.pages ? `p. ${data.currentPage} / ${data.pages}` :
+  data.kind === 'film' && data.runtime ? data.runtime :
+  data.kind === 'show' && data.currentSeason
+    ? `S${data.currentSeason}${data.currentEpisode ? `·E${data.currentEpisode}` : ''}${data.network ? ` · ${data.network}` : ''}`
+    : data.kind === 'album' && data.length ? `${data.length}${data.label ? ` · ${data.label}` : ''}` :
+  data.kind === 'track' && data.duration ? data.duration : '';
+
+const reread = data.consumptionCount && data.consumptionCount > 1
+  ? `${data.kind === 'book' ? 're-read' : data.kind === 'film' || data.kind === 'show' ? 're-watch' : 'replay'} №${data.consumptionCount}`
+  : '';
+---
+{data.kind === 'book' ? (
+  <a class={`media-card book tone-${data.tone}`} href={url} {...dataAttrs}>
+    <div class="spine" set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
+    <div class="body">
+      <h3 set:html={data.title} />
+      <div class="by">{subtitle}</div>
+      <p class="note">{data.note}</p>
+      <div class="meta-row">
+        <span class="stars">{stars}</span>
+        <span class="status">{statusLabel}{extra ? ` · ${extra}` : ''}{reread ? ` · ${reread}` : ''}</span>
+      </div>
+    </div>
+  </a>
+) : data.kind === 'track' ? (
+  <a class="media-card track" href={url} {...dataAttrs}>
+    <div class="cover-square">
+      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
+    </div>
+    <div class="body">
+      <h3 set:html={data.title} />
+      <div class="by">{subtitle}</div>
+      <p class="note">{data.note}</p>
+      <div class="meta-row">
+        <span class="stars">{stars}</span>
+        <span class="status">{statusLabel}{extra ? ` · ${extra}` : ''}{reread ? ` · ${reread}` : ''}</span>
+      </div>
+    </div>
+  </a>
+) : (
+  <a class={`media-card ${data.kind}`} href={url} {...dataAttrs}>
+    <div class={data.kind === 'album' ? 'cover-square' : 'cover-poster'}>
+      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
+    </div>
+    <div class="body">
+      <h3 set:html={data.title} />
+      <div class="by">{subtitle}</div>
+      <p class="note">{data.note}</p>
+      <div class="meta-row">
+        <span class="stars">{stars}</span>
+        <span class="status">{statusLabel}{extra ? ` · ${extra}` : ''}{reread ? ` · ${reread}` : ''}</span>
+      </div>
+    </div>
+  </a>
+)}
+
+<style>
+  .media-card {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+    transition: opacity .2s;
+  }
+  .media-card:hover { opacity: 0.78; }
+
+  .media-card h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    margin: 0 0 4px;
+  }
+  .media-card h3 em { font-style: italic; }
+  .media-card .by {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+    margin-bottom: 10px;
+  }
+  .media-card .note {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0 0 12px;
+  }
+  .media-card .meta-row {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .media-card .stars {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.2em;
+  }
+  .media-card .status {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-fade);
+  }
+
+  /* Book — spine + body side by side */
+  .media-card.book {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 22px;
+    align-items: start;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .media-card.book .spine {
+    height: 130px;
+    background: var(--paper-deep);
+    border: 1px solid var(--ink);
+    position: relative;
+    display: flex; align-items: flex-end; justify-content: center;
+    font-family: var(--font-display); font-style: italic; font-size: 12px;
+    color: var(--ink-soft); padding: 8px 6px; text-align: center; line-height: 1.1;
+    overflow: hidden;
+  }
+  .media-card.book .spine::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 18px; background: var(--accent);
+  }
+  .media-card.book.tone-2 .spine { background: var(--ink); color: var(--paper); }
+  .media-card.book.tone-2 .spine::before { background: var(--paper); }
+  .media-card.book.tone-3 .spine { background: var(--accent); color: var(--paper); }
+  .media-card.book.tone-3 .spine::before { background: var(--ink); }
+  .media-card.book.tone-4 .spine { background: var(--paper); border-color: var(--accent); color: var(--accent); }
+  .media-card.book.tone-4 .spine::before { background: var(--accent); }
+
+  /* Film / Show — 2:3 poster */
+  .media-card.film, .media-card.show {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cover-poster {
+    aspect-ratio: 2/3;
+    background: var(--paper-deep);
+    overflow: hidden;
+    position: relative;
+  }
+  .cover-poster img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .6s cubic-bezier(.2,.6,.2,1);
+  }
+  .media-card:hover .cover-poster img { transform: scale(1.03); }
+
+  /* Album — square */
+  .media-card.album {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .cover-square {
+    aspect-ratio: 1/1;
+    background: var(--paper-deep);
+    overflow: hidden;
+    position: relative;
+  }
+  .cover-square img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .6s cubic-bezier(.2,.6,.2,1);
+  }
+  .media-card:hover .cover-square img { transform: scale(1.03); }
+
+  /* Track — small square + content row */
+  .media-card.track {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 18px;
+    align-items: start;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--rule);
+  }
+  .media-card.track .cover-square {
+    width: 72px; height: 72px;
+  }
+
+  @media (max-width: 720px) {
+    .media-card.book {
+      grid-template-columns: 70px 1fr;
+      gap: 18px;
+    }
+    .media-card.book .spine { height: 105px; font-size: 11px; }
+    .media-card h3 { font-size: 1.15rem; }
+  }
+</style>

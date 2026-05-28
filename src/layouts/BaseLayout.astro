@@ -11,9 +11,10 @@ interface Props {
   mastheadVariant?: 'default' | 'home';
   mastheadRight?: string;
   mastheadLeft?: string;
+  mastheadLastUpdate?: string;
+  mastheadSubtitle?: string;
   screenLabel?: string;
   showReadProgress?: boolean;
-  colophonMiddle?: string;
   colophonRightHref?: string;
   colophonRightLabel?: string;
   colophonLeft?: string;
@@ -31,14 +32,15 @@ const stripHtml = (s: string) => s
 
 const {
   title,
-  description = 'Praise Prince — a field journal of one engineer\'s intellectual life.',
+  description = 'Postcards from Far Away — a notebook, sometimes.',
   activeNav,
   mastheadVariant = 'default',
   mastheadRight,
   mastheadLeft,
+  mastheadLastUpdate,
+  mastheadSubtitle,
   screenLabel,
   showReadProgress = false,
-  colophonMiddle,
   colophonRightHref,
   colophonRightLabel,
   colophonLeft,
@@ -63,6 +65,8 @@ const {
   variant={mastheadVariant}
   rightLine={mastheadRight}
   leftLine={mastheadLeft}
+  lastUpdate={mastheadLastUpdate}
+  subtitle={mastheadSubtitle}
   screenLabel={screenLabel}
 />
 
@@ -71,7 +75,6 @@ const {
 <slot />
 
 <Colophon
-  middle={colophonMiddle}
   rightHref={colophonRightHref}
   rightLabel={colophonRightLabel}
   left={colophonLeft}

@@ -1,0 +1,223 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Tag from '../../components/Tag.astro';
+import { STATUS_LABEL, starRow, shortDate, type Media } from '../../lib/media';
+
+export async function getStaticPaths() {
+  const items = await getCollection('media');
+  return items.map(entry => ({
+    params: { slug: entry.id.replace(/\.(md|mdx)$/, '') },
+    props: { entry },
+  }));
+}
+
+interface Props { entry: Media }
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const { data } = entry;
+
+const statusLabel = STATUS_LABEL[data.kind][data.status] ?? data.status;
+const stars = starRow(data.rating);
+
+const subtitle =
+  data.kind === 'book'  ? `${data.author}${data.year ? ` · ${data.year}` : ''}` :
+  data.kind === 'film'  ? `${data.director} · ${data.year}` :
+  data.kind === 'show'  ? `${data.creator} · ${data.year}` :
+  data.kind === 'album' ? `${data.artist} · ${data.year}` :
+  data.kind === 'track' ? `${data.artist}${data.album ? ` · ${data.album}` : ''}${data.year ? ` · ${data.year}` : ''}` :
+  '';
+
+const kindLabel = data.kind.charAt(0).toUpperCase() + data.kind.slice(1);
+
+// Reverse-chronological log
+const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.getTime());
+---
+<BaseLayout
+  title={`${data.title} — Postcards from Far Away`}
+  description={data.note}
+  activeNav="desk"
+  screenLabel="Desk · entry"
+  mastheadRight={`${kindLabel} · ${statusLabel}`}
+>
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+
+    <a href="/desk/" class="meta" style="display: inline-block; margin-bottom: 24px;">← The desk</a>
+
+    <section class="editorial-grid entry-head" style="align-items: start;">
+      <div class={data.kind === 'book' ? 'cover-col-book' : 'cover-col-image'} style="grid-column: 1 / span 4;">
+        {data.kind === 'book' ? (
+          <div class={`big-spine tone-${data.tone}`}>
+            <span set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
+          </div>
+        ) : (
+          <div class={data.kind === 'album' || data.kind === 'track' ? 'big-square' : 'big-poster'}>
+            {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
+          </div>
+        )}
+      </div>
+
+      <div style="grid-column: 6 / span 7;">
+        <div class="eyebrow fade-in">{kindLabel} · {statusLabel}</div>
+        <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 5vw, 4rem); margin: 14px 0 0; line-height: 1.02;" set:html={data.title} />
+        <p class="by fade-in-3" style="font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-fade); margin: 14px 0 0;">{subtitle}</p>
+
+        {stars && (
+          <p class="stars" style="font-family: var(--font-mono); font-size: 13px; color: var(--accent); letter-spacing: 0.25em; margin: 18px 0 0;">{stars}</p>
+        )}
+
+        <dl class="entry-meta">
+          {data.kind === 'book' && data.pages && (
+            <><dt>Length</dt><dd>{data.currentPage ? `p. ${data.currentPage} / ${data.pages}` : `${data.pages} pp.`}</dd></>
+          )}
+          {data.kind === 'film' && data.runtime && (<><dt>Runtime</dt><dd>{data.runtime}</dd></>)}
+          {data.kind === 'film' && data.language && (<><dt>Language</dt><dd>{data.language}</dd></>)}
+          {data.kind === 'show' && data.currentSeason && (
+            <><dt>Where I am</dt><dd>S{data.currentSeason}{data.currentEpisode ? ` · E${data.currentEpisode}` : ''}</dd></>
+          )}
+          {data.kind === 'show' && data.network && (<><dt>Where</dt><dd>{data.network}</dd></>)}
+          {data.kind === 'album' && data.length && (<><dt>Length</dt><dd>{data.length}</dd></>)}
+          {data.kind === 'album' && data.label && (<><dt>Label</dt><dd>{data.label}</dd></>)}
+          {data.kind === 'track' && data.duration && (<><dt>Length</dt><dd>{data.duration}</dd></>)}
+          {data.firstAt && (<><dt>First</dt><dd>{shortDate(data.firstAt)}</dd></>)}
+          {data.lastAt && (<><dt>Most recent</dt><dd>{shortDate(data.lastAt)}</dd></>)}
+          {data.consumptionCount > 1 && (<><dt>Times</dt><dd>{data.consumptionCount}</dd></>)}
+        </dl>
+
+        <p class="entry-note">{data.note}</p>
+
+        {data.tags.length > 0 && (
+          <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 8px;">
+            {data.tags.map(t => <Tag name={t} />)}
+          </div>
+        )}
+      </div>
+    </section>
+
+    {log.length > 0 && (
+      <section class="entry-log">
+        <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 16px;">Log · sessions</div>
+        <ol>
+          {log.map(e => (
+            <li>
+              <div class="log-date meta">{e.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+              {e.note && <p class="log-note">{e.note}</p>}
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    <article class="column prose entry-body">
+      <Content />
+    </article>
+
+  </main>
+
+  <style>
+    .entry-head { margin-top: 0; }
+    .cover-col-book .big-spine {
+      aspect-ratio: 2/3;
+      max-width: 240px;
+      background: var(--paper-deep);
+      border: 1px solid var(--ink);
+      position: relative;
+      display: flex; align-items: flex-end; justify-content: center;
+      font-family: var(--font-display); font-style: italic;
+      font-size: 18px; line-height: 1.15;
+      color: var(--ink-soft); padding: 18px 12px; text-align: center;
+    }
+    .cover-col-book .big-spine::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 28px; background: var(--accent);
+    }
+    .cover-col-book .big-spine.tone-2 { background: var(--ink); color: var(--paper); }
+    .cover-col-book .big-spine.tone-2::before { background: var(--paper); }
+    .cover-col-book .big-spine.tone-3 { background: var(--accent); color: var(--paper); }
+    .cover-col-book .big-spine.tone-3::before { background: var(--ink); }
+    .cover-col-book .big-spine.tone-4 {
+      background: var(--paper); border-color: var(--accent); color: var(--accent);
+    }
+    .cover-col-book .big-spine.tone-4::before { background: var(--accent); }
+
+    .big-poster, .big-square {
+      background: var(--paper-deep);
+      overflow: hidden;
+    }
+    .big-poster { aspect-ratio: 2/3; }
+    .big-square { aspect-ratio: 1/1; }
+    .big-poster img, .big-square img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+
+    .entry-meta {
+      margin: 28px 0 24px;
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      column-gap: 18px;
+      row-gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .entry-meta dt { color: var(--ink-fade); letter-spacing: 0.14em; text-transform: uppercase; font-size: 10.5px; padding-top: 1px; }
+    .entry-meta dd { margin: 0; color: var(--ink); }
+
+    .entry-note {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.35rem;
+      line-height: 1.4;
+      color: var(--ink);
+      margin: 4px 0 0;
+      padding-top: 18px;
+      border-top: 1px solid var(--rule);
+    }
+
+    .entry-log {
+      margin: 80px auto 0;
+      max-width: 720px;
+      padding: 32px clamp(0px, 0vw, 0px);
+      border-top: 1px solid var(--rule);
+      padding-top: 32px;
+    }
+    .entry-log ol { list-style: none; padding: 0; margin: 0; }
+    .entry-log li {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 18px;
+      align-items: baseline;
+    }
+    .entry-log li:last-child { border-bottom: 0; }
+    .entry-log .log-date { padding-top: 2px; }
+    .entry-log .log-note {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .entry-body { margin-top: 80px; max-width: 660px; }
+    .entry-body:empty { display: none; }
+
+    @media (max-width: 800px) {
+      .entry-head .cover-col-book,
+      .entry-head .cover-col-image { grid-column: 1 / -1 !important; max-width: 200px; }
+      .entry-head > div:last-child { grid-column: 1 / -1 !important; margin-top: 16px; }
+      .entry-meta { grid-template-columns: 100px 1fr; column-gap: 14px; }
+      .entry-log li { grid-template-columns: 1fr; gap: 4px; }
+    }
+    @media (max-width: 720px) {
+      .entry-head .cover-col-book .big-spine,
+      .entry-head .cover-col-image .big-poster,
+      .entry-head .cover-col-image .big-square { max-width: 160px; }
+      .entry-meta { grid-template-columns: 90px 1fr; column-gap: 12px; font-size: 11px; }
+      .entry-meta dt { font-size: 10px; }
+      .entry-note { font-size: 1.15rem; padding-top: 14px; }
+      .entry-log { margin-top: 56px; padding-top: 24px; }
+      .entry-body { margin-top: 56px; }
+    }
+  </style>
+</BaseLayout>

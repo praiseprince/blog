@@ -14,14 +14,10 @@ const counts = {
 const photoPosts = posts.filter(p => p.data.type === 'photo');
 ---
 <BaseLayout
-  title="Archive — Praise Prince"
+  title="Archive — Postcards from Far Away"
   activeNav="archive"
   screenLabel="Archive"
   mastheadRight="The whole archive"
-  colophonLeft="© Praise Prince"
-  colophonMiddle="The archive is the work."
-  colophonRightHref="/reading/"
-  colophonRightLabel="→ Reading"
   bodyId="archive-root"
 >
   <Fragment slot="head">
@@ -30,13 +26,39 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
       .filter-bar button {
         font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
         background: none; border: 1px solid var(--rule); color: var(--ink-soft);
-        padding: 6px 10px; cursor: pointer; transition: all .2s;
+        padding: 6px 10px; cursor: pointer; transition: all .2s; white-space: nowrap;
+        flex-shrink: 0;
       }
       .filter-bar button:hover { color: var(--ink); border-color: var(--ink); }
       .filter-bar button.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
       .archive-row { opacity: 1; transition: opacity .3s; }
       .archive-row.is-hidden { display: none; }
       .view-toggle { margin-left: auto; display: flex; gap: 6px; }
+      @media (max-width: 720px) {
+        .filter-bar {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          margin: 0 -16px;
+          padding: 12px 16px;
+          gap: 8px;
+          -webkit-overflow-scrolling: touch;
+          width: calc(100% + 32px);
+          max-width: none;
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+        .filter-bar::after {
+          content: '';
+          flex: 0 0 4px;
+        }
+        .filter-bar .view-toggle {
+          margin-left: 12px;
+          padding-left: 12px;
+          border-left: 1px solid var(--rule);
+          flex-shrink: 0;
+        }
+      }
       .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: clamp(16px, 2.5vw, 32px); margin-top: 32px; }
       .archive-grid figcaption { padding-top: 10px; }
       .is-grid-view .toc { display: none; }

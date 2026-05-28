@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
+import Video from '../components/Video.astro';
 import type { CollectionEntry } from 'astro:content';
 
 interface Props {
@@ -11,16 +12,12 @@ const { data } = entry;
 const m = data.walkMeta ?? {};
 ---
 <BaseLayout
-  title={`${data.title} — Praise Prince`}
+  title={`${data.title} — Postcards from Far Away`}
   description={data.excerpt}
-  activeNav="walk"
+  activeNav="archive"
   showReadProgress
   screenLabel="Walk"
   mastheadRight={data.issueLabel ?? 'Walks'}
-  colophonLeft="© Praise Prince"
-  colophonMiddle="Notebook — Field & Walks."
-  colophonRightHref="/archive/"
-  colophonRightLabel="→ Archive"
 >
   <main class="page" style="padding-top: clamp(40px, 7vw, 88px);">
     <section class="editorial-grid" style="align-items: end;">
@@ -45,6 +42,23 @@ const m = data.walkMeta ?? {};
       <section style="margin-top: 56px;">
         <div class="editorial-grid" style="row-gap: 56px;">
           {data.timeline.map(t => {
+            if (t.kind === 'wide-video' && t.video) {
+              return (
+                <div style="grid-column: 1 / -1; margin: 24px 0;">
+                  <Video src={t.video} poster={t.poster} caption={t.caption} ix={t.ix} aspect={t.aspect ?? '16/9'} />
+                </div>
+              );
+            }
+            if (t.kind === 'video' && t.video) {
+              return (
+                <>
+                  <div style="grid-column: 1 / span 2;" class="meta">{t.time}</div>
+                  <div style="grid-column: 3 / span 9;">
+                    <Video src={t.video} poster={t.poster} caption={t.caption} ix={t.ix} aspect={t.aspect ?? '16/9'} />
+                  </div>
+                </>
+              );
+            }
             if (t.kind === 'wide-figure') {
               return (
                 <figure style="grid-column: 1 / -1; margin: 24px 0;">
