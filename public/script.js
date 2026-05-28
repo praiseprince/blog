@@ -83,6 +83,13 @@
 
           if (typeof viewer.showModal === 'function') viewer.showModal();
           else viewer.setAttribute('open', '');
+
+          // The <dialog> would auto-focus the close button and show it in its
+          // hover/focus state. Blur it so the calm default look is shown
+          // until the user actually interacts with it (Escape still closes).
+          requestAnimationFrame(() => {
+            if (document.activeElement === close) close.blur();
+          });
         });
       });
 

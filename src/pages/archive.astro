@@ -11,14 +11,12 @@ const counts = {
   fragment:  posts.filter(p => p.data.type === 'fragment').length,
   technical: posts.filter(p => p.data.type === 'technical').length,
 };
-const photoPosts = posts.filter(p => p.data.type === 'photo');
 ---
 <BaseLayout
   title="Archive — Postcards from Far Away"
   activeNav="archive"
   screenLabel="Archive"
   mastheadRight="The whole archive"
-  bodyId="archive-root"
 >
   <Fragment slot="head">
     <style is:inline>
@@ -33,7 +31,6 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
       .filter-bar button.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
       .archive-row { opacity: 1; transition: opacity .3s; }
       .archive-row.is-hidden { display: none; }
-      .view-toggle { margin-left: auto; display: flex; gap: 6px; }
       @media (max-width: 720px) {
         .filter-bar {
           flex-wrap: nowrap;
@@ -52,19 +49,7 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
           content: '';
           flex: 0 0 4px;
         }
-        .filter-bar .view-toggle {
-          margin-left: 12px;
-          padding-left: 12px;
-          border-left: 1px solid var(--rule);
-          flex-shrink: 0;
-        }
       }
-      .archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: clamp(16px, 2.5vw, 32px); margin-top: 32px; }
-      .archive-grid figcaption { padding-top: 10px; }
-      .is-grid-view .toc { display: none; }
-      .is-grid-view .archive-grid { display: grid; }
-      .is-list-view .toc { display: block; }
-      .is-list-view .archive-grid { display: none; }
     </style>
   </Fragment>
 
@@ -92,10 +77,6 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
       <button data-kind="walk">Walks — {counts.walk}</button>
       <button data-kind="fragment">Fragments — {counts.fragment}</button>
       <button data-kind="technical">Notes — {counts.technical}</button>
-      <div class="view-toggle">
-        <button class="view-btn is-active" data-view="list">List</button>
-        <button class="view-btn" data-view="grid">Grid</button>
-      </div>
     </div>
 
     <hr class="rule" style="margin: 0 0 24px;" />
@@ -110,29 +91,10 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
         </li>
       ))}
     </ul>
-
-    <div class="archive-grid">
-      {photoPosts.flatMap(p =>
-        (p.data.gallery ?? []).slice(0, 4).map((g, i) => (
-          <a href={postUrl(p)}>
-            <figure>
-              <div class="thumb"><img src={g.src} alt={g.alt} /></div>
-              <figcaption>
-                {g.ix && <span class="ix">{g.ix}</span>}
-                <span set:html={g.caption ?? p.data.title} />
-              </figcaption>
-            </figure>
-          </a>
-        ))
-      )}
-    </div>
   </main>
 
   <script is:inline>
     (function(){
-      const root = document.getElementById('archive-root');
-      root.classList.add('is-list-view');
-
       // Read ?kind= from URL and apply preset
       const params = new URLSearchParams(location.search);
       const preset = params.get('kind');
@@ -148,14 +110,6 @@ const photoPosts = posts.filter(p => p.data.type === 'photo');
 
       document.querySelectorAll('.filter-bar [data-kind]').forEach(btn => {
         btn.addEventListener('click', () => setKind(btn.dataset.kind));
-      });
-      document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('is-active'));
-          btn.classList.add('is-active');
-          root.classList.toggle('is-list-view', btn.dataset.view === 'list');
-          root.classList.toggle('is-grid-view', btn.dataset.view === 'grid');
-        });
       });
 
       if (preset && document.querySelector('.filter-bar [data-kind="' + preset + '"]')) {

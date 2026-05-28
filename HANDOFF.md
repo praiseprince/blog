@@ -59,11 +59,15 @@ No database, no auth, no backend API. Build → static HTML/CSS/JS → upload.
 ├── tsconfig.json
 ├── HANDOFF.md                ← you are here
 ├── public/
-│   └── script.js             Theme toggle, masthead date, reading progress
+│   ├── script.js             Theme toggle, masthead date, reading progress, photo-viewer lightbox
+│   ├── favicon-32.png        Tab favicon
+│   ├── favicon-192.png       Android / PWA
+│   ├── favicon-512.png       Maskable / PWA
+│   └── apple-touch-icon.png  iOS home-screen icon (180×180)
 ├── src/
 │   ├── content.config.ts     Zod schemas for posts + media collections
 │   ├── styles/
-│   │   └── global.css        Editorial design system (palettes, type, layout)
+│   │   └── global.css        Editorial design system (palettes, type, layout, photo-viewer)
 │   ├── content/
 │   │   ├── posts/            Each .md = one post (essay/photo/walk/fragment/technical)
 │   │   └── media/            Each .md = one media entry (book/film/show/album/track)
@@ -71,24 +75,25 @@ No database, no auth, no backend API. Build → static HTML/CSS/JS → upload.
 │   │   ├── posts.ts          getAllPosts, getFeaturedPosts, kindLabel, helpers
 │   │   └── media.ts          getAllMedia, mediaUrl, STATUS_LABEL, sort helpers
 │   ├── components/
-│   │   ├── BaseLayout.astro  Shared chrome (head/masthead/nav/colophon)
 │   │   ├── Masthead.astro    Nameplate variants (home + default)
 │   │   ├── SiteNav.astro     Hamburger nav on mobile, inline on desktop
-│   │   ├── Colophon.astro    Footer
+│   │   ├── Colophon.astro    Footer ("Praise Prince" / "About →")
 │   │   ├── Tag.astro         Tag pill
 │   │   ├── Figure.astro      Generic figure with caption
 │   │   ├── MediaCard.astro   Per-kind card for /desk/
 │   │   └── Video.astro       Auto-detects local MP4 vs YouTube/Vimeo
-│   ├── layouts/              One layout per post type
+│   ├── layouts/
+│   │   ├── BaseLayout.astro  Shared chrome (head/masthead/nav/slot/colophon)
 │   │   ├── EssayLayout.astro
-│   │   ├── PhotoLayout.astro
-│   │   ├── WalkLayout.astro
-│   │   ├── FragmentLayout.astro
+│   │   ├── PhotoLayout.astro       includes the photo-viewer <dialog> for lightbox
+│   │   ├── WalkLayout.astro        includes the photo-viewer <dialog> for lightbox
+│   │   ├── FragmentLayout.astro    includes the photo-viewer <dialog> for lightbox
 │   │   └── TechnicalLayout.astro
 │   └── pages/
 │       ├── index.astro       Homepage — Masthead-style; lead + side + tier + contact + desk strip + tags
 │       ├── archive.astro     Filterable archive (kind + list/grid view)
 │       ├── about.astro       Colophon
+│       ├── 404.astro         "Page not found" in the publication's voice
 │       ├── desk.astro        /desk/ index (sectioned by kind, status-grouped, filter + sort)
 │       ├── desk/[slug].astro Per-media-entry detail page (cover, meta, log, long review)
 │       ├── posts/[...slug].astro  Dispatches to the right post layout by type
@@ -201,17 +206,27 @@ Selected via the toggle in the nav; persisted via `localStorage` (keys: `pp-them
 
 **Grid:** 12-column editorial grid (`.editorial-grid`). Most page-specific layouts use inline `grid-column: X / span Y` styles. **Pitfall**: those inline styles don't auto-collapse on mobile — each page needs explicit `@media (max-width: 720px)` overrides. Several have them; check before adding new ones.
 
+**Sticky footer:** `body` is a flex column with `min-height: 100vh`; `body > main` has `flex: 1 0 auto`. On short pages the footer pins to the viewport bottom; on long pages it sits naturally below content. Any new top-level page MUST wrap its content in `<main>` for this to work.
+
+**Photo-viewer lightbox** (Photographs / Walks / Fragments only):
+- Each of those three layouts renders a single `<dialog class="photo-viewer">` at the bottom of `<main>`. Every clickable image is a `<button class="photo-viewer-trigger" data-full-src/alt/caption/ix>` wrapping the thumbnail.
+- `public/script.js` wires triggers → `dialog.showModal()`, populates the dialog's `<img>` and figcaption from `data-*` attrs, and blurs the auto-focused close button so the calm default state is shown.
+- Open/close uses `@starting-style` + `transition-behavior: allow-discrete` for a soft fade-and-scale entrance; backdrop is `var(--ink)` at 78% with `backdrop-filter: blur(6px)`.
+- Close control is editorial: a thin SVG cross + "Close" mono-caps label (icon-only below 420px). No pill, no tap highlight on mobile (`-webkit-tap-highlight-color: transparent` + `touch-action: manipulation`). Click-outside-figure also closes.
+- Respects `prefers-reduced-motion` and `env(safe-area-inset-*)`.
+
 ---
 
 ## 7. Pages overview
 
 - `/` — homepage. Lead (featured first, else latest essay/photo/walk) + side column (4 cross-kind) + 3-col tier + conditional contact sheet + currently-on-the-desk strip + tag cloud
-- `/archive/` — full archive with kind filter + list/grid views. URL query `?kind=essay|photo|...` pre-selects a filter
-- `/posts/<slug>/` — individual post (layout dispatched by `type`)
-- `/desk/` — media index: sectioned by kind, status-grouped within. Filter bar (All / Books / Films / Shows / Albums / Tracks) + sort dropdown (Default by status / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first)
+- `/archive/` — full archive with kind filter + list/grid views. URL query `?kind=essay|photo|...` pre-selects a filter. *Caveat:* the grid toggle currently shows only photo posts; see Backlog §11 "Archive view-mode" for the planned cleanup
+- `/posts/<slug>/` — individual post (layout dispatched by `type`). Photo / walk / fragment posts include the photo-viewer lightbox dialog
+- `/desk/` — media index: sectioned by kind, status-grouped within. Filter bar (All / Books / Films / Shows / Albums / Tracks) + sort dropdown (Default by status / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first). *Caveat:* the sort control is a native `<select>` and renders in the host OS style — see Backlog §11 "Custom sort dropdown"
 - `/desk/<slug>/` — media entry detail: big cover, metadata, log timeline (if any), full review body (if any)
 - `/tags/<tag>/` — auto-generated per-tag listing
 - `/about/` — colophon: bio, typography, ethos, equipment, contact
+- `/404` — soft "page not found" written in the publication's voice
 
 ---
 
@@ -220,6 +235,7 @@ Selected via the toggle in the nav; persisted via `localStorage` (keys: `pp-them
 - **`<Video>`** — `src` prop. If YouTube/Vimeo URL → renders iframe via `youtube-nocookie.com` / `player.vimeo.com`. Otherwise renders native `<video>` with controls. Phone-responsive via aspect-ratio container.
 - **`<MediaCard>`** — per-kind visual (book spine, 2:3 poster, 1:1 album square, track row). Adds `data-*` attributes for client-side filter/sort on the desk page.
 - **`<SiteNav>`** — desktop = inline link row. Mobile = "Menu" hamburger button + dropdown.
+- **Photo viewer (no component file)** — the lightbox is just markup baked into `PhotoLayout` / `WalkLayout` / `FragmentLayout` plus styles in `global.css` and the click wiring in `public/script.js`. There is intentionally no Astro component for it because each post type spreads the triggers across many `<figure>` blocks; centralizing would only add an indirection.
 
 ---
 
@@ -252,6 +268,28 @@ Git is at https://github.com/praiseprince/blog. Tagged `v1.0.0`. **Do not** add 
 ---
 
 ## 11. Backlog (planned, not built)
+
+### Pagination / "growing collection" problem (author-flagged 2026-05-28)
+
+The Archive and Desk both render every entry on a single page. That works at today's volume. It will not at the volume the author actually expects to hit — books and films especially, where "finished" piles up over years.
+
+Pain points:
+- **Desk**: a single `kind-section` (e.g. Films) with 50+ entries becomes a wall. Status-groups (Watching / Finished / Stalled / Up next / Set aside) shard it a bit, but a multi-year "Finished" group still scrolls forever.
+- **Archive**: same shape — one long `.toc` list will become unwieldy past ~100 posts.
+- The author has **explicitly said** the desk version of this matters more than the archive version.
+
+Options (from least to most invasive, none implemented yet):
+
+1. **Year-grouped collapsible sub-sections inside each status-group.** E.g. under Films → Finished, the entries collapse into `▸ 2026 (14)`, `▸ 2025 (28)`, `▸ 2024 (19)`. Default-expanded for the current year. Editorial, no URL state needed, keeps client-side filter/sort working.
+2. **"Show recent N + show all" toggle.** Default-render the 12 most recent in each status-group; reveal the rest on click. Fastest to ship; least useful for browsing the back catalogue.
+3. **Pagination with `?page=N` per kind-section.** Most "correct" but the desk's whole charm is the at-a-glance picture of what someone's reading/watching now — paginating breaks that.
+4. **Per-kind dedicated pages** (`/desk/books/`, `/desk/films/`) with their own pagination, and `/desk/` becomes a curated snapshot (recent in each, plus "see all books"). Probably the right long-term shape — closer to how a literal desk works (one strip for current, the rest archived).
+
+Recommendation when this is actually implemented: option **1 for both** (collapsible year-groups), plus option **4** as a follow-up if the desk index page itself gets too tall. Year-grouping respects the existing status-group structure, doesn't need server-side state, and the editorial frame already implies chronological browsing.
+
+Do not build this yet — flagged here so the next person who touches the desk doesn't re-design without knowing it's coming.
+
+
 
 ### Keystatic CMS integration (priority — author asked for this)
 
@@ -335,9 +373,18 @@ Currently all images are external picsum placeholders. When real images come in:
 - Slug stability (`slug` field separate from filename)
 - Auto-derive next/previous post from date order (remove manual `nextHref`/`nextLabel`)
 - Discriminated union for the posts schema (proper per-type field validation)
-- RSS feed (`/feed.xml`)
 - Sitemap
 - Strip HTML from frontmatter strings → use Markdown + inline renderer
+
+> **Explicitly not building:** an RSS feed. The author considered it and decided against (2026-05-28). If a future contributor wants to revisit, the counter-argument is that the slow-internet / independent-magazine audience this site courts is still the audience that uses feed readers, and RSS aligns with the "no email capture" policy better than newsletters do. But it's been decided against; don't re-add without asking.
+
+### Recently completed (no longer backlog)
+
+- **Photo-viewer lightbox** for Photographs / Walks / Fragments — `<dialog>` with `@starting-style` fade-and-scale, editorial close control, mobile tap-highlight removed, click-outside-to-close.
+- **Sticky footer** — `body` is a flex column with `min-height: 100vh` so the colophon pins to the viewport bottom on short pages (Archive, etc.) and sits naturally below content on tall pages.
+- **Favicon** — replaced the inline SVG with 32 / 192 / 512 PNGs + a 180×180 apple-touch-icon, generated from `favicon reference.png` (which was removed after wiring).
+- **Archive List/Grid toggle removed** — the grid view only ever showed photo posts, so the label was misleading. The toggle, the `.archive-grid` markup, the `is-list-view` / `is-grid-view` classes, and the `view-btn` JS are gone. The archive is now a single list; the Photographs filter chip is the photo-only path.
+- **Custom sort dropdown on /desk/** — replaced the native `<select>` (which inherited the host OS UI) with a button + popover styled like the filter chips. Keyboard: ↓/↑ moves, Enter selects, Esc / Tab / click-outside closes. Selected option marked with an oxblood dot.
 
 ---
 
@@ -358,6 +405,8 @@ Currently all images are external picsum placeholders. When real images come in:
 - Page `<title>` tags strip HTML automatically (helper in `BaseLayout.astro`)
 - Theme/palette state is persisted in `localStorage` (`pp-theme`, `pp-palette`)
 - No analytics, no email capture, no newsletter form — by design
+- Every top-level page must wrap content in `<main>` — the sticky-footer flex selector is `body > main`. A page rendered without one will lose the footer pinning.
+- The photo-viewer `<dialog>` is duplicated in three layouts (Photo / Walk / Fragment). When changing its markup, update all three. Styles and JS are shared.
 
 ---
 
@@ -381,4 +430,4 @@ To work on the design: edit `src/styles/global.css` for global tokens; edit indi
 
 ---
 
-_Last updated: 2026-05-27. Ping the author (or update this file) when the project meaningfully diverges from what's described here._
+_Last updated: 2026-05-28. Ping the author (or update this file) when the project meaningfully diverges from what's described here._

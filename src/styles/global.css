@@ -107,7 +107,11 @@ body {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
+body > main { flex: 1 0 auto; }
+body > .colophon { flex-shrink: 0; }
 img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 
@@ -383,25 +387,61 @@ a:hover .thumb img, .thumb:hover img { transform: scale(1.03); }
 }
 
 .photo-viewer {
-  width: min(100vw, 1600px);
+  width: 100vw;
   max-width: none;
   height: 100dvh;
   max-height: none;
-  margin: auto;
-  padding: clamp(18px, 3vw, 36px);
+  margin: 0;
+  padding: clamp(20px, 4vw, 56px);
   border: 0;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  overflow: hidden;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
   color: var(--ink);
+  opacity: 0;
+  transform: scale(0.985);
+  transition:
+    opacity 220ms ease,
+    transform 280ms cubic-bezier(.2, .7, .2, 1),
+    overlay 280ms ease allow-discrete,
+    display 280ms ease allow-discrete;
+}
+.photo-viewer[open] {
+  opacity: 1;
+  transform: scale(1);
+}
+@starting-style {
+  .photo-viewer[open] {
+    opacity: 0;
+    transform: scale(0.985);
+  }
 }
 .photo-viewer::backdrop {
-  background: color-mix(in srgb, var(--ink) 72%, transparent);
+  background: color-mix(in srgb, var(--ink) 78%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  opacity: 0;
+  transition:
+    opacity 220ms ease,
+    backdrop-filter 220ms ease,
+    -webkit-backdrop-filter 220ms ease,
+    overlay 280ms ease allow-discrete,
+    display 280ms ease allow-discrete;
+}
+.photo-viewer[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .photo-viewer[open]::backdrop {
+    opacity: 0;
+  }
 }
 .photo-viewer figure {
   width: 100%;
   height: 100%;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 16px;
+  cursor: zoom-out;
 }
 .photo-viewer img {
   width: 100%;
@@ -418,24 +458,75 @@ a:hover .thumb img, .thumb:hover img { transform: scale(1.03); }
 }
 .photo-viewer-close {
   position: fixed;
-  top: clamp(14px, 2.5vw, 28px);
-  right: clamp(14px, 2.5vw, 28px);
+  top: max(env(safe-area-inset-top, 0px), clamp(16px, 2.2vw, 26px));
+  right: max(env(safe-area-inset-right, 0px), clamp(16px, 2.6vw, 32px));
   z-index: 1;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--ink);
-  border-radius: 50%;
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 28px;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 6px;
+  margin: -10px -6px;
+  background: transparent;
+  border: 0;
   cursor: pointer;
+  color: var(--ink-soft);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 220ms ease;
 }
-.photo-viewer-close:hover,
+.photo-viewer-close-icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex: 0 0 auto;
+  shape-rendering: geometricPrecision;
+  transition: transform 280ms cubic-bezier(.2, .7, .2, 1);
+}
+.photo-viewer-close-label {
+  display: inline-block;
+}
+.photo-viewer-close:hover {
+  color: var(--ink);
+}
+.photo-viewer-close:hover .photo-viewer-close-icon {
+  transform: rotate(90deg);
+}
 .photo-viewer-close:focus-visible {
-  background: var(--ink);
-  color: var(--paper);
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+@media (max-width: 720px) {
+  .photo-viewer { padding: 16px 14px 18px; }
+  .photo-viewer figure { gap: 12px; }
+  .photo-viewer figcaption { padding: 0 4px; }
+  .photo-viewer-close {
+    top: max(env(safe-area-inset-top, 0px), 14px);
+    right: max(env(safe-area-inset-right, 0px), 14px);
+    font-size: 10px;
+    gap: 7px;
+  }
+  .photo-viewer-close-icon { width: 15px; height: 15px; }
+}
+@media (max-width: 420px) {
+  .photo-viewer-close-label { display: none; }
+  .photo-viewer-close { padding: 12px; margin: -12px; }
+  .photo-viewer-close-icon { width: 18px; height: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .photo-viewer,
+  .photo-viewer::backdrop,
+  .photo-viewer-close,
+  .photo-viewer-close-icon { transition: none; }
+  .photo-viewer { transform: none; }
 }
 
 /* ─── Tags ─── */
