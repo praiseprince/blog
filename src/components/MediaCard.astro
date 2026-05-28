@@ -45,7 +45,9 @@ const reread = data.consumptionCount && data.consumptionCount > 1
 ---
 {data.kind === 'book' ? (
   <a class={`media-card book tone-${data.tone}`} href={url} {...dataAttrs}>
-    <div class="spine" set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
+    <div class="media-cover-box cover-book">
+      <div class="spine" set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
+    </div>
     <div class="body">
       <h3 set:html={data.title} />
       <div class="by">{subtitle}</div>
@@ -58,7 +60,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
   </a>
 ) : data.kind === 'track' ? (
   <a class="media-card track" href={url} {...dataAttrs}>
-    <div class="cover-square">
+    <div class="media-cover-box cover-square">
       {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
     </div>
     <div class="body">
@@ -73,7 +75,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
   </a>
 ) : (
   <a class={`media-card ${data.kind}`} href={url} {...dataAttrs}>
-    <div class={data.kind === 'album' ? 'cover-square' : 'cover-poster'}>
+    <div class={`media-cover-box ${data.kind === 'album' ? 'cover-square' : 'cover-poster'}`}>
       {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
     </div>
     <div class="body">
@@ -96,6 +98,23 @@ const reread = data.consumptionCount && data.consumptionCount > 1
     transition: opacity .2s;
   }
   .media-card:hover { opacity: 0.78; }
+
+  .media-cover-box {
+    background: var(--paper-deep);
+    border: 1px solid var(--rule);
+    overflow: hidden;
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .media-cover-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: transform .6s cubic-bezier(.2,.6,.2,1);
+  }
+  .media-card:hover .media-cover-box img { transform: scale(1.03); }
 
   .media-card h3 {
     font-family: var(--font-display);
@@ -143,16 +162,20 @@ const reread = data.consumptionCount && data.consumptionCount > 1
   /* Book — spine + body side by side */
   .media-card.book {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 92px 1fr;
     gap: 22px;
     align-items: start;
     padding-bottom: 24px;
     border-bottom: 1px solid var(--rule);
   }
+  .cover-book {
+    aspect-ratio: 2/3;
+    border-color: var(--ink);
+  }
   .media-card.book .spine {
-    height: 130px;
+    width: 100%;
+    height: 100%;
     background: var(--paper-deep);
-    border: 1px solid var(--ink);
     position: relative;
     display: flex; align-items: flex-end; justify-content: center;
     font-family: var(--font-display); font-style: italic; font-size: 12px;
@@ -177,15 +200,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
   }
   .cover-poster {
     aspect-ratio: 2/3;
-    background: var(--paper-deep);
-    overflow: hidden;
-    position: relative;
   }
-  .cover-poster img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform .6s cubic-bezier(.2,.6,.2,1);
-  }
-  .media-card:hover .cover-poster img { transform: scale(1.03); }
 
   /* Album — square */
   .media-card.album {
@@ -195,15 +210,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
   }
   .cover-square {
     aspect-ratio: 1/1;
-    background: var(--paper-deep);
-    overflow: hidden;
-    position: relative;
   }
-  .cover-square img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform .6s cubic-bezier(.2,.6,.2,1);
-  }
-  .media-card:hover .cover-square img { transform: scale(1.03); }
 
   /* Track — small square + content row */
   .media-card.track {
@@ -215,15 +222,16 @@ const reread = data.consumptionCount && data.consumptionCount > 1
     border-bottom: 1px solid var(--rule);
   }
   .media-card.track .cover-square {
-    width: 72px; height: 72px;
+    width: 72px;
+    height: 72px;
   }
 
   @media (max-width: 720px) {
     .media-card.book {
-      grid-template-columns: 70px 1fr;
+      grid-template-columns: 74px 1fr;
       gap: 18px;
     }
-    .media-card.book .spine { height: 105px; font-size: 11px; }
+    .media-card.book .spine { font-size: 11px; }
     .media-card h3 { font-size: 1.15rem; }
   }
 </style>

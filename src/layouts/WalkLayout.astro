@@ -10,6 +10,14 @@ interface Props {
 const { entry } = Astro.props;
 const { data } = entry;
 const m = data.walkMeta ?? {};
+const thumbStyle = (aspect?: string, fit?: 'cover' | 'contain') => [
+  aspect ? `aspect-ratio: ${aspect}` : '',
+  fit === 'contain' ? 'background: var(--paper-deep)' : '',
+].filter(Boolean).join('; ');
+const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
+  fit ? `object-fit: ${fit}` : '',
+  position ? `object-position: ${position}` : '',
+].filter(Boolean).join('; ');
 ---
 <BaseLayout
   title={`${data.title} — Postcards from Far Away`}
@@ -62,7 +70,24 @@ const m = data.walkMeta ?? {};
             if (t.kind === 'wide-figure') {
               return (
                 <figure style="grid-column: 1 / -1; margin: 24px 0;">
-                  {t.image && <img src={t.image} alt="" />}
+                  {t.image && (
+                    <button
+                      class="photo-viewer-trigger"
+                      type="button"
+                      data-full-src={t.image}
+                      data-full-caption={t.caption}
+                      data-full-ix={t.ix}
+                      aria-label="View full photograph"
+                    >
+                      {t.aspect ? (
+                        <div class="thumb" style={thumbStyle(t.aspect, t.fit) || undefined}>
+                          <img src={t.image} alt="" style={imageStyle(t.fit, t.position) || undefined} />
+                        </div>
+                      ) : (
+                        <img src={t.image} alt="" style={t.position ? `object-position: ${t.position};` : undefined} />
+                      )}
+                    </button>
+                  )}
                   {(t.caption || t.ix) && (
                     <figcaption style="max-width: 60ch;">
                       {t.ix && <span class="ix">{t.ix}</span>}
@@ -105,7 +130,18 @@ const m = data.walkMeta ?? {};
                 </div>
                 {t.image && (
                   <figure style="grid-column: 9 / span 4;">
-                    <div class="thumb" style="aspect-ratio: 4/5;"><img src={t.image} alt="" /></div>
+                    <button
+                      class="photo-viewer-trigger"
+                      type="button"
+                      data-full-src={t.image}
+                      data-full-caption={t.caption}
+                      data-full-ix={t.ix}
+                      aria-label="View full photograph"
+                    >
+                      <div class="thumb" style={thumbStyle(t.aspect ?? '4/5', t.fit) || undefined}>
+                        <img src={t.image} alt="" style={imageStyle(t.fit, t.position) || undefined} />
+                      </div>
+                    </button>
                     {(t.caption || t.ix) && (
                       <figcaption>
                         {t.ix && <span class="ix">{t.ix}</span>}
@@ -120,6 +156,17 @@ const m = data.walkMeta ?? {};
         </div>
       </section>
     )}
+
+    <dialog class="photo-viewer" aria-label="Full photograph viewer">
+      <button class="photo-viewer-close" type="button" aria-label="Close full photograph">×</button>
+      <figure>
+        <img alt="" />
+        <figcaption>
+          <span class="ix"></span>
+          <span class="caption"></span>
+        </figcaption>
+      </figure>
+    </dialog>
 
     <div class="divider-glyph"></div>
 

@@ -18,6 +18,7 @@ interface Props {
   colophonRightHref?: string;
   colophonRightLabel?: string;
   colophonLeft?: string;
+  showColophon?: boolean;
   bodyClass?: string;
   bodyId?: string;
 }
@@ -44,6 +45,7 @@ const {
   colophonRightHref,
   colophonRightLabel,
   colophonLeft,
+  showColophon = true,
   bodyClass,
   bodyId,
 } = Astro.props;
@@ -54,7 +56,7 @@ const {
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="description" content={stripHtml(description)} />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" sizes="any" />
 <title>{stripHtml(title)}</title>
 <script src="/script.js" is:inline></script>
 <slot name="head" />
@@ -75,10 +77,12 @@ const {
 
 <slot />
 
-<Colophon
-  rightHref={colophonRightHref}
-  rightLabel={colophonRightLabel}
-  left={colophonLeft}
-/>
+{showColophon && (
+  <Colophon
+    rightHref={colophonRightHref}
+    rightLabel={colophonRightLabel}
+    left={colophonLeft}
+  />
+)}
 </body>
 </html>

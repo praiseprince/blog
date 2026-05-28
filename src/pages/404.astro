@@ -7,6 +7,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   activeNav="index"
   screenLabel="404"
   mastheadRight="No such page"
+  showColophon={false}
 >
   <main class="page" style="padding-top: clamp(60px, 10vw, 140px); padding-bottom: 80px;">
     <div class="column" style="text-align: center;">
@@ -30,11 +31,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         <a class="arrow" href="/desk/">See the desk</a>
       </nav>
 
-      <div class="divider-glyph"></div>
-
-      <p style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-fade); margin: 0;">
-        If you followed a link from elsewhere — <a href="mailto:praise@praiseprince.work" style="border-bottom: 1px solid var(--accent);">let me know</a>.
-      </p>
     </div>
   </main>
 

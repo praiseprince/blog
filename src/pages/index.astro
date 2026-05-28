@@ -191,7 +191,7 @@ const leadKindNoun =
       </section>
     )}
 
-    <!-- ON THE DESK — letterboxed uniform frames -->
+    <!-- ON THE DESK — kind-specific bounded frames -->
     {deskActive.length > 0 && (
       <section class="desk-strip">
         <div class="desk-strip-head">
@@ -272,7 +272,7 @@ const leadKindNoun =
     @media (max-width: 720px) { .contact-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 420px) { .contact-grid { grid-template-columns: repeat(2, 1fr); } }
 
-    /* Desk strip: uniform 4:5 frames, cover letterboxed inside, books fill */
+    /* Desk strip: kind-specific cover frames, each with a stable bounded box */
     .desk-strip {
       border-top: 1px solid var(--ink);
       padding: clamp(28px, 4vw, 56px) clamp(20px, 5vw, 56px) 0;
@@ -294,17 +294,21 @@ const leadKindNoun =
     }
     .desk-tile:hover { opacity: 0.78; }
 
-    /* Uniform 4:5 outer frame; cover sits inside at its native aspect with letterbox bars.
-       Absolute positioning + explicit width/height ensures the image can never escape. */
     .desk-tile-frame {
-      aspect-ratio: 4/5;
+      aspect-ratio: 2/3;
       position: relative;
       background: var(--paper-deep);
       overflow: hidden;
-    }
-    /* Image-based covers (films/shows/albums/tracks) get a subtle inner frame and padding */
-    .desk-tile:not(.desk-tile-book) .desk-tile-frame {
       border: 1px solid var(--rule);
+    }
+    .desk-tile-album .desk-tile-frame,
+    .desk-tile-track .desk-tile-frame {
+      aspect-ratio: 1/1;
+    }
+    .desk-tile-book .desk-tile-frame,
+    .desk-tile-film .desk-tile-frame,
+    .desk-tile-show .desk-tile-frame {
+      aspect-ratio: 2/3;
     }
     .desk-tile-frame > img {
       position: absolute;
@@ -316,7 +320,6 @@ const leadKindNoun =
       transition: transform .6s cubic-bezier(.2, .6, .2, 1);
     }
     .desk-tile:hover .desk-tile-frame > img { transform: scale(1.03); }
-    /* Book spines fill their frame edge-to-edge (no padding, the spine IS the visual) */
     .desk-tile-book .desk-tile-frame > .tile-spine {
       position: absolute;
       inset: 0;
@@ -324,11 +327,9 @@ const leadKindNoun =
       height: 100%;
     }
 
-    /* Books: spine fills the frame (no padding, no internal border) */
     .tile-spine {
       width: 100%; height: 100%;
       background: var(--paper-deep);
-      border: 1px solid var(--ink);
       position: relative;
       display: flex; align-items: flex-end; justify-content: center;
       font-family: var(--font-display); font-style: italic; font-size: 13px;

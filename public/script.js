@@ -61,5 +61,35 @@
       update();
       window.addEventListener('scroll', update, { passive: true });
     }
+
+    const viewer = document.querySelector('.photo-viewer');
+    if (viewer) {
+      const image = viewer.querySelector('img');
+      const ix = viewer.querySelector('.ix');
+      const caption = viewer.querySelector('.caption');
+      const close = viewer.querySelector('.photo-viewer-close');
+
+      function closeViewer() {
+        if (typeof viewer.close === 'function') viewer.close();
+        else viewer.removeAttribute('open');
+      }
+
+      document.querySelectorAll('.photo-viewer-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+          image.src = trigger.dataset.fullSrc || '';
+          image.alt = trigger.dataset.fullAlt || '';
+          ix.textContent = trigger.dataset.fullIx || '';
+          caption.innerHTML = trigger.dataset.fullCaption || '';
+
+          if (typeof viewer.showModal === 'function') viewer.showModal();
+          else viewer.setAttribute('open', '');
+        });
+      });
+
+      close.addEventListener('click', closeViewer);
+      viewer.addEventListener('click', event => {
+        if (event.target === viewer) closeViewer();
+      });
+    }
   });
 })();

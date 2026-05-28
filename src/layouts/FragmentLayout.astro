@@ -9,6 +9,14 @@ interface Props {
 const { entry } = Astro.props;
 const { data } = entry;
 const fragLabel = data.fragmentNumber ? `Fragments №${data.fragmentNumber}` : 'Fragments';
+const thumbStyle = (aspect?: string, fit?: 'cover' | 'contain') => [
+  aspect ? `aspect-ratio: ${aspect}` : '',
+  fit === 'contain' ? 'background: var(--paper-deep)' : '',
+].filter(Boolean).join('; ');
+const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
+  fit ? `object-fit: ${fit}` : '',
+  position ? `object-position: ${position}` : '',
+].filter(Boolean).join('; ');
 ---
 <BaseLayout
   title={`${data.title} — Postcards from Far Away`}
@@ -58,9 +66,18 @@ const fragLabel = data.fragmentNumber ? `Fragments №${data.fragmentNumber}` : 
             return (
               <article style={`grid-column: span ${colspan};`}>
                 <figure>
-                  <div class="thumb" style="aspect-ratio: 4/5;">
-                    <img src={it.image ?? ''} alt="" />
-                  </div>
+                  <button
+                    class="photo-viewer-trigger"
+                    type="button"
+                    data-full-src={it.image}
+                    data-full-caption={it.caption}
+                    data-full-ix={`№ ${it.number}`}
+                    aria-label="View full photograph"
+                  >
+                    <div class="thumb" style={thumbStyle(it.aspect ?? '4/5', it.fit) || undefined}>
+                      <img src={it.image ?? ''} alt="" style={imageStyle(it.fit, it.position) || undefined} />
+                    </div>
+                  </button>
                   <figcaption>
                     <span class="ix">№ {it.number}</span>
                     <span set:html={it.caption ?? ''} />
@@ -118,6 +135,17 @@ const fragLabel = data.fragmentNumber ? `Fragments №${data.fragmentNumber}` : 
         })}
       </section>
     )}
+
+    <dialog class="photo-viewer" aria-label="Full photograph viewer">
+      <button class="photo-viewer-close" type="button" aria-label="Close full photograph">×</button>
+      <figure>
+        <img alt="" />
+        <figcaption>
+          <span class="ix"></span>
+          <span class="caption"></span>
+        </figcaption>
+      </figure>
+    </dialog>
 
     <slot />
 

@@ -20,6 +20,10 @@ const counts = {
   album: byKind.get('album')!.length,
   track: byKind.get('track')!.length,
 };
+const latestMediaDate = new Date(Math.max(
+  ...all.map(item => (item.data.lastAt ?? item.data.firstAt)?.getTime() ?? 0),
+));
+const latestMediaDateLabel = latestMediaDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
 const sectionGridClass: Record<MediaKind, string> = {
   book:  'grid-books',
@@ -34,7 +38,7 @@ const sectionGridClass: Record<MediaKind, string> = {
   description="Books, films, shows, albums and tracks I'm consuming."
   activeNav="desk"
   screenLabel="Desk"
-  mastheadRight="The desk · In and around"
+  mastheadRight="The desk"
 >
   <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
 
@@ -46,7 +50,7 @@ const sectionGridClass: Record<MediaKind, string> = {
         </h1>
       </div>
       <div class="desk-head-meta fade-in-3 meta">
-        Updated {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}<br/>
+        Updated {latestMediaDateLabel}<br/>
         {total} entries · {counts.book} books<br/>
         {counts.film} films · {counts.show} shows · {counts.album} albums
       </div>
@@ -102,8 +106,8 @@ const sectionGridClass: Record<MediaKind, string> = {
     <div class="divider-glyph"></div>
 
     <blockquote style="max-width: 720px; margin: 24px auto; font-family: var(--font-display); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.3; text-align: center; color: var(--ink); padding: 0 24px; border: none;">
-      "A book read twice is a different book."
-      <cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— note in the margin, anon.</cite>
+      "Some people can read War and Peace and come away thinking it's a simple adventure story. Others can read the ingredients on a chewing gum wrapper and unlock the secrets of the universe."
+      <cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— Lex Luthor</cite>
     </blockquote>
 
     <hr class="rule" style="margin: 64px 0 24px;" />

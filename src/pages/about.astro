@@ -2,24 +2,23 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout
-  title="Colophon — Postcards from Far Away"
+  title="About this place — Postcards from Far Away"
   activeNav="about"
   screenLabel="About"
-  mastheadRight="Colophon · About"
+  mastheadRight="About this place"
 >
   <main class="page" style="padding-top: clamp(40px, 8vw, 120px); padding-bottom: 80px;">
 
     <section class="editorial-grid" style="align-items: end;">
       <div style="grid-column: 1 / span 8;">
-        <div class="eyebrow fade-in">Colophon · About this place</div>
+        <div class="eyebrow fade-in">About this place</div>
         <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6vw, 5rem); margin: 18px 0 0; line-height: 0.98;">
           A reading room<br/>for <em>one engineer's</em><br/>intellectual life.
         </h1>
       </div>
       <div style="grid-column: 10 / span 3;" class="fade-in-3 meta">
         Edition 4<br/>
-        Hand-set in HTML/CSS<br/>
-        Last revised today
+        Last revised May 28, 2026
       </div>
     </section>
 
@@ -28,7 +27,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     <section class="editorial-grid" style="margin-top: 64px; row-gap: 40px;">
       <figure style="grid-column: 1 / span 4;">
         <div class="thumb" style="aspect-ratio: 4/5;"><img src="https://picsum.photos/seed/portrait/800/1000" alt="Portrait placeholder." /></div>
-        <figcaption><span class="ix">FIG. 01</span><span><em>Portrait of the author,</em> Yaba, October 2025. Photograph by a friend whose name I will keep.</span></figcaption>
       </figure>
 
       <div style="grid-column: 6 / span 7;">
@@ -48,7 +46,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
           This place is private without being secret. It has no analytics, no email capture, no newsletter form. You are simply here. <em>Thank you for that.</em>
         </p>
 
-        <p class="meta" style="margin-top: 32px;">— P.P., Lagos · 2025</p>
       </div>
     </section>
 
@@ -58,7 +55,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <div style="grid-column: span 12;">
         <h2 class="display" style="font-size: clamp(1.6rem, 3vw, 2.4rem); font-style: italic; margin: 0; color: var(--ink);">
-          A note on how this is made.
+          How this is put together.
         </h2>
       </div>
 
@@ -78,40 +75,27 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       </div>
 
       <div style="grid-column: span 4;">
-        <div class="smallcaps" style="color: var(--ink-fade);">Construction</div>
+        <div class="smallcaps" style="color: var(--ink-fade);">Code</div>
         <hr class="rule" style="margin: 12px 0 16px;" />
         <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0;">
-          Astro, static-generated. Markdown content collections; a small bit of JavaScript for the night-mode toggle and reading progress. Images are served raw. Deployed wherever hosts static files for free.
+          This is a small static site built with Astro. Most pages are Markdown files with frontmatter, because I wanted writing, photo rolls, walks, and notes to be easy to edit without turning the site into an app.
         </p>
-      </div>
-
-      <div style="grid-column: span 4;">
-        <div class="smallcaps" style="color: var(--ink-fade);">Ethos</div>
-        <hr class="rule" style="margin: 12px 0 16px;" />
-        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0;">
-          Slow over fast. Local over global. Suspicion of categories. Affection for what is partial. The reader is trusted; nothing here is performance. If anything on the site is wrong, please write — gently.
+        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 12px 0 0;">
+          The design leans on a few reusable tags and layouts rather than a CMS: essays, photos, walks, fragments, and desk entries each get just enough structure to stay organized while still feeling like a notebook.
+        </p>
+        <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 12px 0 0;">
+          The code lives on <a href="https://github.com/praiseprince/blog" style="border-bottom: 1px solid var(--accent);">GitHub</a>.
         </p>
       </div>
 
       <div style="grid-column: span 6;">
-        <div class="smallcaps" style="color: var(--ink-fade);">Equipment</div>
-        <hr class="rule" style="margin: 12px 0 16px;" />
-        <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: 12.5px; line-height: 2; color: var(--ink-soft);">
-          <li>· Yashica T4 (1990) · Fuji 200, mostly</li>
-          <li>· Field Notes Pitch Black · Pilot Hi-Tec-C 0.4</li>
-          <li>· A 13" laptop I refuse to upgrade</li>
-          <li>· Whatever cup of tea is nearest</li>
-        </ul>
-      </div>
-
-      <div style="grid-column: span 6;">
-        <div class="smallcaps" style="color: var(--ink-fade);">Elsewhere · Correspondence</div>
+        <div class="smallcaps" style="color: var(--ink-fade);">Elsewhere</div>
         <hr class="rule" style="margin: 12px 0 16px;" />
         <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.9;">
-          <li>Letters — <a href="mailto:praise@praiseprince.work" style="border-bottom: 1px solid var(--accent);">praise@praiseprince.work</a></li>
-          <li>The desk — <a href="/desk/" style="border-bottom: 1px solid var(--accent);">books, films, shows, albums</a></li>
-          <li>RSS — <a href="/feed.xml" style="border-bottom: 1px solid var(--accent);">/feed.xml</a> · for the patient</li>
-          <li>No social presence by design.</li>
+          <li>Email — <a href="mailto:praiseprince35@gmail.com" style="border-bottom: 1px solid var(--accent);">praiseprince35@gmail.com</a></li>
+          <li>Instagram — <a href="https://www.instagram.com/praiseprince_/" style="border-bottom: 1px solid var(--accent);">praiseprince_</a></li>
+          <li>GitHub — <a href="https://github.com/praiseprince" style="border-bottom: 1px solid var(--accent);">praiseprince</a></li>
+          <li>RSS feed — <a href="/feed.xml" style="border-bottom: 1px solid var(--accent);">/feed.xml</a></li>
         </ul>
       </div>
 

@@ -7,10 +7,10 @@ runtime: "1h 45m"
 language: "English / Korean"
 status: finished
 rating: 5
-note: "Quietly devastating. The last twenty minutes are a masterclass in what you do not show."
-cover: "https://picsum.photos/seed/pastlives/600/900"
-firstAt: 2025-09-27
-lastAt: 2025-09-27
-tags: [film, longing, time]
+note: "Quiet without being empty. I liked how much of the movie is just people trying to be honest without making a mess."
+cover: "https://upload.wikimedia.org/wikipedia/en/d/da/Past_Lives_film_poster.png"
+firstAt: 2026-04-05
+lastAt: 2026-04-05
+tags: [film, relationships, migration]
 order: 2
 ---

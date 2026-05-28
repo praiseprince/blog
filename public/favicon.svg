@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Postcards from Far Away">
   <style>
-    .frame  { fill: #1b1916; }
-    .letter { fill: #f2ede4; }
-    .accent { fill: #8b3a2f; }
+    .bg { fill: #8b3a2f; }
+    .plane { fill: #f2ede4; }
+    .fold { fill: #cdc6b6; }
+
     @media (prefers-color-scheme: dark) {
-      .frame  { fill: #e8e2d3; }
-      .letter { fill: #0e0d0b; }
-      .accent { fill: #c69b6d; }
+      .bg { fill: #c69b6d; }
+      .plane { fill: #0e0d0b; }
+      .fold { fill: #8c7050; }
     }
   </style>
-  <rect width="64" height="64" class="frame"/>
-  <rect width="64" height="8" class="accent"/>
-  <text x="32" y="52" text-anchor="middle"
-        font-family="'Times New Roman', Times, Georgia, serif"
-        font-style="italic" font-weight="400" font-size="48"
-        class="letter">P</text>
+
+  <circle cx="32" cy="32" r="30" class="bg"/>
+  <path
+    class="plane"
+    d="M13.8 31.1 49.6 16c1.7-.7 3.3.9 2.6 2.6L38.6 51.8c-.7 1.7-3.1 1.6-3.6-.2l-4.2-14.4-13.9-3.1c-1.7-.4-2-2.4-.5-3z"
+  />
+  <path
+    class="fold"
+    d="M30.8 37.2 49.7 17.6 25.6 34.9l5.2 2.3z"
+  />
+  <path
+    class="plane"
+    d="M30.8 37.2 35 51.6l3.6-13.8-7.8-.6z"
+    opacity="0.86"
+  />
 </svg>

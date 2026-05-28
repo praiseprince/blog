@@ -34,7 +34,17 @@ const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'nu
 
       {data.cover && (
         <figure class="fade-in-4" style="margin-top: 48px;">
-          <img src={data.cover.src} alt={data.cover.alt} />
+          <button
+            class="photo-viewer-trigger photo-viewer-trigger-cover"
+            type="button"
+            data-full-src={data.cover.src}
+            data-full-alt={data.cover.alt}
+            data-full-caption={data.cover.caption}
+            data-full-ix={data.cover.ix}
+            aria-label="View full photograph"
+          >
+            <img src={data.cover.src} alt={data.cover.alt} />
+          </button>
           {(data.cover.caption || data.cover.ix) && (
             <figcaption>
               {data.cover.ix && <span class="ix">{data.cover.ix}</span>}
@@ -51,11 +61,29 @@ const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'nu
           {data.gallery.map(g => {
             const colstart = g.colstart ?? 1;
             const colspan = g.colspan ?? 12;
+            const thumbStyle = [
+              g.aspect ? `aspect-ratio: ${g.aspect}` : '',
+              g.fit === 'contain' ? 'background: var(--paper-deep)' : '',
+            ].filter(Boolean).join('; ');
+            const imageStyle = [
+              g.fit ? `object-fit: ${g.fit}` : '',
+              g.position ? `object-position: ${g.position}` : '',
+            ].filter(Boolean).join('; ');
             return (
               <figure style={`grid-column: ${colstart} / span ${colspan};`}>
-                <div class="thumb" style={g.aspect ? `aspect-ratio: ${g.aspect};` : undefined}>
-                  <img src={g.src} alt={g.alt} />
-                </div>
+                <button
+                  class="photo-viewer-trigger"
+                  type="button"
+                  data-full-src={g.src}
+                  data-full-alt={g.alt}
+                  data-full-caption={g.caption}
+                  data-full-ix={g.ix}
+                  aria-label="View full photograph"
+                >
+                  <div class="thumb" style={thumbStyle || undefined}>
+                    <img src={g.src} alt={g.alt} style={imageStyle || undefined} />
+                  </div>
+                </button>
                 {(g.caption || g.ix) && (
                   <figcaption>
                     {g.ix && <span class="ix">{g.ix}</span>}
@@ -81,6 +109,17 @@ const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'nu
         </div>
       </aside>
     )}
+
+    <dialog class="photo-viewer" aria-label="Full photograph viewer">
+      <button class="photo-viewer-close" type="button" aria-label="Close full photograph">×</button>
+      <figure>
+        <img alt="" />
+        <figcaption>
+          <span class="ix"></span>
+          <span class="caption"></span>
+        </figcaption>
+      </figure>
+    </dialog>
   </main>
 
   <style>
