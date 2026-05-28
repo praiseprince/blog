@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    .frame  { fill: #1b1916; }
+    .letter { fill: #f2ede4; }
+    .accent { fill: #8b3a2f; }
+    @media (prefers-color-scheme: dark) {
+      .frame  { fill: #e8e2d3; }
+      .letter { fill: #0e0d0b; }
+      .accent { fill: #c69b6d; }
+    }
+  </style>
+  <rect width="64" height="64" class="frame"/>
+  <rect width="64" height="8" class="accent"/>
+  <text x="32" y="52" text-anchor="middle"
+        font-family="'Times New Roman', Times, Georgia, serif"
+        font-style="italic" font-weight="400" font-size="48"
+        class="letter">P</text>
+</svg>
