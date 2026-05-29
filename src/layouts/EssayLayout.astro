@@ -2,16 +2,18 @@
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import type { CollectionEntry } from 'astro:content';
+import { getSiteConfig, pageTitle } from '../lib/siteConfig';
 
 interface Props {
   entry: CollectionEntry<'posts'>;
 }
 const { entry } = Astro.props;
 const { data } = entry;
+const site = getSiteConfig();
 const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 ---
 <BaseLayout
-  title={`${data.title} — Postcards from Far Away`}
+  title={pageTitle(data.title)}
   description={data.excerpt}
   activeNav="archive"
   showReadProgress
@@ -43,7 +45,7 @@ const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: '
     <article class="column prose fade-in-4" style="margin-top: 72px;">
       {data.lede && <p class="lede dropcap-none" set:html={data.lede} />}
       <slot />
-      <p style="text-align: center; margin-top: 56px;" class="meta">— P.P.</p>
+      <p style="text-align: center; margin-top: 56px;" class="meta">— {site.authorShort}</p>
     </article>
 
     <aside class="column" style="margin-top: 96px;">

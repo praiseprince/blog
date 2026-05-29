@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { pageTitle } from '../lib/siteConfig';
 ---
 <BaseLayout
-  title="Not here — Postcards from Far Away"
+  title={pageTitle('Not here')}
   description="The page you were looking for isn't on the desk."
   activeNav="index"
   screenLabel="404"

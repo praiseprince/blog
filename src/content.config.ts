@@ -27,8 +27,7 @@ const posts = defineCollection({
     readTime: z.string().optional(),
     wordCount: z.number().optional(),
     issueLabel: z.string().optional(),
-    // Manual homepage lead. Only one post should set `featured: true`.
-    featured: z.boolean().default(false),
+    demo: z.boolean().default(false),
     showOnHome: z.boolean().default(false),
     draft: z.boolean().default(false),
 
@@ -123,6 +122,7 @@ const mediaBase = {
   note: z.string(),
   tags: z.array(z.string()).default([]),
   cover: z.string().optional(),
+  demo: z.boolean().default(false),
   firstAt: z.coerce.date().optional(),
   lastAt: z.coerce.date().optional(),
   consumptionCount: z.number().default(1),

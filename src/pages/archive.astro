@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getAllPosts, postUrl, kindLabel, shortDate } from '../lib/posts';
+import { pageTitle } from '../lib/siteConfig';
 
 const posts = await getAllPosts();
 const total = posts.length;
@@ -13,7 +14,7 @@ const counts = {
 };
 ---
 <BaseLayout
-  title="Archive — Postcards from Far Away"
+  title={pageTitle('Archive')}
   activeNav="archive"
   screenLabel="Archive"
   mastheadRight="The whole archive"

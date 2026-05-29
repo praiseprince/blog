@@ -7,7 +7,9 @@ import {
   SECTION_LABEL, STATUS_LABEL, KIND_ORDER,
   type MediaKind,
 } from '../lib/media';
+import { getSiteConfig, pageTitle } from '../lib/siteConfig';
 
+const site = getSiteConfig();
 const all = await getAllMedia();
 const byKind = groupByKind(all);
 
@@ -34,7 +36,7 @@ const sectionGridClass: Record<MediaKind, string> = {
 };
 ---
 <BaseLayout
-  title="On the desk — Postcards from Far Away"
+  title={pageTitle('On the desk')}
   description="Books, films, shows, albums and tracks I'm consuming."
   activeNav="desk"
   screenLabel="Desk"
@@ -121,8 +123,10 @@ const sectionGridClass: Record<MediaKind, string> = {
     <div class="divider-glyph"></div>
 
     <blockquote style="max-width: 720px; margin: 24px auto; font-family: var(--font-display); font-style: italic; font-size: clamp(1.4rem, 2.6vw, 2rem); line-height: 1.3; text-align: center; color: var(--ink); padding: 0 24px; border: none;">
-      "Some people can read War and Peace and come away thinking it's a simple adventure story. Others can read the ingredients on a chewing gum wrapper and unlock the secrets of the universe."
-      <cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— Lex Luthor</cite>
+      "{site.deskQuote}"
+      {site.deskQuoteAuthor && (
+        <cite style="font-family: var(--font-mono); font-style: normal; font-size: 11px; letter-spacing: 0.14em; color: var(--ink-fade); text-transform: uppercase; display: block; margin-top: 16px;">— {site.deskQuoteAuthor}</cite>
+      )}
     </blockquote>
 
     <hr class="rule" style="margin: 64px 0 24px;" />

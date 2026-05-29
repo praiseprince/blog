@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:atom="http://www.w3.org/2005/Atom">
+  xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9"
+  exclude-result-prefixes="s">
   <xsl:output method="html" version="1.0" encoding="UTF-8" indent="yes"
               doctype-system="about:legacy-compat"/>
 
@@ -10,7 +11,7 @@
       <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <title>Feed · <xsl:value-of select="/rss/channel/title"/></title>
+        <title>Sitemap</title>
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"/>
         <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&amp;family=Geist:wght@300..700&amp;family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet"/>
         <style>
@@ -27,10 +28,10 @@
             --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
             --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
           }
-          /* Night palette. The feed's XSLT output runs no JavaScript, so the
-             day/night switch is a pure-CSS toggle: a hidden checkbox flips
-             these via :has(). Default is day, matching the rest of the site. */
-          html:has(#feed-theme:checked) {
+          /* Night palette. Like the feed, the sitemap's XSLT output runs no
+             JavaScript, so the day/night switch is a pure-CSS toggle: a hidden
+             checkbox flips these via :has(). Default is day, matching the site. */
+          html:has(#theme-switch:checked) {
             --paper: #0e0d0b;
             --paper-deep: #16140f;
             --ink: #e8e2d3;
@@ -106,8 +107,8 @@
           .theme-checkbox:focus-visible + .theme-toggle { outline: 2px solid var(--accent); outline-offset: 2px; }
           /* Button shows the mode you'll switch TO: day shows "Night", night shows "Day" */
           .theme-toggle .tt-day { display: none; }
-          html:has(#feed-theme:checked) .theme-toggle .tt-night { display: none; }
-          html:has(#feed-theme:checked) .theme-toggle .tt-day { display: inline; }
+          html:has(#theme-switch:checked) .theme-toggle .tt-night { display: none; }
+          html:has(#theme-switch:checked) .theme-toggle .tt-day { display: inline; }
 
           .eyebrow {
             font-family: var(--font-mono);
@@ -165,7 +166,7 @@
 
           ol.items { list-style: none; padding: 0; margin: 0; }
           ol.items > li {
-            padding: 22px 0;
+            padding: 16px 0;
             border-top: 1px solid var(--rule);
           }
           ol.items > li:last-child { border-bottom: 1px solid var(--rule); }
@@ -178,14 +179,16 @@
             flex-wrap: wrap;
           }
           .item-title {
-            font-family: var(--font-display);
-            font-size: clamp(1.25rem, 2.4vw, 1.6rem);
-            line-height: 1.2;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.4;
             margin: 0;
             flex: 1 1 auto;
+            word-break: break-word;
           }
           .item-title a { border-bottom: 1px solid transparent; padding-bottom: 1px; transition: border-color .2s; }
           .item-title a:hover { border-color: var(--accent); }
+          .item-title .slash { color: var(--ink-fade); }
           .item-date {
             font-family: var(--font-mono);
             font-size: 10.5px;
@@ -195,30 +198,6 @@
             white-space: nowrap;
             flex: 0 0 auto;
           }
-          .item-desc {
-            font-family: var(--font-body);
-            font-size: 16px;
-            line-height: 1.55;
-            color: var(--ink-soft);
-            margin: 10px 0 0;
-            max-width: 60ch;
-          }
-          .item-cats {
-            margin-top: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-          }
-          .item-cats .cat {
-            font-family: var(--font-mono);
-            font-size: 10px;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            border: 1px solid var(--rule);
-            padding: 3px 7px;
-          }
-          .item-cats .cat::before { content: '#'; color: var(--accent); margin-right: 1px; }
 
           footer.colophon {
             margin-top: 64px;
@@ -241,61 +220,53 @@
       <body>
         <div class="wrap">
           <header class="masthead">
-            <div class="nameplate"><a href="/"><xsl:value-of select="/rss/channel/title"/></a></div>
+            <div class="nameplate"><a href="/"><em>Postcards</em> from Far Away</a></div>
             <div class="crumb">
-              <input type="checkbox" id="feed-theme" class="theme-checkbox" aria-label="Toggle day or night theme"/>
-              <label for="feed-theme" class="theme-toggle" title="Toggle day or night theme"><span class="tt-night">☾ Night</span><span class="tt-day">☼ Day</span></label>
+              <input type="checkbox" id="theme-switch" class="theme-checkbox" aria-label="Toggle day or night theme"/>
+              <label for="theme-switch" class="theme-toggle" title="Toggle day or night theme"><span class="tt-night">☾ Night</span><span class="tt-day">☼ Day</span></label>
               <a href="/">Back to the site →</a>
             </div>
           </header>
 
-          <div class="eyebrow">RSS · Feed</div>
-          <h1 class="feed-title"><xsl:value-of select="/rss/channel/title"/></h1>
-          <p class="feed-desc"><xsl:value-of select="/rss/channel/description"/></p>
+          <div class="eyebrow">XML · Sitemap</div>
+          <h1 class="feed-title">The <em>sitemap.</em></h1>
+          <p class="feed-desc">Every page on this site, listed for search engines. You're seeing a human-readable view; crawlers read the raw XML.</p>
 
           <div class="explainer">
-            <strong>This page is a human-readable preview of an RSS feed.</strong>
-            Subscribe by pasting the URL into your feed reader
-            (NetNewsWire, Reeder, Feedbin, Inoreader, …):
-            &#160;<code><xsl:value-of select="/rss/channel/link"/>feed.xml</code>
+            <strong>This page is a styled view of an XML sitemap.</strong>
+            Search engines fetch the underlying XML to discover and date every URL.
+            The same list is advertised to crawlers in&#160;<code>/robots.txt</code>.
           </div>
 
           <div class="smallcaps">
-            <xsl:value-of select="count(/rss/channel/item)"/>
-            <xsl:text> entries</xsl:text>
+            <xsl:value-of select="count(s:urlset/s:url)"/>
+            <xsl:text> URLs</xsl:text>
           </div>
 
           <ol class="items">
-            <xsl:for-each select="/rss/channel/item">
+            <xsl:for-each select="s:urlset/s:url">
               <li>
                 <div class="item-head">
-                  <h2 class="item-title">
+                  <div class="item-title">
                     <a>
-                      <xsl:attribute name="href"><xsl:value-of select="link"/></xsl:attribute>
-                      <xsl:value-of select="title"/>
+                      <xsl:attribute name="href"><xsl:value-of select="s:loc"/></xsl:attribute>
+                      <span class="slash">/</span>
+                      <xsl:value-of select="substring-after(substring-after(s:loc, '://'), '/')"/>
                     </a>
-                  </h2>
-                  <div class="item-date">
-                    <xsl:value-of select="substring(pubDate, 1, 16)"/>
                   </div>
+                  <xsl:if test="s:lastmod">
+                    <div class="item-date">
+                      <xsl:value-of select="s:lastmod"/>
+                    </div>
+                  </xsl:if>
                 </div>
-                <xsl:if test="description != ''">
-                  <p class="item-desc"><xsl:value-of select="description"/></p>
-                </xsl:if>
-                <xsl:if test="category">
-                  <div class="item-cats">
-                    <xsl:for-each select="category">
-                      <span class="cat"><xsl:value-of select="."/></span>
-                    </xsl:for-each>
-                  </div>
-                </xsl:if>
               </li>
             </xsl:for-each>
           </ol>
 
           <footer class="colophon">
-            <div><xsl:value-of select="/rss/channel/managingEditor"/></div>
-            <div><a href="/about/">About →</a></div>
+            <div>Sitemap</div>
+            <div><a href="/feed.xml">Feed</a> · <a href="/about/">About →</a></div>
           </footer>
         </div>
       </body>

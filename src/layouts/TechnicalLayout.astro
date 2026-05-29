@@ -2,16 +2,18 @@
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import type { CollectionEntry } from 'astro:content';
+import { getSiteConfig, pageTitle } from '../lib/siteConfig';
 
 interface Props {
   entry: CollectionEntry<'posts'>;
 }
 const { entry } = Astro.props;
 const { data } = entry;
+const site = getSiteConfig();
 const tm = data.techMeta ?? {};
 ---
 <BaseLayout
-  title={`${data.title} — Postcards from Far Away`}
+  title={pageTitle(data.title)}
   description={data.excerpt}
   activeNav="archive"
   showReadProgress
@@ -74,7 +76,7 @@ const tm = data.techMeta ?? {};
       <div style="grid-column: 1 / span 8;">
         {data.lede && <p class="lede" style="font-family: var(--font-display); font-style: italic; font-size: 1.5em; line-height: 1.35; color: var(--ink-soft); margin: 0 0 1.4em;" set:html={data.lede} />}
         <slot />
-        <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— P.P.</p>
+        <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— {site.authorShort}</p>
       </div>
 
       {data.marginalia && data.marginalia.length > 0 && (

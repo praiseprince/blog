@@ -1,6 +1,9 @@
 ---
 interface Props {
   variant?: 'default' | 'home';
+  siteTitleHtml?: string;
+  homeLocation?: string;
+  authorName?: string;
   rightLine?: string;
   leftLine?: string;
   screenLabel?: string;
@@ -9,11 +12,14 @@ interface Props {
 }
 const {
   variant = 'default',
+  siteTitleHtml = 'Site',
+  homeLocation = '',
+  authorName = 'Author',
   rightLine,
   leftLine,
   screenLabel,
   lastUpdate,
-  subtitle = 'A notebook, sometimes.',
+  subtitle = '',
 } = Astro.props;
 const isHome = variant === 'home';
 ---
@@ -23,14 +29,14 @@ const isHome = variant === 'home';
     style="border-bottom-width: 4px; border-bottom-style: double; padding-bottom: 18px;"
     data-screen-label={screenLabel}
   >
-    <div class="left">Waterloo</div>
-    <div class="nameplate fade-in"><em>Postcards</em> from Far Away</div>
+    <div class="left">{homeLocation}</div>
+    <div class="nameplate fade-in" set:html={siteTitleHtml} />
     <div class="right">{lastUpdate ?? ''}</div>
   </header>
 ) : (
   <header class="masthead" data-screen-label={screenLabel}>
-    <div class="left">{leftLine ?? 'Praise Prince'}</div>
-    <a class="nameplate" href="/"><em>Postcards</em> from Far Away</a>
+    <div class="left">{leftLine ?? authorName}</div>
+    <a class="nameplate" href="/" set:html={siteTitleHtml} />
     <div class="right">{rightLine ?? ''}</div>
   </header>
 )}

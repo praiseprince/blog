@@ -1,11 +1,12 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Tag from '../../components/Tag.astro';
-import { STATUS_LABEL, starRow, shortDate, type Media } from '../../lib/media';
+import { getAllMedia, STATUS_LABEL, starRow, shortDate, type Media } from '../../lib/media';
+import { pageTitle } from '../../lib/siteConfig';
 
 export async function getStaticPaths() {
-  const items = await getCollection('media');
+  const items = await getAllMedia();
   return items.map(entry => ({
     params: { slug: entry.id.replace(/\.(md|mdx)$/, '') },
     props: { entry },
@@ -34,7 +35,7 @@ const kindLabel = data.kind.charAt(0).toUpperCase() + data.kind.slice(1);
 const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.getTime());
 ---
 <BaseLayout
-  title={`${data.title} — Postcards from Far Away`}
+  title={pageTitle(data.title)}
   description={data.note}
   activeNav="desk"
   screenLabel="Desk · entry"

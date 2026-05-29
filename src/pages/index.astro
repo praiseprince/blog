@@ -1,27 +1,42 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Tag from '../components/Tag.astro';
-import { getAllPosts, getFeaturedPosts, postUrl, kindLabel, getAllTags, type Post } from '../lib/posts';
+import { getAllPosts, postUrl, kindLabel, getAllTags, type Post } from '../lib/posts';
 import { getAllMedia, mediaUrl, type Media } from '../lib/media';
+import { readSiteMarkdown } from '../lib/siteMarkdown';
+import { getSiteConfig } from '../lib/siteConfig';
 
 // HOMEPAGE logic:
-// 1. `featured: true` is the manual cover/lead. There can only be one.
+// 1. `src/site/home.md` controls the manual cover/lead.
 // 2. Latest lists are chronological and include essay/photo/walk by default.
 //    Fragments + technical notes can opt in with `showOnHome: true`.
 const HOME_DEFAULT_KINDS = ['essay', 'photo', 'walk'] as const;
+const site = getSiteConfig();
+const home = readSiteMarkdown('home.md');
 const posts = await getAllPosts();
-const featured = await getFeaturedPosts();
 
-if (featured.length > 1) {
-  const conflicts = featured.map(p => `${p.id} (${p.data.date.toISOString().slice(0, 10)})`).join(', ');
-  throw new Error(`Only one post can have featured: true because it controls the homepage cover. Current conflicts: ${conflicts}`);
+function normalizePostRef(ref = '') {
+  return ref
+    .trim()
+    .replace(/^\/?posts\//, '')
+    .replace(/\/$/, '')
+    .replace(/\.(md|mdx)$/, '');
 }
 
 const appearsOnHome = (post: Post) =>
   (HOME_DEFAULT_KINDS as readonly string[]).includes(post.data.type) || post.data.showOnHome;
 
+const coverPostRef = normalizePostRef(home.data.coverPost);
+const configuredLead = coverPostRef
+  ? posts.find(post => normalizePostRef(post.id) === coverPostRef)
+  : undefined;
+
+if (coverPostRef && !configuredLead) {
+  throw new Error(`src/site/home.md points coverPost at "${home.data.coverPost}", but no published post with that slug exists.`);
+}
+
 const lead: Post | undefined =
-  featured[0]
+  configuredLead
   ?? posts.find(appearsOnHome)
   ?? posts[0];
 
@@ -87,11 +102,11 @@ const leadKindNoun =
   lead?.data.type === 'fragment' ? 'fragments' : 'entry';
 ---
 <BaseLayout
-  title="Postcards from Far Away"
+  title={site.siteTitle}
   activeNav="index"
   mastheadVariant="home"
   mastheadLastUpdate={lastUpdateStr}
-  mastheadSubtitle="A notebook, sometimes."
+  mastheadSubtitle={site.siteSubtitle}
   screenLabel="Index"
 >
   <main>
@@ -105,7 +120,7 @@ const leadKindNoun =
           </a>
 
           <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end; margin-top: 24px;">
-            <div class="meta">By P.P.<br/>{lead.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{lead.data.readTime ? ` · ${lead.data.readTime}` : ''}</div>
+            <div class="meta">By {site.authorShort}<br/>{lead.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{lead.data.readTime ? ` · ${lead.data.readTime}` : ''}</div>
             {lead.data.excerpt && <p class="caption" style="max-width: 60ch; margin: 0;" set:html={lead.data.excerpt} />}
           </div>
 

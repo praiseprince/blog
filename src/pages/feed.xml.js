@@ -1,5 +1,6 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
+import { getAllPosts } from '../lib/posts';
+import { getSiteConfig } from '../lib/siteConfig';
 
 function stripHtml(s) {
   if (!s) return '';
@@ -13,11 +14,19 @@ function stripHtml(s) {
     .trim();
 }
 
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 export async function GET(context) {
-  const posts = await getCollection('posts');
+  const site = getSiteConfig();
+  const posts = await getAllPosts();
   const items = posts
-    .filter(p => !p.data.draft)
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
     .map(p => ({
       title: stripHtml(p.data.title),
       link: `/posts/${p.id.replace(/\.(md|mdx)$/, '')}/`,
@@ -27,11 +36,11 @@ export async function GET(context) {
     }));
 
   return rss({
-    title: 'Postcards from Far Away',
-    description: "A field journal of one engineer's intellectual life. Personal editorial site by Praise Prince.",
+    title: site.siteTitle,
+    description: site.rssDescription,
     site: context.site,
     items,
-    customData: '<language>en</language>',
+    customData: `<language>en</language><managingEditor>${escapeXml(site.authorName)}</managingEditor>`,
     stylesheet: '/feed.xsl',
   });
 }

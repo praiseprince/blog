@@ -7,13 +7,13 @@ interface Props {
 const {
   rightHref = '/about/',
   rightLabel = 'About →',
-  left = 'Praise Prince',
+  left = '',
 } = Astro.props;
 ---
 <footer class="colophon">
   <div>{left}</div>
   <div class="right">
-    <a href="/feed.xml">Feed</a><span class="colophon-sep" aria-hidden="true"> · </span><a href={rightHref}>{rightLabel}</a>
+    <a href="/feed.xml">Feed</a><span class="colophon-sep" aria-hidden="true"> · </span><a href="/sitemap.xml">Sitemap</a><span class="colophon-sep" aria-hidden="true"> · </span><a href={rightHref}>{rightLabel}</a>
   </div>
 </footer>
 <style>

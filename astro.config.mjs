@@ -1,7 +1,8 @@
 import { defineConfig } from 'astro/config';
+import { getSiteUrl } from './src/lib/siteUrl.js';
 
 export default defineConfig({
-  site: 'https://praiseprince.com',
+  site: getSiteUrl(),
   output: 'static',
   build: {
     format: 'directory',

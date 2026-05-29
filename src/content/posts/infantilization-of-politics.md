@@ -14,7 +14,6 @@ cover:
   ix: "FIG. 01"
   caption: "A cleaner cover for the site version. The Medium header image is intentionally not used here."
 tags: [politics, media, accessibility, care]
-featured: true
 nextLabel: "Next - Waterloo to Kitchener"
 nextHref: "/posts/waterloo-to-kitchener-walk/"
 ---

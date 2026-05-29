@@ -30,8 +30,9 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 | Styling | Plain CSS + CSS custom properties (no framework) |
 | Syntax highlighting | Shiki, `css-variables` theme (inherits the palette) |
 | Feed | `@astrojs/rss` → `/feed.xml` |
+| Sitemap | custom endpoint → `/sitemap.xml`, advertised in `robots.txt` |
 | Client JS | One hand-written `public/script.js` + small per-page inline scripts |
-| Hosting target | Any static host (site URL is `https://praiseprince.com`) |
+| Hosting target | Any static host (`siteUrl` in `src/site/about.md` controls canonical URLs) |
 
 **Dependencies are intentionally tiny** — `package.json` has exactly two: `astro` and `@astrojs/rss`. No React, no UI library, no CMS installed yet. Build → static HTML/CSS/JS → upload.
 
@@ -41,25 +42,34 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 
 ```
 /
-├── astro.config.mjs          site URL, static output, Shiki, tunnel allowlist
+├── astro.config.mjs          markdown-driven site URL, static output, Shiki, tunnel allowlist
 ├── package.json              deps: astro, @astrojs/rss only
 ├── tsconfig.json
 ├── HANDOFF.md                ← you are here
 ├── public/
 │   ├── script.js             theme/palette toggle, masthead date, reading progress, photo-viewer lightbox
-│   ├── feed.xsl              standalone XSLT stylesheet that prettifies /feed.xml for humans
+│   ├── feed.xsl              XSLT stylesheet that prettifies /feed.xml for humans (CSS-only day/night)
+│   ├── sitemap.xsl           XSLT stylesheet that prettifies /sitemap.xml for humans (CSS-only day/night)
 │   ├── favicon-32.png  favicon-192.png  favicon-512.png  apple-touch-icon.png
 │   └── images/
 │       └── blog-add/         ← real photo JPEGs, served verbatim (see §5 Images — UNOPTIMIZED)
 ├── src/
 │   ├── content.config.ts     Zod schemas for `posts` + `media` collections
+│   ├── site/
+│   │   ├── README.md         what is editable here
+│   │   ├── about.md          About page copy + small metadata
+│   │   └── home.md           manual homepage cover post slug
 │   ├── styles/global.css     the whole design system (palettes, type, layout, pager, photo-viewer)
 │   ├── content/
-│   │   ├── posts/            ~505 .md files (essay/photo/walk/fragment/technical)
-│   │   └── media/            ~400 .md files (book/film/show/album/track)
+│   │   ├── posts/            real posts + tiny `demo: true` test set
+│   │   └── media/            real desk entries + tiny `demo: true` test set
 │   ├── lib/
-│   │   ├── posts.ts          getAllPosts, getFeaturedPosts, postUrl, kindLabel, shortDate, getAllTags
-│   │   └── media.ts          getAllMedia, mediaUrl, SECTION_LABEL, STATUS_LABEL, KIND_ORDER, sort helpers
+│   │   ├── demo.ts           `DEMO_MODE=1` helper for demo content inclusion
+│   │   ├── posts.ts          getAllPosts, postUrl, kindLabel, shortDate, getAllTags
+│   │   ├── media.ts          getAllMedia, mediaUrl, SECTION_LABEL, STATUS_LABEL, KIND_ORDER, sort helpers
+│   │   ├── siteConfig.ts     reads reusable site identity/copy from `src/site/about.md`
+│   │   ├── siteMarkdown.ts   small parser for `src/site/*.md`
+│   │   └── siteUrl.js        reads `siteUrl` from `src/site/about.md`
 │   ├── components/
 │   │   ├── Masthead.astro    Colophon.astro    SiteNav.astro
 │   │   ├── Tag.astro         Figure.astro      Video.astro
@@ -77,7 +87,9 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 │       ├── posts/[...slug].astro    dispatches to the right post layout by `type`
 │       ├── tags/[tag].astro         auto-generated, paginated per-tag pages
 │       ├── about.astro   404.astro
-│       └── feed.xml.js              RSS feed
+│       ├── feed.xml.js              RSS feed
+│       ├── robots.txt.js            crawler rules + sitemap URL
+│       └── sitemap.xml.js           XML sitemap
 └── design-reference/         original HTML prototype (read-only; do not edit)
 ```
 
@@ -100,14 +112,14 @@ date: ISO date
 tags: string[]               # creates /tags/<tag>/ pages
 excerpt, eyebrow, dek, location, readTime: string
 wordCount, issueLabel: number/string
-featured: boolean            # the SINGLE homepage lead. At most one (build throws otherwise).
 showOnHome: boolean          # opt a fragment/technical note into the homepage latest lists
+demo: boolean                # true -> hidden unless DEMO_MODE=1 / demo scripts are used
 draft: boolean               # true → excluded from build
 cover: figure                # {src, alt, caption, ix, aspect, fit, position, colspan, colstart}
 nextLabel, nextHref: string  # manual "next entry" link at the bottom of a post
 ```
 
-> **Schema note (changed):** the old `featuredOrder` field is gone. Curation is now: one `featured: true` lead, plus optional `showOnHome: true` opt-ins. Everything else is date-ordered.
+> **Schema note (changed):** the old per-post `featured`/`featuredOrder` model is gone. The manual homepage cover is now set in `src/site/home.md` with `coverPost`; `showOnHome: true` only opts fragments/technical notes into latest lists.
 
 Type-specific fields:
 - **essay** — `lede`, `cited[]` ({author, title, year}), `cover`
@@ -133,7 +145,7 @@ log[]: [{date, note?}]       # re-engagement timeline on the detail page
 
 Per-kind extras: **book** `author/year/pages/currentPage/spine/tone(1-4)` · **film** `director/year/runtime/language` · **show** `creator/year/currentSeason/currentEpisode/network` · **album** `artist/year/length/label` · **track** `artist/album/year/duration`.
 
-`status` ∈ `consuming | finished | stalled | queued | abandoned`. Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only `consuming` gets a kind-specific verb (Reading now / Watching now / In rotation / On repeat); the rest (Finished / Stalled / Up next / Set aside) read uniformly.
+`status` ∈ `consuming | finished | stalled | queued | abandoned`. Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only `consuming` gets a kind-specific verb (Reading now / Watching now / In rotation / On repeat); the rest (Finished / Stalled / Up next / Set aside) read uniformly. Media entries also support `demo: true`, which hides them unless demo mode is enabled.
 
 ---
 
@@ -161,7 +173,11 @@ There are two image sources, handled very differently:
 
 **Drafts.** `draft: true` → hidden; `getAllPosts()` filters them out.
 
-**Homepage curation.** `featured: true` = the single large lead/cover. If two posts set it, the homepage build **throws** (a content conflict, not an ordering issue). The "Latest, all kinds" side column is date-ordered and excludes the lead; essays/photos/walks are eligible by default, fragments/technical only via `showOnHome: true`.
+**Demo content.** `demo: true` on a post or media entry hides it from normal builds. Use `npm run dev:demo` or `npm run build:demo` to include the small demo set while testing layouts, frontmatter tooling, or Keystatic. Those scripts set `DEMO_MODE=1` under the hood.
+
+**Site text/config.** Small non-collection site copy lives in `src/site/`, not `src/content/`. `src/site/about.md` controls reusable identity/copy (`siteTitle`, `siteTitleHtml`, `siteSubtitle`, `siteDescription`, `rssDescription`, `authorName`, `authorShort`, `homeLocation`, `deskQuote`, `deskQuoteAuthor`), plus the About page text, `edition`, `lastRevised`, `lastmod`, and `siteUrl`. `src/site/home.md` controls the manual homepage cover via `coverPost`. `siteUrl` powers Astro's `site`, `/sitemap.xml`, and `/robots.txt`.
+
+**Homepage curation.** `src/site/home.md` → `coverPost` = the single large lead/cover. Use the post filename slug without `.md` (for example `coverPost: "backpropagation-blame-assignment"`). If it is blank, the homepage falls back to the latest eligible essay/photo/walk. The "Latest, all kinds" side column is date-ordered and excludes the lead; essays/photos/walks are eligible by default, fragments/technical only via `showOnHome: true`.
 
 **Slug.** Derived from filename — renaming a file changes the URL (no explicit `slug` field yet; §11).
 
@@ -169,15 +185,17 @@ There are two image sources, handled very differently:
 
 ## 7. Pages overview
 
-- **`/`** — homepage: lead (the `featured` post, else latest essay/photo/walk) + 4-item cross-kind side column + 3-col tier + conditional contact sheet (recent photo thumbnails) + "currently on the desk" strip + tag cloud.
+- **`/`** — homepage: manual cover post from `src/site/home.md`, else latest essay/photo/walk + 4-item cross-kind side column + 3-col tier + conditional contact sheet (recent photo thumbnails) + "currently on the desk" strip + tag cloud.
 - **`/archive/`** — full archive as a single `.toc` list. Client-side **kind filter** (All/Essays/Photographs/Walks/Fragments/Notes) and **numbered pagination, 10/page** (see §8). `?kind=essay|photo|…` preselects a filter.
 - **`/posts/<slug>/`** — individual post; layout chosen by `type`. Photo/walk/fragment posts include the photo-viewer lightbox.
 - **`/desk/`** — media index, sectioned by kind, status-grouped within. Filter bar + custom sort dropdown (By status (default) / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first) + **per-status-group pagination** (see §8).
 - **`/desk/<slug>/`** — media detail: cover, metadata, log timeline (if any), review body (if any).
-- **`/tags/<tag>/`** — auto-generated, **paginated** (10/page) per-tag listing + featured entry + adjacent tags.
-- **`/about/`** — colophon (bio, typography, ethos, equipment, contact, RSS).
+- **`/tags/<tag>/`** — auto-generated, **paginated** (10/page) per-tag listing + lead entry + adjacent tags.
+- **`/about/`** — about page. Layout lives in `src/pages/about.astro`; editable text/metadata lives in `src/site/about.md`.
 - **`/404`** — soft "page not found" in the publication's voice.
-- **`/feed.xml`** — RSS (drafts filtered, newest-first, HTML stripped from titles/excerpts, tags as `<category>`). Declares `/feed.xsl` so a human opening it in a browser sees a styled page; feed readers consume the raw XML.
+- **`/feed.xml`** — RSS (drafts filtered, newest-first, HTML stripped from titles/excerpts, tags as `<category>`). Declares `/feed.xsl` so a human opening it in a browser sees a styled page; feed readers consume the raw XML. The styled view has a **pure-CSS day/night toggle** (hidden checkbox + `:has()`), because **scripts do not run in XSLT-transformed XML** — so no JS, no `localStorage`, no OS-preference detection; it defaults to day and the choice does not persist across reloads.
+- **`/sitemap.xml`** — XML sitemap. Includes static pages, posts, desk entries, and tag pages. Uses `siteUrl` from `src/site/about.md` for absolute URLs and the same demo filtering as the site; normal builds omit `demo: true`, demo builds include them. Declares `/sitemap.xsl` (via an `<?xml-stylesheet?>` PI in `sitemap.xml.js`) so a human opening it gets the same styled view + **pure-CSS day/night toggle** as the feed. The XSLT binds the `http://www.sitemaps.org/schemas/sitemap/0.9` namespace to an `s:` prefix — matching `<url>`/`<loc>`/`<lastmod>` without it silently yields an empty list. Crawlers ignore the stylesheet and read the raw XML.
+- **`/robots.txt`** — crawler rules + sitemap URL. **Intentionally unstyled**: it is served as `text/plain` per the Robots Exclusion Protocol and crawlers do not render HTML/CSS/XSLT, so there is no day/night view — only `#` comments are possible, and even those are avoided to keep it clean.
 
 ---
 
@@ -225,7 +243,13 @@ npm run build     # → dist/
 npm run preview   # serves dist/ (rebuild after each change)
 ```
 
-Static output; deploy to any static host (Cloudflare Pages / Vercel / Netlify auto-build on push). Current build: **931 pages**, `dist/` ≈ **49 MB — of which ~40 MB is unoptimized images** (see §5 and the backlog). Convention: **no AI/Claude attribution in commits or PRs.**
+Static output; deploy to any static host (Cloudflare Pages / Vercel / Netlify auto-build on push). Set `siteUrl` in `src/site/about.md` so canonical URLs, `/sitemap.xml`, and `/robots.txt` point at the real domain:
+
+```yaml
+siteUrl: "https://your-domain.example"
+```
+
+Convention: **no AI/Claude attribution in commits or PRs.**
 
 ---
 
@@ -250,23 +274,24 @@ Friends send content; the author posts it under the friend's name. **This is sti
 - Slug stability (explicit `slug` field separate from filename)
 - Auto-derive next/previous post from date order (remove manual `nextHref`/`nextLabel`)
 - Surface media tags on `/tags/<tag>/` pages
-- Sitemap
 - Strip HTML from frontmatter → Markdown + inline renderer
 
 ### Recently completed (no longer backlog)
 - **Pagination** — numbered, 10/page, on Archive (filtered), Desk (per status group, with sort-flatten → one pager per kind), and Tag pages. Shared `.pager` styles. Replaced an earlier "Show more" approach. (See §8.)
 - **Media cover lazy-loading** — `loading="lazy" decoding="async"` on all `MediaCard` images.
 - **Mobile grid fixes** — EssayLayout "Filed Under / Next" and PhotoLayout roll-note now collapse to one column under 720px (were squeezed on phones).
-- **Schema cleanup** — `featuredOrder` removed; `showOnHome` added; homepage throws on more than one `featured: true`.
+- **Schema cleanup** — per-post `featured`/`featuredOrder` removed; `showOnHome` added; homepage cover moved to `src/site/home.md`.
 - **Custom sort dropdown on /desk/** — replaced the native `<select>` with a styled button + popover (keyboard accessible; oxblood dot on the selected option).
-- **RSS feed + pretty XSL** — `/feed.xml` via `@astrojs/rss`, with a standalone `public/feed.xsl` for human viewing. Linked from `<head>`, the About page, and the colophon (`Colophon.astro` is the source of truth for that footer link).
+- **RSS feed + pretty XSL** — `/feed.xml` via `@astrojs/rss`, with a standalone `public/feed.xsl` for human viewing. Linked from `<head>`, the About page, and the colophon (`Colophon.astro` is the source of truth for that footer link). The colophon footer now reads **Feed · Sitemap · About →** (the `/sitemap.xml` link goes to the styled XSL view).
+- **Sitemap** — `/sitemap.xml` custom endpoint plus `/robots.txt` endpoint. Both use `siteUrl` from `src/site/about.md`. `/sitemap.xml` has a styled `public/sitemap.xsl` view with the same pure-CSS day/night toggle as the feed; `/robots.txt` stays plain text (cannot be styled).
+- **Feed + sitemap day/night toggle** — both XSL views carry a pure-CSS theme toggle (hidden checkbox + `:has()`), since scripts don't run in XSLT-transformed XML. Default day, no persistence.
 - **Photo-viewer lightbox**, **sticky footer**, **PNG favicons + apple-touch-icon**, **archive List/Grid toggle removed**, **404 page** — all shipped.
 
 ---
 
 ## 13. Open questions for the author
 
-Only two remain open (gallery and homepage-featured-image strategy are both resolved — no gallery is planned, and the featured/lead model is settled):
+Only two remain open (gallery and homepage-cover strategy are both resolved — no gallery is planned, and the manual `src/site/home.md` cover model is settled):
 
 1. **Guest contributions** — the whole shape is undecided: what exactly counts as a guest contribution, what the section is named (Correspondences · Other postcards · Hand-delivered · Dispatches), and whether guest posts get a distinct visual treatment or look identical to the author's. Treat these as one decision (see §12).
 2. **Image handling timeline** — start co-locating + optimizing photos now (§5/§12), or wait until Keystatic is wired so its upload widget handles file placement? The performance cost of waiting is real (multi-MB images shipping today), so this leans toward "do it now," but it's the author's call.
@@ -275,8 +300,8 @@ Only two remain open (gallery and homepage-featured-image strategy are both reso
 
 ## 14. Conventions / quirks (do not break these)
 
-- Byline is "Praise Prince" / "P.P." — keep even when renaming masthead/title strings.
-- Masthead nameplate: "Postcards from Far Away" (italic on "Postcards").
+- Byline/signature comes from `authorShort` in `src/site/about.md` (currently "Praise").
+- Masthead nameplate comes from `siteTitleHtml` in `src/site/about.md` (currently italic on "Postcards").
 - Page `<title>` strips HTML automatically (helper in `BaseLayout.astro`).
 - Theme/palette persisted in `localStorage` (`pp-theme`, `pp-palette`).
 - No analytics, no email capture, no newsletter — by design.
@@ -290,6 +315,8 @@ Only two remain open (gallery and homepage-featured-image strategy are both reso
 
 ```bash
 npm install && npm run dev   # http://localhost:4321
+npm run dev:demo             # includes demo:true content
+npm run build:demo           # static build with demo:true content
 ```
 
 - **New post:** drop a `.md` into `src/content/posts/`, fill the typed frontmatter. Build picks it up.

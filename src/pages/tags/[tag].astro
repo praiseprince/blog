@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Tag from '../../components/Tag.astro';
 import { getAllTags, postUrl, kindLabel, shortDate, type Post } from '../../lib/posts';
+import { pageTitle } from '../../lib/siteConfig';
 
 export async function getStaticPaths() {
   const tags = await getAllTags();
@@ -27,7 +28,7 @@ for (const p of posts) {
 const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6).map(([t]) => t);
 ---
 <BaseLayout
-  title={`#${tag} — Postcards from Far Away`}
+  title={pageTitle(`#${tag}`)}
   description={`All entries tagged #${tag}.`}
   screenLabel="Tag"
   mastheadRight="Tag · A topic page"

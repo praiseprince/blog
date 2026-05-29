@@ -7,7 +7,6 @@ eyebrow: "Fragments · work / reading / small things"
 excerpt: "Small notes from the week: a work misunderstanding, a line from a book, one quote I keep turning over, and a temporary cat image."
 intro: "A few notes that did not become full posts. Some are useful, some are just the shape of the thought before I had anything smarter to do with it."
 tags: [fragments, work, reading, notes]
-featured: false
 items:
   - number: "01"
     meta: "work"

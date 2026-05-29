@@ -1,4 +1,4 @@
-// PRAISE PRINCE — shared site script
+// Shared site script
 // Theme + palette persistence, masthead date, reading progress.
 
 (function () {
