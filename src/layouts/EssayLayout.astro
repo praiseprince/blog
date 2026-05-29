@@ -1,8 +1,10 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
+import PhotoViewer from '../components/PhotoViewer.astro';
 import type { CollectionEntry } from 'astro:content';
 import { getSiteConfig, pageTitle } from '../lib/siteConfig';
+import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
   entry: CollectionEntry<'posts'>;
@@ -11,6 +13,13 @@ const { entry } = Astro.props;
 const { data } = entry;
 const site = getSiteConfig();
 const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const coverImage = data.cover
+  ? await getPhotoImage(data.cover.src, {
+      widths: [720, 960, 1280, 1600, 2200],
+      sizes: '(max-width: 1100px) 100vw, 1100px',
+      loading: 'eager',
+    })
+  : null;
 ---
 <BaseLayout
   title={pageTitle(data.title)}
@@ -32,7 +41,17 @@ const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: '
 
     {data.cover && (
       <figure class="fade-in-3" style="max-width: 1100px; margin: 56px auto 0;">
-        <img src={data.cover.src} alt={data.cover.alt} />
+        <button
+          class="photo-viewer-trigger photo-viewer-trigger-cover"
+          type="button"
+          data-full-src={coverImage?.fullSrc ?? data.cover.src}
+          data-full-alt={data.cover.alt}
+          data-full-caption={data.cover.caption}
+          data-full-ix={data.cover.ix}
+          aria-label="View full image"
+        >
+          <img {...(coverImage?.attrs ?? { src: data.cover.src })} alt={data.cover.alt} />
+        </button>
         {(data.cover.caption || data.cover.ix) && (
           <figcaption>
             {data.cover.ix && <span class="ix">{data.cover.ix}</span>}
@@ -78,6 +97,8 @@ const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: '
         )}
       </div>
     </aside>
+
+    <PhotoViewer />
   </main>
 
   <style>

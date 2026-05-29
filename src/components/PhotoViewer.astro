@@ -1,0 +1,27 @@
+---
+// Shared full-image lightbox. Each layout renders the triggers
+// (.photo-viewer-trigger, with data-full-* attributes) across its figures;
+// this is the single dialog they all open. Wiring + the download action live
+// in public/script.js. Used by Photo / Walk / Fragment / Essay layouts.
+---
+<dialog class="photo-viewer" aria-label="Full image viewer">
+  <a class="photo-viewer-download" download href="#" target="_blank" rel="noopener" aria-label="Download full-size image">
+    <svg class="photo-viewer-download-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M12 3 L12 14 M7 9.5 L12 14.5 L17 9.5 M4.5 20 L19.5 20" stroke="currentColor" stroke-width="1.25" fill="none" stroke-linecap="square" stroke-linejoin="miter"/>
+    </svg>
+    <span class="photo-viewer-download-label">Download</span>
+  </a>
+  <button class="photo-viewer-close" type="button" aria-label="Close full image">
+    <svg class="photo-viewer-close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M5 5 L19 19 M19 5 L5 19" stroke="currentColor" stroke-width="1.25" stroke-linecap="square" fill="none"/>
+    </svg>
+    <span class="photo-viewer-close-label">Close</span>
+  </button>
+  <figure>
+    <img alt="" />
+    <figcaption>
+      <span class="ix"></span>
+      <span class="caption"></span>
+    </figcaption>
+  </figure>
+</dialog>

@@ -1,5 +1,4 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { includeDemoEntry } from './demo';
 
 export type Media = CollectionEntry<'media'>;
 export type MediaKind = Media['data']['kind'];
@@ -29,7 +28,7 @@ const STATUS_ORDER: MediaStatus[] = ['consuming', 'finished', 'stalled', 'queued
 
 export async function getAllMedia(): Promise<Media[]> {
   const all = await getCollection('media');
-  return all.filter(includeDemoEntry).sort((a, b) => {
+  return all.sort((a, b) => {
     // primary: kind order
     const ka = KIND_ORDER.indexOf(a.data.kind);
     const kb = KIND_ORDER.indexOf(b.data.kind);

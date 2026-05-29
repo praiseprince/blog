@@ -5,3 +5,8 @@ dist
 .env.production
 .DS_Store
 .claude/settings.local.json
+
+# Local content + assets — managed locally, intentionally not pushed
+src/assets/
+src/content/posts/
+src/content/media/

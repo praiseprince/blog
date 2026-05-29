@@ -5,42 +5,52 @@ import PhotoLayout from '../../layouts/PhotoLayout.astro';
 import WalkLayout from '../../layouts/WalkLayout.astro';
 import FragmentLayout from '../../layouts/FragmentLayout.astro';
 import TechnicalLayout from '../../layouts/TechnicalLayout.astro';
-import { getAllPosts } from '../../lib/posts';
+import { getAllPosts, postUrl } from '../../lib/posts';
 
 export async function getStaticPaths() {
-  const posts = await getAllPosts();
-  return posts.map(entry => ({
+  const posts = await getAllPosts(); // newest-first
+  return posts.map((entry, i) => ({
     params: { slug: entry.id.replace(/\.(md|mdx)$/, '') },
-    props: { entry },
+    // "Next" is derived from date order: the chronologically previous (older)
+    // post. null on the oldest entry, so its Next link simply doesn't render.
+    props: { entry, nextPost: posts[i + 1] ?? null },
   }));
 }
 
-const { entry } = Astro.props;
+const { entry, nextPost } = Astro.props;
 const { Content } = await render(entry);
 const type = entry.data.type;
+
+// Next link is auto-derived (not hand-written per post). We inject it into the
+// `data` the layouts already read, so no layout or frontmatter maintains it.
+// Label is HTML-stripped because most layouts render it as plain text.
+const nav = nextPost
+  ? { nextHref: postUrl(nextPost), nextLabel: `Next — ${nextPost.data.title.replace(/<[^>]+>/g, '')}` }
+  : { nextHref: undefined, nextLabel: undefined };
+const navEntry = { ...entry, data: { ...entry.data, ...nav } };
 ---
 {type === 'essay' && (
-  <EssayLayout entry={entry}>
+  <EssayLayout entry={navEntry}>
     <Content />
   </EssayLayout>
 )}
 {type === 'photo' && (
-  <PhotoLayout entry={entry}>
+  <PhotoLayout entry={navEntry}>
     <Content />
   </PhotoLayout>
 )}
 {type === 'walk' && (
-  <WalkLayout entry={entry}>
+  <WalkLayout entry={navEntry}>
     <Content />
   </WalkLayout>
 )}
 {type === 'fragment' && (
-  <FragmentLayout entry={entry}>
+  <FragmentLayout entry={navEntry}>
     <Content />
   </FragmentLayout>
 )}
 {type === 'technical' && (
-  <TechnicalLayout entry={entry}>
+  <TechnicalLayout entry={navEntry}>
     <Content />
   </TechnicalLayout>
 )}

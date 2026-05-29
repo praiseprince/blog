@@ -3,6 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import type { CollectionEntry } from 'astro:content';
 import { getSiteConfig, pageTitle } from '../lib/siteConfig';
+import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
   entry: CollectionEntry<'posts'>;
@@ -11,6 +12,15 @@ const { entry } = Astro.props;
 const { data } = entry;
 const site = getSiteConfig();
 const tm = data.techMeta ?? {};
+const marginalia = await Promise.all((data.marginalia ?? []).map(async item => ({
+  item,
+  image: item.image
+    ? await getPhotoImage(item.image, {
+        widths: [240, 360, 520, 720],
+        sizes: '(max-width: 800px) 100vw, 25vw',
+      })
+    : null,
+})));
 ---
 <BaseLayout
   title={pageTitle(data.title)}
@@ -79,10 +89,10 @@ const tm = data.techMeta ?? {};
         <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— {site.authorShort}</p>
       </div>
 
-      {data.marginalia && data.marginalia.length > 0 && (
+      {marginalia.length > 0 && (
         <aside style="grid-column: 10 / span 3;" class="marginalia">
           <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 12px;">Marginalia</div>
-          {data.marginalia.map(m => {
+          {marginalia.map(({ item: m, image }) => {
             if (m.kind === 'note') {
               return (
                 <div style="border-left: 2px solid var(--accent); padding-left: 14px; margin-bottom: 28px;" set:html={m.body ?? ''} />
@@ -106,7 +116,7 @@ const tm = data.techMeta ?? {};
             // figure
             return (
               <figure>
-                <div class="thumb" style="aspect-ratio: 1/1;"><img src={m.image ?? ''} alt="" /></div>
+                <div class="thumb" style="aspect-ratio: 1/1;"><img {...(image?.attrs ?? { src: m.image ?? '' })} alt="" /></div>
                 {(m.caption || m.ix) && (
                   <figcaption>
                     {m.ix && <span class="ix">{m.ix}</span>}

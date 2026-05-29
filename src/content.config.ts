@@ -27,11 +27,12 @@ const posts = defineCollection({
     readTime: z.string().optional(),
     wordCount: z.number().optional(),
     issueLabel: z.string().optional(),
-    demo: z.boolean().default(false),
     showOnHome: z.boolean().default(false),
     draft: z.boolean().default(false),
 
     cover: figure.optional(),
+    // Auto-derived from date order in src/pages/posts/[...slug].astro — do not
+    // set these by hand. Kept here only as the injection target + type.
     nextLabel: z.string().optional(),
     nextHref: z.string().optional(),
 
@@ -122,7 +123,6 @@ const mediaBase = {
   note: z.string(),
   tags: z.array(z.string()).default([]),
   cover: z.string().optional(),
-  demo: z.boolean().default(false),
   firstAt: z.coerce.date().optional(),
   lastAt: z.coerce.date().optional(),
   consumptionCount: z.number().default(1),

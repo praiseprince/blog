@@ -68,6 +68,13 @@
       const ix = viewer.querySelector('.ix');
       const caption = viewer.querySelector('.caption');
       const close = viewer.querySelector('.photo-viewer-close');
+      const download = viewer.querySelector('.photo-viewer-download');
+
+      // Turn /_astro/name.HASH.jpg into a clean "name.jpg" for the saved file.
+      function downloadName(src) {
+        const base = (src.split('/').pop() || 'image').split('?')[0];
+        return base.replace(/\.[\w-]{6,}\.(jpe?g|png|webp|gif|avif)$/i, '.$1');
+      }
 
       function closeViewer() {
         if (typeof viewer.close === 'function') viewer.close();
@@ -76,10 +83,15 @@
 
       document.querySelectorAll('.photo-viewer-trigger').forEach(trigger => {
         trigger.addEventListener('click', () => {
-          image.src = trigger.dataset.fullSrc || '';
+          const fullSrc = trigger.dataset.fullSrc || '';
+          image.src = fullSrc;
           image.alt = trigger.dataset.fullAlt || '';
           ix.textContent = trigger.dataset.fullIx || '';
           caption.innerHTML = trigger.dataset.fullCaption || '';
+          if (download) {
+            download.href = fullSrc;
+            download.setAttribute('download', downloadName(fullSrc));
+          }
 
           if (typeof viewer.showModal === 'function') viewer.showModal();
           else viewer.setAttribute('open', '');

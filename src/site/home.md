@@ -1,5 +1,5 @@
 ---
-coverPost: "infantilization-of-politics"
+coverPost: "the-discipline-of-paying-attention"
 ---
 
 # Home Settings

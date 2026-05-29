@@ -4,7 +4,7 @@
 
 This document exists so any new contributor (human or agent) can pick the project up with full context. Read it first. It is meant to reflect the **actual current state** of the codebase, not the original plan — when you change something structural, update this file.
 
-_Last updated: 2026-05-28._
+_Last updated: 2026-05-29._
 
 ---
 
@@ -50,10 +50,10 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 │   ├── script.js             theme/palette toggle, masthead date, reading progress, photo-viewer lightbox
 │   ├── feed.xsl              XSLT stylesheet that prettifies /feed.xml for humans (CSS-only day/night)
 │   ├── sitemap.xsl           XSLT stylesheet that prettifies /sitemap.xml for humans (CSS-only day/night)
-│   ├── favicon-32.png  favicon-192.png  favicon-512.png  apple-touch-icon.png
-│   └── images/
-│       └── blog-add/         ← real photo JPEGs, served verbatim (see §5 Images — UNOPTIMIZED)
+│   └── favicon-32.png  favicon-192.png  favicon-512.png  apple-touch-icon.png
 ├── src/
+│   ├── assets/
+│   │   └── images/         local source JPEGs, optimized by Astro at build time
 │   ├── content.config.ts     Zod schemas for `posts` + `media` collections
 │   ├── site/
 │   │   ├── README.md         what is editable here
@@ -61,24 +61,25 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 │   │   └── home.md           manual homepage cover post slug
 │   ├── styles/global.css     the whole design system (palettes, type, layout, pager, photo-viewer)
 │   ├── content/
-│   │   ├── posts/            real posts + tiny `demo: true` test set
-│   │   └── media/            real desk entries + tiny `demo: true` test set
+│   │   ├── posts/            essay/photo/walk/fragment/technical entries
+│   │   └── media/            book/film/show/album/track entries
 │   ├── lib/
-│   │   ├── demo.ts           `DEMO_MODE=1` helper for demo content inclusion
 │   │   ├── posts.ts          getAllPosts, postUrl, kindLabel, shortDate, getAllTags
 │   │   ├── media.ts          getAllMedia, mediaUrl, SECTION_LABEL, STATUS_LABEL, KIND_ORDER, sort helpers
+│   │   ├── photoImages.ts    maps `/images/...` content refs to optimized local assets
 │   │   ├── siteConfig.ts     reads reusable site identity/copy from `src/site/about.md`
 │   │   ├── siteMarkdown.ts   small parser for `src/site/*.md`
 │   │   └── siteUrl.js        reads `siteUrl` from `src/site/about.md`
 │   ├── components/
 │   │   ├── Masthead.astro    Colophon.astro    SiteNav.astro
 │   │   ├── Tag.astro         Figure.astro      Video.astro
+│   │   ├── PhotoViewer.astro shared full-image lightbox dialog (close + download)
 │   │   └── MediaCard.astro   per-kind card for /desk/ (covers lazy-loaded)
 │   ├── layouts/
 │   │   ├── BaseLayout.astro  shared chrome (head/masthead/nav/slot/colophon)
-│   │   ├── EssayLayout.astro       PhotoLayout.astro*     WalkLayout.astro*
+│   │   ├── EssayLayout.astro*      PhotoLayout.astro*     WalkLayout.astro*
 │   │   ├── FragmentLayout.astro*   TechnicalLayout.astro
-│   │   └── (* = includes the photo-viewer <dialog> lightbox)
+│   │   └── (* = renders the shared <PhotoViewer/> lightbox)
 │   └── pages/
 │       ├── index.astro              homepage (lead + side + tier + contact + desk strip + tags)
 │       ├── archive.astro            filterable + paginated archive
@@ -113,7 +114,6 @@ tags: string[]               # creates /tags/<tag>/ pages
 excerpt, eyebrow, dek, location, readTime: string
 wordCount, issueLabel: number/string
 showOnHome: boolean          # opt a fragment/technical note into the homepage latest lists
-demo: boolean                # true -> hidden unless DEMO_MODE=1 / demo scripts are used
 draft: boolean               # true → excluded from build
 cover: figure                # {src, alt, caption, ix, aspect, fit, position, colspan, colstart}
 nextLabel, nextHref: string  # manual "next entry" link at the bottom of a post
@@ -145,7 +145,7 @@ log[]: [{date, note?}]       # re-engagement timeline on the detail page
 
 Per-kind extras: **book** `author/year/pages/currentPage/spine/tone(1-4)` · **film** `director/year/runtime/language` · **show** `creator/year/currentSeason/currentEpisode/network` · **album** `artist/year/length/label` · **track** `artist/album/year/duration`.
 
-`status` ∈ `consuming | finished | stalled | queued | abandoned`. Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only `consuming` gets a kind-specific verb (Reading now / Watching now / In rotation / On repeat); the rest (Finished / Stalled / Up next / Set aside) read uniformly. Media entries also support `demo: true`, which hides them unless demo mode is enabled.
+`status` ∈ `consuming | finished | stalled | queued | abandoned`. Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only `consuming` gets a kind-specific verb (Reading now / Watching now / In rotation / On repeat); the rest (Finished / Stalled / Up next / Set aside) read uniformly.
 
 ---
 
@@ -153,15 +153,41 @@ Per-kind extras: **book** `author/year/pages/currentPage/spine/tone(1-4)` · **f
 
 There are two image sources, handled very differently:
 
-**1. Photo post images — LOCAL and UNOPTIMIZED.**
-- Files live in `public/images/blog-add/`, referenced from content as `/images/blog-add/<file>.jpg`.
-- They are **raw camera JPEGs**: individual files run **3–11 MB** (~36 MB for the current six). Because they sit in `public/`, Astro copies them byte-for-byte into `dist/` — **no resizing, no WebP/AVIF, no responsive `srcset`**.
-- This is the project's biggest performance liability today. A single photo roll can push 20–30 MB to a phone. See **Backlog §11 → Image optimization (high priority)** for the fix (move into `src/`, use the `image()` schema helper + `<Image>`/`getImage`).
-- `MediaCard` images use `loading="lazy" decoding="async"`, but the large photo *figures* in `PhotoLayout`/`WalkLayout`/`FragmentLayout` do **not** — and lazy loading only defers bytes, it does not shrink them.
+**1. Photo post images — local source files, optimized at build time.**
+- **Asset root is `src/assets/`** — images are just one type under it. Other asset kinds (self-hosted `video/`, `audio/`, `docs/`, …) get their own siblings under `src/assets/`; this section is only about images.
+- Image source files live in **`src/assets/images/`** (renamed from the old import-batch name `blog-add`).
+- **The reference token mirrors the folder:** content references an image as `/images/<file>.jpg`, which maps 1:1 to `src/assets/images/<file>.jpg`. `src/lib/photoImages.ts` resolves the token to the imported local asset.
+- **Per-roll subfolders are supported** (the glob is recursive): put a roll's photos in `src/assets/images/<roll>/…` and reference them as `/images/<roll>/<file>.jpg`. Use this when one post brings several images, instead of a flat dumping ground.
+- Page display images are responsive WebP files from Astro's `getImage()`; the click/lightbox target keeps the original full-quality source.
+- This applies to **structured image fields** (`cover`, `gallery`, `timeline`, `items`, `marginalia`). For an image written in **Markdown body prose** (essays/technical), the standard is a **relative path** — `![](../../assets/images/<file>.jpg)` — which Astro optimizes natively. Do **not** use the `/images/...` token in body prose: it is only rewritten in structured fields, so in prose it would 404. (No post uses body images today.)
+- Unknown or remote image paths fall back to the original URL without optimization.
 
 **2. Media covers — EXTERNAL CDN URLs.**
 - `cover:` on media entries points to remote CDNs: `image.tmdb.org` (films/shows), `is1-ssl.mzstatic.com` (Apple, albums), `covers.openlibrary.org` (books), `i.scdn.co` (Spotify). Books mostly render a typographic spine instead of a cover image.
 - These are fine to leave external; they're already CDN-served and the desk lazy-loads them.
+
+### Asset contract (for authoring + any tooling built on top)
+
+The intended workflow is: **every local image a post uses is declared in a frontmatter field** — never typed into body prose. Follow this and the body-image 404 case can never occur. A future upload/CMS-style app should implement exactly this two-step contract:
+
+1. **Store the file** at `src/assets/images/<name>.<ext>`, or grouped: `src/assets/images/<group>/<name>.<ext>`. Allowed `<ext>`: `jpg`, `jpeg`, `png`, `webp`.
+2. **Reference it** in a frontmatter image field as `/images/<name>.<ext>` (or `/images/<group>/<name>.<ext>`) — the part after `/images/` must exactly mirror the file's path **under `src/assets/images/`**.
+
+Frontmatter image fields that resolve through `src/lib/photoImages.ts`:
+
+| Post type | Field(s) |
+|---|---|
+| any | `cover.src` |
+| photo | `gallery[].src` |
+| walk | `timeline[].image` |
+| fragment | `items[].image` |
+| technical | `marginalia[].image` |
+
+Each reference yields **two outputs from one source file**: responsive WebP variants for page display, and the full-resolution original (emitted to `/_astro/<name>.<hash>.<ext>`) as the lightbox / download target. No second copy is needed anywhere.
+
+Why the `/images/...` token rather than a relative path: it is **location-independent**, so tooling can emit it without knowing the post file's depth (a relative `../../assets/...` would have to be computed per file). The token is therefore the recommended form for both hand-authoring and generated content. The relative-path form (`![](../../assets/images/<file>)`) exists only as the fallback for the discouraged case of an image written directly in body prose.
+
+`public/` holds only files that must ship byte-for-byte (favicons, `script.js`, `feed.xsl`, `sitemap.xsl`). There is no `public/images/` — images do **not** go there; putting one there would skip optimization.
 
 ---
 
@@ -172,8 +198,6 @@ There are two image sources, handled very differently:
 **Tags.** Lowercase except proper nouns; hyphenate multi-word (`slow-internet`). No creation step — typing a tag in any post's `tags:` auto-generates `/tags/<tag>/` on build. Tags currently come from **posts only**; media `tags` exist in the schema but are not yet surfaced on tag pages (deliberate gap).
 
 **Drafts.** `draft: true` → hidden; `getAllPosts()` filters them out.
-
-**Demo content.** `demo: true` on a post or media entry hides it from normal builds. Use `npm run dev:demo` or `npm run build:demo` to include the small demo set while testing layouts, frontmatter tooling, or Keystatic. Those scripts set `DEMO_MODE=1` under the hood.
 
 **Site text/config.** Small non-collection site copy lives in `src/site/`, not `src/content/`. `src/site/about.md` controls reusable identity/copy (`siteTitle`, `siteTitleHtml`, `siteSubtitle`, `siteDescription`, `rssDescription`, `authorName`, `authorShort`, `homeLocation`, `deskQuote`, `deskQuoteAuthor`), plus the About page text, `edition`, `lastRevised`, `lastmod`, and `siteUrl`. `src/site/home.md` controls the manual homepage cover via `coverPost`. `siteUrl` powers Astro's `site`, `/sitemap.xml`, and `/robots.txt`.
 
@@ -187,14 +211,14 @@ There are two image sources, handled very differently:
 
 - **`/`** — homepage: manual cover post from `src/site/home.md`, else latest essay/photo/walk + 4-item cross-kind side column + 3-col tier + conditional contact sheet (recent photo thumbnails) + "currently on the desk" strip + tag cloud.
 - **`/archive/`** — full archive as a single `.toc` list. Client-side **kind filter** (All/Essays/Photographs/Walks/Fragments/Notes) and **numbered pagination, 10/page** (see §8). `?kind=essay|photo|…` preselects a filter.
-- **`/posts/<slug>/`** — individual post; layout chosen by `type`. Photo/walk/fragment posts include the photo-viewer lightbox.
+- **`/posts/<slug>/`** — individual post; layout chosen by `type`. Photo/walk/fragment/essay posts include the photo-viewer lightbox (click an image to open full-size, with a download control).
 - **`/desk/`** — media index, sectioned by kind, status-grouped within. Filter bar + custom sort dropdown (By status (default) / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first) + **per-status-group pagination** (see §8).
 - **`/desk/<slug>/`** — media detail: cover, metadata, log timeline (if any), review body (if any).
 - **`/tags/<tag>/`** — auto-generated, **paginated** (10/page) per-tag listing + lead entry + adjacent tags.
 - **`/about/`** — about page. Layout lives in `src/pages/about.astro`; editable text/metadata lives in `src/site/about.md`.
 - **`/404`** — soft "page not found" in the publication's voice.
 - **`/feed.xml`** — RSS (drafts filtered, newest-first, HTML stripped from titles/excerpts, tags as `<category>`). Declares `/feed.xsl` so a human opening it in a browser sees a styled page; feed readers consume the raw XML. The styled view has a **pure-CSS day/night toggle** (hidden checkbox + `:has()`), because **scripts do not run in XSLT-transformed XML** — so no JS, no `localStorage`, no OS-preference detection; it defaults to day and the choice does not persist across reloads.
-- **`/sitemap.xml`** — XML sitemap. Includes static pages, posts, desk entries, and tag pages. Uses `siteUrl` from `src/site/about.md` for absolute URLs and the same demo filtering as the site; normal builds omit `demo: true`, demo builds include them. Declares `/sitemap.xsl` (via an `<?xml-stylesheet?>` PI in `sitemap.xml.js`) so a human opening it gets the same styled view + **pure-CSS day/night toggle** as the feed. The XSLT binds the `http://www.sitemaps.org/schemas/sitemap/0.9` namespace to an `s:` prefix — matching `<url>`/`<loc>`/`<lastmod>` without it silently yields an empty list. Crawlers ignore the stylesheet and read the raw XML.
+- **`/sitemap.xml`** — XML sitemap. Includes static pages, posts, desk entries, and tag pages. Uses `siteUrl` from `src/site/about.md` for absolute URLs. Declares `/sitemap.xsl` (via an `<?xml-stylesheet?>` PI in `sitemap.xml.js`) so a human opening it gets the same styled view + **pure-CSS day/night toggle** as the feed. The XSLT binds the `http://www.sitemaps.org/schemas/sitemap/0.9` namespace to an `s:` prefix — matching `<url>`/`<loc>`/`<lastmod>` without it silently yields an empty list. Crawlers ignore the stylesheet and read the raw XML.
 - **`/robots.txt`** — crawler rules + sitemap URL. **Intentionally unstyled**: it is served as `text/plain` per the Robots Exclusion Protocol and crawlers do not render HTML/CSS/XSLT, so there is no day/night view — only `#` comments are possible, and even those are avoided to keep it clean.
 
 ---
@@ -224,7 +248,7 @@ Defined in `src/styles/global.css`.
 
 **Sticky footer:** `body` is a flex column, `min-height:100vh`, `body > main { flex:1 0 auto }`. **Every top-level page must wrap its content in `<main>`** or the footer pinning breaks.
 
-**Photo-viewer lightbox** (Photographs / Walks / Fragments only): each of those three layouts renders one `<dialog class="photo-viewer">` at the end of `<main>`; clickable images are `<button class="photo-viewer-trigger" data-full-src/alt/caption/ix>`. `public/script.js` wires triggers → `showModal()`, fills the dialog img/figcaption, blurs the close button. Soft fade-and-scale via `@starting-style` + `allow-discrete`; editorial close control; respects `prefers-reduced-motion` and safe-area insets; click-outside closes. **The dialog markup is duplicated in all three layouts — change all three together** (styles/JS are shared).
+**Photo-viewer lightbox** (Photographs / Walks / Fragments / Essays): the dialog is a **single shared component, `src/components/PhotoViewer.astro`**, rendered once at the end of `<main>` in each of those four layouts (no more duplicated markup — edit the component once). Clickable images are `<button class="photo-viewer-trigger" data-full-src/alt/caption/ix>`. `public/script.js` wires triggers → `showModal()`, fills the dialog img/figcaption, sets the download link, blurs the close button. Two pinned controls: **Close** (top-right) and **Download** (top-left). Download uses an `<a download>` pointing at `data-full-src`; for same-origin images (your local `/_astro/...` originals) it saves the full-size file, and the JS derives a clean `name.ext` filename (stripping the Astro hash). For cross-origin images (e.g. external/Unsplash covers) browsers ignore `download`, so the link falls back to opening the image in a new tab (`target="_blank"`). Soft fade-and-scale via `@starting-style` + `allow-discrete`; respects `prefers-reduced-motion` and safe-area insets; click-outside closes.
 
 ---
 
@@ -255,14 +279,6 @@ Convention: **no AI/Claude attribution in commits or PRs.**
 
 ## 12. Backlog
 
-### ⚠️ Image co-location + optimization — HIGH PRIORITY (real problem now)
-Real photos exist and they're heavy (§5): multi-MB raw JPEGs in `public/`, copied verbatim, ~40 MB of the 49 MB build. Fix:
-- Move photo files out of `public/` into `src/` (e.g. `src/assets/` or co-located under the post).
-- Change the `figure` schema's `src` to Astro's `image()` helper and render via `<Image>` / `getImage()` so you get automatic resize, WebP/AVIF, and responsive `srcset`.
-- Add `loading="lazy"` to the large photo figures in PhotoLayout/WalkLayout/FragmentLayout while you're there.
-- Leave external media covers (tmdb/openlibrary/Apple/Spotify) as-is.
-This is the single highest-impact change available.
-
 ### Keystatic CMS integration (author-requested)
 **Vision:** stop editing the codebase — open a web app on any device, write Markdown, hit save, content commits to git, site auto-deploys. Keystatic is Astro-native, file-backed, free, mobile-usable, and its schema mirrors the existing Zod collections.
 Rough plan: install `@keystatic/core @keystatic/astro` (+ `@astrojs/react`), switch output to support the admin route, write `keystatic.config.ts` mapping each Zod field to a Keystatic field (`z.discriminatedUnion` → `fields.conditional` for media), add the `/keystatic` admin + API routes. Register custom rich-text blocks (Video, Gallery, Pullquote, Marginalia) so authoring inserts typed widgets, not raw tags. Migrating HTML-in-frontmatter to Markdown partially solves itself once the rich-text editor is in.
@@ -270,31 +286,33 @@ Rough plan: install `@keystatic/core @keystatic/astro` (+ `@astrojs/react`), swi
 ### Guest contributions ("Letters from Friends" — name TBD)
 Friends send content; the author posts it under the friend's name. **This is still loosely defined** — the open question (§13) bundles three things that haven't been decided: what exactly counts as a guest contribution, what the section is called (Correspondences · Other postcards · Hand-delivered · Dispatches), and whether guest posts look visually distinct or identical to the author's. Sketch of an eventual implementation once the shape is decided: add an `author` object to the post schema (absent → Praise Prince; present → guest: `{name, bio, link?, photo?}`); a listing page under the chosen name; guest posts surfaced on the homepage with a "Letter from X" eyebrow; auto-collected via a tag.
 
-### Smaller deferred items
-- Slug stability (explicit `slug` field separate from filename)
-- Auto-derive next/previous post from date order (remove manual `nextHref`/`nextLabel`)
-- Surface media tags on `/tags/<tag>/` pages
-- Strip HTML from frontmatter → Markdown + inline renderer
+### Smaller items — assessed (most are not real problems)
+These were once listed as deferred work. On review, only the next/prev one was a genuine issue, and it's now done (see Recently completed). The rest are kept here with the reason they're *not* worth doing:
+
+- **Slug stability (explicit `slug` field) — not planned.** Astro derives the slug from the filename, which is fine. A separate field only buys "rename without changing the URL," which in practice just means *don't rename published posts* — and it introduces a slug/filename drift failure mode. We renamed `temporary-test-roll` → `an-old-summer-roll` with no trouble. Skip it.
+- **Surface media tags on `/tags/<tag>/` — optional feature, not a bug.** Tag pages are built from post tags only; media `tags` exist in the schema but don't appear there. Nothing is broken — it's a design choice. Only do it if you specifically want unified topic pages that merge essays with desk entries; otherwise keeping the publication and the desk separate is cleaner.
+- **Strip HTML from frontmatter → Markdown — cosmetic, low priority.** Titles/excerpts/captions allow `<em>`/`<strong>` via `set:html`. It is the author's own content (no user input → no security angle) and it works. The migration is real effort for a tidiness gain, and a future CMS can keep emitting the same HTML, so it blocks nothing.
 
 ### Recently completed (no longer backlog)
 - **Pagination** — numbered, 10/page, on Archive (filtered), Desk (per status group, with sort-flatten → one pager per kind), and Tag pages. Shared `.pager` styles. Replaced an earlier "Show more" approach. (See §8.)
 - **Media cover lazy-loading** — `loading="lazy" decoding="async"` on all `MediaCard` images.
 - **Mobile grid fixes** — EssayLayout "Filed Under / Next" and PhotoLayout roll-note now collapse to one column under 720px (were squeezed on phones).
 - **Schema cleanup** — per-post `featured`/`featuredOrder` removed; `showOnHome` added; homepage cover moved to `src/site/home.md`.
+- **Auto-derived "Next" links** — the per-post Next link is now computed from date order in `src/pages/posts/[...slug].astro` (the older neighbour; injected into the entry the layouts already read) instead of hand-written `nextHref`/`nextLabel`. Removes the cross-reference bookkeeping that broke on slug renames and drifted out of date. Essay/Walk/Fragment/Technical render it; Photo has no Next block by design.
 - **Custom sort dropdown on /desk/** — replaced the native `<select>` with a styled button + popover (keyboard accessible; oxblood dot on the selected option).
 - **RSS feed + pretty XSL** — `/feed.xml` via `@astrojs/rss`, with a standalone `public/feed.xsl` for human viewing. Linked from `<head>`, the About page, and the colophon (`Colophon.astro` is the source of truth for that footer link). The colophon footer now reads **Feed · Sitemap · About →** (the `/sitemap.xml` link goes to the styled XSL view).
 - **Sitemap** — `/sitemap.xml` custom endpoint plus `/robots.txt` endpoint. Both use `siteUrl` from `src/site/about.md`. `/sitemap.xml` has a styled `public/sitemap.xsl` view with the same pure-CSS day/night toggle as the feed; `/robots.txt` stays plain text (cannot be styled).
 - **Feed + sitemap day/night toggle** — both XSL views carry a pure-CSS theme toggle (hidden checkbox + `:has()`), since scripts don't run in XSLT-transformed XML. Default day, no persistence.
+- **Photo image optimization** — local photo source files live in `src/assets/images`; `photoImages.ts` generates responsive display images and full-size lightbox URLs from the same `/images/...` markdown path.
 - **Photo-viewer lightbox**, **sticky footer**, **PNG favicons + apple-touch-icon**, **archive List/Grid toggle removed**, **404 page** — all shipped.
 
 ---
 
 ## 13. Open questions for the author
 
-Only two remain open (gallery and homepage-cover strategy are both resolved — no gallery is planned, and the manual `src/site/home.md` cover model is settled):
+Only one remains open (gallery and homepage-cover strategy are both resolved — no gallery is planned, and the manual `src/site/home.md` cover model is settled):
 
 1. **Guest contributions** — the whole shape is undecided: what exactly counts as a guest contribution, what the section is named (Correspondences · Other postcards · Hand-delivered · Dispatches), and whether guest posts get a distinct visual treatment or look identical to the author's. Treat these as one decision (see §12).
-2. **Image handling timeline** — start co-locating + optimizing photos now (§5/§12), or wait until Keystatic is wired so its upload widget handles file placement? The performance cost of waiting is real (multi-MB images shipping today), so this leans toward "do it now," but it's the author's call.
 
 ---
 
@@ -306,7 +324,7 @@ Only two remain open (gallery and homepage-cover strategy are both resolved — 
 - Theme/palette persisted in `localStorage` (`pp-theme`, `pp-palette`).
 - No analytics, no email capture, no newsletter — by design.
 - Every top-level page must wrap content in `<main>` (sticky-footer selector is `body > main`).
-- The photo-viewer `<dialog>` is duplicated in three layouts — edit all three.
+- The photo-viewer lightbox is the single shared component `src/components/PhotoViewer.astro` (Photo/Walk/Fragment/Essay layouts render it). Edit it once; the triggers (`.photo-viewer-trigger`) still live per-layout on each figure.
 - Inline `grid-column` blocks need explicit mobile media queries (§9 pitfall).
 
 ---
@@ -315,12 +333,10 @@ Only two remain open (gallery and homepage-cover strategy are both resolved — 
 
 ```bash
 npm install && npm run dev   # http://localhost:4321
-npm run dev:demo             # includes demo:true content
-npm run build:demo           # static build with demo:true content
 ```
 
 - **New post:** drop a `.md` into `src/content/posts/`, fill the typed frontmatter. Build picks it up.
 - **New media entry:** drop a `.md` into `src/content/media/`; `kind:` determines required fields.
 - **New tag:** just write it in a post's `tags:` — its page auto-generates.
 - **Design work:** `src/styles/global.css` for tokens; individual layouts/pages for per-route styling.
-- **Adding photos:** read §5 first — do not drop multi-MB JPEGs into `public/` without reading the optimization note.
+- **Adding photos:** put local originals in `src/assets/images/` (or `src/assets/images/<roll>/` for a multi-image post), then reference them in a structured field as `/images/<file>.jpg` (or `/images/<roll>/<file>.jpg`) so `photoImages.ts` optimizes them. For an image inside prose, use a relative path instead: `![](../../assets/images/<file>.jpg)` (see §5).

@@ -5,10 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "dev:demo": "node scripts/with-demo.mjs dev",
     "start": "astro dev",
     "build": "astro build",
-    "build:demo": "node scripts/with-demo.mjs build",
     "preview": "astro preview",
     "astro": "astro"
   },

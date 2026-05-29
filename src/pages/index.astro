@@ -5,6 +5,7 @@ import { getAllPosts, postUrl, kindLabel, getAllTags, type Post } from '../lib/p
 import { getAllMedia, mediaUrl, type Media } from '../lib/media';
 import { readSiteMarkdown } from '../lib/siteMarkdown';
 import { getSiteConfig } from '../lib/siteConfig';
+import { getPhotoImage } from '../lib/photoImages';
 
 // HOMEPAGE logic:
 // 1. `src/site/home.md` controls the manual cover/lead.
@@ -54,6 +55,13 @@ function leadImage(post: Post | undefined) {
   return null;
 }
 const leadCover = leadImage(lead);
+const leadCoverImage = leadCover
+  ? await getPhotoImage(leadCover.src, {
+      widths: [720, 960, 1280, 1600, 2200],
+      sizes: '(max-width: 900px) 100vw, 66vw',
+      loading: 'eager',
+    })
+  : null;
 
 // SIDE COLUMN = latest eligible posts, excluding the lead
 const latestHomePosts = posts.filter(p => p.id !== lead?.id && appearsOnHome(p));
@@ -67,7 +75,13 @@ const secondTier: Post[] = posts
 
 // LATEST PHOTOS = uniform thumbnail grid from the most recent photo post's gallery
 const recentPhoto = posts.slice(0, 6).find(p => p.data.type === 'photo');
-const photoThumbs = recentPhoto?.data.gallery?.slice(0, 6) ?? [];
+const photoThumbs = await Promise.all((recentPhoto?.data.gallery?.slice(0, 6) ?? []).map(async figure => ({
+  figure,
+  image: await getPhotoImage(figure.src, {
+    widths: [240, 360, 520, 720],
+    sizes: '(max-width: 420px) 50vw, (max-width: 720px) 33vw, 16vw',
+  }),
+})));
 
 // CURRENTLY ON THE DESK = up to 4 active media, varied kinds, kind-first then fill
 const allMedia = await getAllMedia();
@@ -127,7 +141,7 @@ const leadKindNoun =
           {leadCover && (
             <a href={postUrl(lead)} style="display: block; margin-top: 32px;">
               <figure>
-                <img src={leadCover.src} alt={leadCover.alt ?? ''} />
+                <img {...(leadCoverImage?.attrs ?? { src: leadCover.src })} alt={leadCover.alt ?? ''} />
                 {(leadCover.caption || leadCover.ix) && (
                   <figcaption>
                     {leadCover.ix && <span class="ix">{leadCover.ix}</span>}
@@ -196,9 +210,9 @@ const leadKindNoun =
         </div>
 
         <div class="contact-grid">
-          {photoThumbs.map(g => (
+          {photoThumbs.map(({ figure: g, image }) => (
             <a href={postUrl(recentPhoto)}>
-              <div class="thumb"><img src={g.src} alt={g.alt ?? ''} /></div>
+              <div class="thumb"><img {...image.attrs} alt={g.alt ?? ''} /></div>
             </a>
           ))}
         </div>
