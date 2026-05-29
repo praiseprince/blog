@@ -155,5 +155,21 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
       }
       .tech-prose > aside { margin-top: 32px; border-top: 1px solid var(--rule); padding-top: 24px; }
     }
+    @media (max-width: 720px) {
+      /* Header: stack title and meta full-width, left-aligned */
+      .editorial-grid > div[style*="grid-column: 1 / span 8"],
+      .editorial-grid > div[style*="grid-column: 10 / span 3"] {
+        grid-column: 1 / -1 !important;
+      }
+      .editorial-grid > div[style*="grid-column: 10 / span 3"] {
+        text-align: left !important;
+        margin-top: 20px;
+      }
+      /* Footer: stack tags and next-link full-width, left-aligned */
+      .editorial-grid > div[style*="grid-column: span 6"] {
+        grid-column: 1 / -1 !important;
+        text-align: left !important;
+      }
+    }
   </style>
 </BaseLayout>

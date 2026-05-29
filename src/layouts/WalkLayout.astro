@@ -208,6 +208,11 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
       .editorial-grid > div[style*="grid-column: 9 / span 4"] {
         margin-top: 24px;
       }
+      /* Footer: stack tags and next-link full-width, left-aligned */
+      .editorial-grid > div[style*="grid-column: span 6"] {
+        grid-column: 1 / -1 !important;
+        text-align: left !important;
+      }
     }
   </style>
 </BaseLayout>

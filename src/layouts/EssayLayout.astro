@@ -88,11 +88,7 @@ const coverImage = data.cover
         )}
         {data.nextHref && (
           <div style="grid-column: span 4;">
-            <div class="smallcaps" style="color: var(--ink-fade);">Next</div>
-            <a href={data.nextHref} style="display: block; margin-top: 12px;">
-              <div class="display" style="font-size: 1.25rem; line-height: 1.2;" set:html={data.nextLabel ?? 'Next entry'} />
-              <div class="meta" style="margin-top: 6px;">Continue →</div>
-            </a>
+            <a class="arrow" href={data.nextHref} set:html={data.nextLabel ?? 'Next entry'} />
           </div>
         )}
       </div>

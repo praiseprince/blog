@@ -27,8 +27,8 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
   screenLabel="Photo"
   mastheadRight={`Photographs${data.roll ? ` · Roll №${data.roll}` : ''}`}
 >
-  <main>
-    <section style="position: relative; padding: clamp(40px, 6vw, 80px) clamp(20px, 5vw, 56px) 0;">
+  <main class="page">
+    <section style="position: relative; padding: clamp(40px, 6vw, 80px) 0 0;">
       <div class="editorial-grid" style="align-items: end;">
         <div style="grid-column: 1 / span 7;">
           {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
@@ -66,7 +66,7 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
     </section>
 
     {gallery.length > 0 && (
-      <section style="padding: 80px clamp(20px, 5vw, 56px) 0;">
+      <section style="padding: 80px 0 0;">
         <div class="editorial-grid">
           {gallery.map(({ figure: g, image }) => {
             const colstart = g.colstart ?? 1;
@@ -126,6 +126,15 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
   <style>
     @media (max-width: 720px) {
       .editorial-grid figure { grid-column: 1 / -1 !important; }
+      /* Header: stack title and meta full-width, left-aligned */
+      .editorial-grid > div[style*="grid-column: 1 / span 7"],
+      .editorial-grid > div[style*="grid-column: 9 / span 4"] {
+        grid-column: 1 / -1 !important;
+      }
+      .editorial-grid > div[style*="grid-column: 9 / span 4"] {
+        text-align: left !important;
+        margin-top: 20px;
+      }
       .roll-note-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
     }
   </style>
