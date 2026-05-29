@@ -746,6 +746,41 @@ a:hover .thumb img, .thumb:hover img { transform: scale(1.03); }
   .sitenav { padding: 10px 14px; }
 }
 
+/* ─── Pagination ─── */
+.pager {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin: 28px 0 8px;
+}
+.pager[hidden] { display: none; }
+.pager-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  min-width: 34px;
+  padding: 8px 10px;
+  background: none;
+  border: 1px solid var(--rule);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pager-btn:hover:not(:disabled),
+.pager-btn:focus-visible:not(:disabled) { border-color: var(--ink); color: var(--ink); outline: none; }
+.pager-btn.is-current { background: var(--ink); color: var(--paper); border-color: var(--ink); cursor: default; }
+.pager-btn:disabled { opacity: 0.3; cursor: default; }
+.pager-nav { letter-spacing: 0; }
+.pager-ellipsis {
+  color: var(--ink-fade);
+  padding: 0 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 /* Page transitions */
 @keyframes pp-fade-up {
   from { opacity: 0; transform: translateY(8px); }

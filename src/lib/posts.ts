@@ -19,14 +19,7 @@ export async function getAllPosts(): Promise<Post[]> {
 
 export async function getFeaturedPosts(): Promise<Post[]> {
   const posts = await getAllPosts();
-  return posts
-    .filter(p => p.data.featured)
-    .sort((a, b) => {
-      const oa = a.data.featuredOrder ?? Number.POSITIVE_INFINITY;
-      const ob = b.data.featuredOrder ?? Number.POSITIVE_INFINITY;
-      if (oa !== ob) return oa - ob;
-      return b.data.date.getTime() - a.data.date.getTime();
-    });
+  return posts.filter(p => p.data.featured);
 }
 
 export function postUrl(post: Post): string {

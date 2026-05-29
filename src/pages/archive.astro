@@ -91,29 +91,89 @@ const counts = {
         </li>
       ))}
     </ul>
+
+    <nav class="pager" id="archive-pager" aria-label="Archive pagination" hidden></nav>
   </main>
 
   <script is:inline>
     (function(){
-      // Read ?kind= from URL and apply preset
-      const params = new URLSearchParams(location.search);
-      const preset = params.get('kind');
+      const PER_PAGE = 10;
+      const rows = Array.from(document.querySelectorAll('.archive-row'));
+      const listTop = document.querySelector('.toc');
+      const pagerMount = document.getElementById('archive-pager');
+      let currentKind = 'all';
+      let page = 1;
+
+      // Google-style numbered controls: ‹ 1 … 4 5 6 … 20 ›
+      function renderControls(mount, current, pages, go) {
+        mount.innerHTML = '';
+        mount.hidden = pages <= 1;
+        if (pages <= 1) return;
+        const add = (label, p, o) => {
+          o = o || {};
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pager-btn' + (o.current ? ' is-current' : '') + (o.nav ? ' pager-nav' : '');
+          b.textContent = label;
+          if (o.disabled || o.current) b.disabled = !!o.disabled;
+          if (o.disabled) b.disabled = true;
+          else if (!o.current) b.addEventListener('click', () => go(p));
+          if (o.label) b.setAttribute('aria-label', o.label);
+          mount.appendChild(b);
+        };
+        const ell = () => {
+          const s = document.createElement('span');
+          s.className = 'pager-ellipsis';
+          s.textContent = '…';
+          mount.appendChild(s);
+        };
+        add('‹', current - 1, { nav: true, disabled: current === 1, label: 'Previous page' });
+        const want = new Set([1, pages, current, current - 1, current + 1]);
+        const list = [...want].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+        let prev = 0;
+        list.forEach(n => {
+          if (n - prev > 1) ell();
+          add(String(n), n, { current: n === current });
+          prev = n;
+        });
+        add('›', current + 1, { nav: true, disabled: current === pages, label: 'Next page' });
+      }
+
+      function render() {
+        const matched = rows.filter(r => currentKind === 'all' || r.dataset.kind === currentKind);
+        const pages = Math.max(1, Math.ceil(matched.length / PER_PAGE));
+        if (page > pages) page = pages;
+        const start = (page - 1) * PER_PAGE;
+        const end = start + PER_PAGE;
+        // hide everything, then reveal the current page slice of the matched set
+        rows.forEach(r => r.classList.add('is-hidden'));
+        matched.slice(start, end).forEach(r => r.classList.remove('is-hidden'));
+        renderControls(pagerMount, page, pages, p => {
+          page = p;
+          render();
+          if (listTop) listTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
 
       function setKind(kind) {
+        currentKind = kind;
+        page = 1;
         document.querySelectorAll('.filter-bar [data-kind]').forEach(b => b.classList.remove('is-active'));
         const btn = document.querySelector('.filter-bar [data-kind="' + kind + '"]');
         if (btn) btn.classList.add('is-active');
-        document.querySelectorAll('.archive-row').forEach(r => {
-          r.classList.toggle('is-hidden', kind !== 'all' && r.dataset.kind !== kind);
-        });
+        render();
       }
 
       document.querySelectorAll('.filter-bar [data-kind]').forEach(btn => {
         btn.addEventListener('click', () => setKind(btn.dataset.kind));
       });
 
+      // Read ?kind= from URL and apply preset
+      const preset = new URLSearchParams(location.search).get('kind');
       if (preset && document.querySelector('.filter-bar [data-kind="' + preset + '"]')) {
         setKind(preset);
+      } else {
+        render();
       }
     })();
   </script>

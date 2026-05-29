@@ -61,7 +61,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
 ) : data.kind === 'track' ? (
   <a class="media-card track" href={url} {...dataAttrs}>
     <div class="media-cover-box cover-square">
-      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
+      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} loading="lazy" decoding="async" />}
     </div>
     <div class="body">
       <h3 set:html={data.title} />
@@ -76,7 +76,7 @@ const reread = data.consumptionCount && data.consumptionCount > 1
 ) : (
   <a class={`media-card ${data.kind}`} href={url} {...dataAttrs}>
     <div class={`media-cover-box ${data.kind === 'album' ? 'cover-square' : 'cover-poster'}`}>
-      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} />}
+      {data.cover && <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} loading="lazy" decoding="async" />}
     </div>
     <div class="body">
       <h3 set:html={data.title} />

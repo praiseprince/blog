@@ -76,9 +76,9 @@ const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0
 
     <section style="margin-top: 48px;">
       <div class="smallcaps" style="color: var(--ink-fade); margin-bottom: 16px;">All entries · #{tag}</div>
-      <ul class="toc">
+      <ul class="toc" id="tag-list">
         {posts.map((p, i) => (
-          <li>
+          <li class="tag-row">
             <span class="num">{String(posts.length - i).padStart(2, '0')}</span>
             <a href={postUrl(p)} class="title" set:html={p.data.title} />
             <span class="kind">{kindLabel(p.data.type)}</span>
@@ -86,8 +86,68 @@ const adjacentList = [...adjacent.entries()].sort((a, b) => b[1] - a[1]).slice(0
           </li>
         ))}
       </ul>
+
+      <nav class="pager" id="tag-pager" aria-label="Pagination" hidden></nav>
     </section>
   </main>
+
+  <script is:inline>
+    (function(){
+      const PER_PAGE = 10;
+      const rows = Array.from(document.querySelectorAll('#tag-list .tag-row'));
+      const listTop = document.getElementById('tag-list');
+      const pagerMount = document.getElementById('tag-pager');
+      if (!pagerMount || rows.length <= PER_PAGE) return;
+      let page = 1;
+
+      function renderControls(mount, current, pages, go) {
+        mount.innerHTML = '';
+        mount.hidden = pages <= 1;
+        if (pages <= 1) return;
+        const add = (label, p, o) => {
+          o = o || {};
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pager-btn' + (o.current ? ' is-current' : '') + (o.nav ? ' pager-nav' : '');
+          b.textContent = label;
+          if (o.disabled) b.disabled = true;
+          else if (!o.current) b.addEventListener('click', () => go(p));
+          if (o.label) b.setAttribute('aria-label', o.label);
+          mount.appendChild(b);
+        };
+        const ell = () => {
+          const s = document.createElement('span');
+          s.className = 'pager-ellipsis';
+          s.textContent = '…';
+          mount.appendChild(s);
+        };
+        add('‹', current - 1, { nav: true, disabled: current === 1, label: 'Previous page' });
+        const want = new Set([1, pages, current, current - 1, current + 1]);
+        const list = [...want].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+        let prev = 0;
+        list.forEach(n => {
+          if (n - prev > 1) ell();
+          add(String(n), n, { current: n === current });
+          prev = n;
+        });
+        add('›', current + 1, { nav: true, disabled: current === pages, label: 'Next page' });
+      }
+
+      function render() {
+        const pages = Math.max(1, Math.ceil(rows.length / PER_PAGE));
+        if (page > pages) page = pages;
+        const start = (page - 1) * PER_PAGE;
+        const end = start + PER_PAGE;
+        rows.forEach((r, i) => { r.style.display = (i >= start && i < end) ? '' : 'none'; });
+        renderControls(pagerMount, page, pages, p => {
+          page = p;
+          render();
+          if (listTop) listTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      render();
+    })();
+  </script>
 
   <style>
     .featured-figure { grid-column: 1 / span 7; margin: 0; }

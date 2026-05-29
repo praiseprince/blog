@@ -27,9 +27,9 @@ const posts = defineCollection({
     readTime: z.string().optional(),
     wordCount: z.number().optional(),
     issueLabel: z.string().optional(),
-    // Manual homepage curation
+    // Manual homepage lead. Only one post should set `featured: true`.
     featured: z.boolean().default(false),
-    featuredOrder: z.number().optional(),
+    showOnHome: z.boolean().default(false),
     draft: z.boolean().default(false),
 
     cover: figure.optional(),

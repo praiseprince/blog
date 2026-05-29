@@ -82,5 +82,8 @@ const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: '
     @media (max-width: 800px) {
       .prose figure[style*="margin: 56px -80px"] { margin-left: 0 !important; margin-right: 0 !important; }
     }
+    @media (max-width: 720px) {
+      .editorial-grid > div { grid-column: 1 / -1 !important; }
+    }
   </style>
 </BaseLayout>

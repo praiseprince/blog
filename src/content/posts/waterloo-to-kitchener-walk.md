@@ -13,8 +13,6 @@ walkMeta:
   route: "Uptown Waterloo -> Victoria Park -> Downtown Kitchener"
   notebook: "Phone notes, cleaned up later"
 tags: [walks, waterloo, kitchener, notes]
-featured: true
-featuredOrder: 2
 timeline:
   - time: "14:10"
     kind: prose
@@ -60,4 +58,3 @@ coda: "The walk did not solve anything. It made everything feel less stuck, whic
 nextLabel: "Next - temporary test roll"
 nextHref: "/posts/temporary-test-roll/"
 ---
-

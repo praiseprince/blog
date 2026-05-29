@@ -1,8 +1,10 @@
 # Postcards from Far Away — Handoff Document
 
-> A field journal of one engineer's intellectual life. Personal editorial site by Praise Prince.
+> A field journal of one person's intellectual life. Personal editorial site by Praise Prince.
 
-This document exists so that any new contributor (human or agent) can pick the project up with full context. Read it first.
+This document exists so any new contributor (human or agent) can pick the project up with full context. Read it first. It is meant to reflect the **actual current state** of the codebase, not the original plan — when you change something structural, update this file.
+
+_Last updated: 2026-05-28._
 
 ---
 
@@ -10,19 +12,9 @@ This document exists so that any new contributor (human or agent) can pick the p
 
 **Postcards from Far Away** is a personal editorial site. Not a content-marketing blog, not a portfolio. The closest cultural references are independent magazines, art-school journals, and digital field notebooks. The aesthetic is editorial-print: strong typography, generous whitespace, four palette options, a distinct night mode that feels like a gallery rather than just inverted colors.
 
-The voice is contemplative, slightly self-deprecating, observant. Lagos and Cambridge are the recurring geographies. The author is "Praise Prince" (the byline); the publication is "Postcards from Far Away" (the masthead).
+The voice is contemplative, slightly self-deprecating, observant. The author is "Praise Prince" (the byline); the publication is "Postcards from Far Away" (the masthead).
 
-### Author intent (from the original brief)
-
-The site publishes:
-- Point-and-shoot photography
-- Fragments of thought
-- Essays
-- Observations from walks
-- Philosophy / history / politics / religion reflections
-- Technical curiosities (CS, engineering, physics)
-- Visual references and archives
-- Media consumed (books, films, shows, albums, tracks)
+The site publishes: point-and-shoot photography, fragments of thought, essays, observations from walks, philosophy/history/politics/religion reflections, technical curiosities (CS, engineering, physics), and a "desk" of media consumed (books, films, shows, albums, tracks).
 
 It is **explicitly** not meant to feel corporate, optimized, or "content creator." Slow over fast, local over global.
 
@@ -30,23 +22,18 @@ It is **explicitly** not meant to feel corporate, optimized, or "content creator
 
 ## 2. Tech stack
 
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | **Astro 5** | Purpose-built for content-heavy static sites |
-| Output | Static SSG | No backend needed; content is files |
-| Content | Markdown + frontmatter via **content collections** | Type-safe via Zod, file-based |
-| Styling | Plain CSS + CSS custom properties | No framework; editorial design is bespoke |
-| Syntax highlighting | Shiki with `css-variables` theme | Inherits the editorial palette |
-| Video embeds | Custom `<Video>` component | Handles self-hosted MP4 + YouTube/Vimeo |
-| Hosting target | Any static host (Cloudflare Pages / Vercel / Netlify) | Zero-cost serverless |
+| Layer | Choice |
+|---|---|
+| Framework | **Astro 5** (`^5.14`) |
+| Output | Static SSG (`output: 'static'`, directory URLs) |
+| Content | Markdown + frontmatter via **content collections**, Zod-typed |
+| Styling | Plain CSS + CSS custom properties (no framework) |
+| Syntax highlighting | Shiki, `css-variables` theme (inherits the palette) |
+| Feed | `@astrojs/rss` → `/feed.xml` |
+| Client JS | One hand-written `public/script.js` + small per-page inline scripts |
+| Hosting target | Any static host (site URL is `https://praiseprince.com`) |
 
-No database, no auth, no backend API. Build → static HTML/CSS/JS → upload.
-
-### Why Astro specifically
-- Native Markdown + content collections with Zod-typed frontmatter
-- Zero JS by default — perfect for a reading-focused site
-- Components are component-shaped (`.astro` files) without React's runtime overhead
-- Compatible with Keystatic, Decap, Tina if/when a CMS is added
+**Dependencies are intentionally tiny** — `package.json` has exactly two: `astro` and `@astrojs/rss`. No React, no UI library, no CMS installed yet. Build → static HTML/CSS/JS → upload.
 
 ---
 
@@ -54,380 +41,259 @@ No database, no auth, no backend API. Build → static HTML/CSS/JS → upload.
 
 ```
 /
-├── astro.config.mjs          Astro config (site URL, tunnel allowlist, Shiki)
-├── package.json
+├── astro.config.mjs          site URL, static output, Shiki, tunnel allowlist
+├── package.json              deps: astro, @astrojs/rss only
 ├── tsconfig.json
 ├── HANDOFF.md                ← you are here
 ├── public/
-│   ├── script.js             Theme toggle, masthead date, reading progress, photo-viewer lightbox
-│   ├── favicon-32.png        Tab favicon
-│   ├── favicon-192.png       Android / PWA
-│   ├── favicon-512.png       Maskable / PWA
-│   └── apple-touch-icon.png  iOS home-screen icon (180×180)
+│   ├── script.js             theme/palette toggle, masthead date, reading progress, photo-viewer lightbox
+│   ├── feed.xsl              standalone XSLT stylesheet that prettifies /feed.xml for humans
+│   ├── favicon-32.png  favicon-192.png  favicon-512.png  apple-touch-icon.png
+│   └── images/
+│       └── blog-add/         ← real photo JPEGs, served verbatim (see §5 Images — UNOPTIMIZED)
 ├── src/
-│   ├── content.config.ts     Zod schemas for posts + media collections
-│   ├── styles/
-│   │   └── global.css        Editorial design system (palettes, type, layout, photo-viewer)
+│   ├── content.config.ts     Zod schemas for `posts` + `media` collections
+│   ├── styles/global.css     the whole design system (palettes, type, layout, pager, photo-viewer)
 │   ├── content/
-│   │   ├── posts/            Each .md = one post (essay/photo/walk/fragment/technical)
-│   │   └── media/            Each .md = one media entry (book/film/show/album/track)
+│   │   ├── posts/            ~505 .md files (essay/photo/walk/fragment/technical)
+│   │   └── media/            ~400 .md files (book/film/show/album/track)
 │   ├── lib/
-│   │   ├── posts.ts          getAllPosts, getFeaturedPosts, kindLabel, helpers
-│   │   └── media.ts          getAllMedia, mediaUrl, STATUS_LABEL, sort helpers
+│   │   ├── posts.ts          getAllPosts, getFeaturedPosts, postUrl, kindLabel, shortDate, getAllTags
+│   │   └── media.ts          getAllMedia, mediaUrl, SECTION_LABEL, STATUS_LABEL, KIND_ORDER, sort helpers
 │   ├── components/
-│   │   ├── Masthead.astro    Nameplate variants (home + default)
-│   │   ├── SiteNav.astro     Hamburger nav on mobile, inline on desktop
-│   │   ├── Colophon.astro    Footer ("Praise Prince" / "About →")
-│   │   ├── Tag.astro         Tag pill
-│   │   ├── Figure.astro      Generic figure with caption
-│   │   ├── MediaCard.astro   Per-kind card for /desk/
-│   │   └── Video.astro       Auto-detects local MP4 vs YouTube/Vimeo
+│   │   ├── Masthead.astro    Colophon.astro    SiteNav.astro
+│   │   ├── Tag.astro         Figure.astro      Video.astro
+│   │   └── MediaCard.astro   per-kind card for /desk/ (covers lazy-loaded)
 │   ├── layouts/
-│   │   ├── BaseLayout.astro  Shared chrome (head/masthead/nav/slot/colophon)
-│   │   ├── EssayLayout.astro
-│   │   ├── PhotoLayout.astro       includes the photo-viewer <dialog> for lightbox
-│   │   ├── WalkLayout.astro        includes the photo-viewer <dialog> for lightbox
-│   │   ├── FragmentLayout.astro    includes the photo-viewer <dialog> for lightbox
-│   │   └── TechnicalLayout.astro
+│   │   ├── BaseLayout.astro  shared chrome (head/masthead/nav/slot/colophon)
+│   │   ├── EssayLayout.astro       PhotoLayout.astro*     WalkLayout.astro*
+│   │   ├── FragmentLayout.astro*   TechnicalLayout.astro
+│   │   └── (* = includes the photo-viewer <dialog> lightbox)
 │   └── pages/
-│       ├── index.astro       Homepage — Masthead-style; lead + side + tier + contact + desk strip + tags
-│       ├── archive.astro     Filterable archive (kind + list/grid view)
-│       ├── about.astro       Colophon
-│       ├── 404.astro         "Page not found" in the publication's voice
-│       ├── desk.astro        /desk/ index (sectioned by kind, status-grouped, filter + sort)
-│       ├── desk/[slug].astro Per-media-entry detail page (cover, meta, log, long review)
-│       ├── posts/[...slug].astro  Dispatches to the right post layout by type
-│       └── tags/[tag].astro  Auto-generated per-tag pages
-└── design-reference/         Original HTML prototype (read-only; do not edit)
+│       ├── index.astro              homepage (lead + side + tier + contact + desk strip + tags)
+│       ├── archive.astro            filterable + paginated archive
+│       ├── desk.astro               media index (per-kind, status-grouped, filter + sort + paginated)
+│       ├── desk/[slug].astro        per-media detail (cover, meta, log, review body)
+│       ├── posts/[...slug].astro    dispatches to the right post layout by `type`
+│       ├── tags/[tag].astro         auto-generated, paginated per-tag pages
+│       ├── about.astro   404.astro
+│       └── feed.xml.js              RSS feed
+└── design-reference/         original HTML prototype (read-only; do not edit)
 ```
+
+There are **no per-kind desk pages and no Keystatic admin route** — those are backlog (§12), not built. (A standalone gallery page was considered and explicitly dropped — not planned.)
 
 ---
 
 ## 4. Content schema
 
-All schemas live in `src/content.config.ts`. Two collections: **posts** (the publication itself) and **media** (the desk — things consumed).
+All schemas live in `src/content.config.ts`. Two collections: **posts** (the publication) and **media** (the desk).
 
-### Posts schema
+### Posts
 
-Common fields on every post:
+Common fields:
 
 ```yaml
-title: string                # supports inline HTML (em, strong, br)
+title: string                # supports inline HTML (em, strong, br) — see §6 wart
 type: essay | photo | walk | fragment | technical
 date: ISO date
 tags: string[]               # creates /tags/<tag>/ pages
-excerpt: string              # shown on home + archive cards
-eyebrow: string              # small uppercase label above the title
-location: string
-readTime: string
-wordCount: number
-featured: boolean            # if true, gets priority on homepage
-featuredOrder: number        # lower = higher priority among featured
-draft: boolean               # if true, hidden from build
-nextLabel + nextHref         # manual "next entry" link at bottom
+excerpt, eyebrow, dek, location, readTime: string
+wordCount, issueLabel: number/string
+featured: boolean            # the SINGLE homepage lead. At most one (build throws otherwise).
+showOnHome: boolean          # opt a fragment/technical note into the homepage latest lists
+draft: boolean               # true → excluded from build
+cover: figure                # {src, alt, caption, ix, aspect, fit, position, colspan, colstart}
+nextLabel, nextHref: string  # manual "next entry" link at the bottom of a post
 ```
+
+> **Schema note (changed):** the old `featuredOrder` field is gone. Curation is now: one `featured: true` lead, plus optional `showOnHome: true` opt-ins. Everything else is date-ordered.
 
 Type-specific fields:
+- **essay** — `lede`, `cited[]` ({author, title, year}), `cover`
+- **photo** — `cover`, `roll`, `camera`, `film`, `coords`, `gallery[]` (figures with grid positions), `rollNote`
+- **walk** — `walkMeta` (start/end/distance/weather/route/notebook), `timeline[]` (prose | quote | figure | wide-figure | prose-wide | video | wide-video), `coda`
+- **fragment** — `fragmentNumber`, `intro`, `items[]` (quote | prose | photo | note | poem | screen-grab | mono, with tone variants + optional rotate)
+- **technical** — `lede`, `techMeta` (readTime/lang/lastEdit/stamp), `marginalia[]` (note | math | figure | variants, shown in the right rail)
 
-- **essay**: `lede`, `cited` (array of {author, title, year}), `cover` (figure object)
-- **photo**: `cover`, `roll`, `camera`, `film`, `coords`, `gallery` (array of figures with grid positions), `rollNote`
-- **walk**: `walkMeta` (start, end, distance, weather, route, notebook), `timeline` (array of timeline entries — prose, quote, figure, wide-figure, video, wide-video), `coda`
-- **fragment**: `fragmentNumber`, `intro`, `items` (array — quote, prose, photo, note, poem, screen-grab, mono — with tone variants)
-- **technical**: `lede`, `techMeta` (readTime, lang, lastEdit, stamp), `marginalia` (note, math, variants, figure entries shown in the right rail)
+The **markdown body** is rendered for essays + technical (long prose). Photos/walks/fragments are driven mostly by structured frontmatter.
 
-The **markdown body** is rendered for essays + technical (long prose); for photos/walks/fragments the layout is mostly driven by structured frontmatter.
-
-### Media schema (discriminated union)
+### Media (discriminated union on `kind`)
 
 ```yaml
-kind: book | film | show | album | track    # the discriminator
-title, status, rating, note, tags, cover, firstAt, lastAt, consumptionCount, order, log[]
+kind: book | film | show | album | track   # discriminator
+title, status, note, tags: ...
+rating: 1–5 (optional)
+cover: string                # external CDN URL (see §5)
+firstAt, lastAt: date
+consumptionCount: number     # >1 surfaces "re-read/re-watch/replay №N"
+order: number
+log[]: [{date, note?}]       # re-engagement timeline on the detail page
 ```
 
-- **book**: `author, year, pages, currentPage, spine, tone (1-4)`
-- **film**: `director, year, runtime, language`
-- **show**: `creator, year, currentSeason, currentEpisode, network`
-- **album**: `artist, year, length, label`
-- **track**: `artist, album, year, duration`
+Per-kind extras: **book** `author/year/pages/currentPage/spine/tone(1-4)` · **film** `director/year/runtime/language` · **show** `creator/year/currentSeason/currentEpisode/network` · **album** `artist/year/length/label` · **track** `artist/album/year/duration`.
 
-`status` is one of: `consuming | finished | stalled | queued | abandoned`.
-Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only "consuming" gets a kind-specific verb (Reading / Watching / In rotation / On repeat). Everything else (Finished / Stalled / Up next / Set aside) is uniform across kinds for clarity.
-
-The **markdown body** of a media entry is the optional long-form review. Short-note entries leave the body empty. The `log[]` array supports periodic re-engagement entries (re-read, re-watch, re-listen), each with a date and optional note. Renders as a timeline on the detail page.
+`status` ∈ `consuming | finished | stalled | queued | abandoned`. Labels per kind live in `src/lib/media.ts` (`STATUS_LABEL`). Convention: only `consuming` gets a kind-specific verb (Reading now / Watching now / In rotation / On repeat); the rest (Finished / Stalled / Up next / Set aside) read uniformly.
 
 ---
 
-## 5. Authoring conventions (important)
+## 5. Images — current reality (read this before adding photos)
 
-### HTML inside frontmatter strings
-The codebase currently allows `<em>`, `<strong>`, `<br/>`, `<a>` etc. inside frontmatter strings (titles, excerpts, captions, notes). These are rendered via `set:html`. **This is a known wart**. Eventually they should migrate to plain Markdown + a tiny inline renderer at render time. Acceptable as-is until that migration; flagged for cleanup.
+There are two image sources, handled very differently:
 
-### Tags
-- Lowercase by default; capitalize only for proper nouns (`Bachelard`, `Calvino`).
-- Use hyphens for multi-word tags (`slow-internet`, not `slow internet`).
-- No tag-creation step: typing it in any post's `tags:` array auto-generates the `/tags/<tag>/` page on next build.
-- Tags are currently only on posts. Media entries have a `tags` field too but their tags don't yet appear on `/tags/<tag>/` pages — that's a deliberate gap, can be wired up if wanted.
+**1. Photo post images — LOCAL and UNOPTIMIZED.**
+- Files live in `public/images/blog-add/`, referenced from content as `/images/blog-add/<file>.jpg`.
+- They are **raw camera JPEGs**: individual files run **3–11 MB** (~36 MB for the current six). Because they sit in `public/`, Astro copies them byte-for-byte into `dist/` — **no resizing, no WebP/AVIF, no responsive `srcset`**.
+- This is the project's biggest performance liability today. A single photo roll can push 20–30 MB to a phone. See **Backlog §11 → Image optimization (high priority)** for the fix (move into `src/`, use the `image()` schema helper + `<Image>`/`getImage`).
+- `MediaCard` images use `loading="lazy" decoding="async"`, but the large photo *figures* in `PhotoLayout`/`WalkLayout`/`FragmentLayout` do **not** — and lazy loading only defers bytes, it does not shrink them.
 
-### Images
-Currently served from external URLs (placeholder picsum). When real images come in, the plan is to co-locate them under `src/content/posts/<slug>/` and use Astro's `image()` schema helper for automatic optimization. **Not yet done.**
-
-### Drafts
-`draft: true` on a post hides it from the build. `getAllPosts()` filters drafts out.
-
-### Featured posts
-`featured: true` on a post bubbles it to the homepage lead. If multiple are featured, `featuredOrder` (lower = higher) decides the order. The side column on the homepage shows remaining featured posts first, then falls back to latest cross-kind.
-
-### Slug
-The slug is derived from the filename. Renaming a file changes the URL. (TODO: add explicit `slug` field for URL stability.)
+**2. Media covers — EXTERNAL CDN URLs.**
+- `cover:` on media entries points to remote CDNs: `image.tmdb.org` (films/shows), `is1-ssl.mzstatic.com` (Apple, albums), `covers.openlibrary.org` (books), `i.scdn.co` (Spotify). Books mostly render a typographic spine instead of a cover image.
+- These are fine to leave external; they're already CDN-served and the desk lazy-loads them.
 
 ---
 
-## 6. Design system
+## 6. Authoring conventions
 
-Defined in `src/styles/global.css`.
+**HTML inside frontmatter strings (known wart).** Titles, excerpts, captions, notes allow `<em>`, `<strong>`, `<br/>`, `<a>` — rendered via `set:html`. Acceptable as-is; flagged for eventual migration to Markdown + a tiny inline renderer (§11).
 
-**Type families:**
-- Display: Instrument Serif (italic flourishes, nameplate, large headings)
-- Body: Newsreader (literary serif with optical sizing — reading text)
-- Sans / UI: Geist (nav, captions, metadata)
-- Mono: JetBrains Mono (eyebrows, mono technical, code)
+**Tags.** Lowercase except proper nouns; hyphenate multi-word (`slow-internet`). No creation step — typing a tag in any post's `tags:` auto-generates `/tags/<tag>/` on build. Tags currently come from **posts only**; media `tags` exist in the schema but are not yet surfaced on tag pages (deliberate gap).
 
-**Palettes (four):**
-- `newsprint` — oxblood accent on warm paper (default)
-- `archive` — cool blue-grey accent on stone paper
-- `tumblr` — warm terracotta accent on cream paper
-- `mono` — black-on-bone
+**Drafts.** `draft: true` → hidden; `getAllPosts()` filters them out.
 
-**Themes:**
-- `day` — paper feel, accent in full color
-- `night` — gallery-charcoal background, warm amber accent, grain in screen-blend mode
+**Homepage curation.** `featured: true` = the single large lead/cover. If two posts set it, the homepage build **throws** (a content conflict, not an ordering issue). The "Latest, all kinds" side column is date-ordered and excludes the lead; essays/photos/walks are eligible by default, fragments/technical only via `showOnHome: true`.
 
-Selected via the toggle in the nav; persisted via `localStorage` (keys: `pp-theme`, `pp-palette`). Initial state set inline at top of `<head>` by `/script.js` to avoid FOUC.
-
-**Grid:** 12-column editorial grid (`.editorial-grid`). Most page-specific layouts use inline `grid-column: X / span Y` styles. **Pitfall**: those inline styles don't auto-collapse on mobile — each page needs explicit `@media (max-width: 720px)` overrides. Several have them; check before adding new ones.
-
-**Sticky footer:** `body` is a flex column with `min-height: 100vh`; `body > main` has `flex: 1 0 auto`. On short pages the footer pins to the viewport bottom; on long pages it sits naturally below content. Any new top-level page MUST wrap its content in `<main>` for this to work.
-
-**Photo-viewer lightbox** (Photographs / Walks / Fragments only):
-- Each of those three layouts renders a single `<dialog class="photo-viewer">` at the bottom of `<main>`. Every clickable image is a `<button class="photo-viewer-trigger" data-full-src/alt/caption/ix>` wrapping the thumbnail.
-- `public/script.js` wires triggers → `dialog.showModal()`, populates the dialog's `<img>` and figcaption from `data-*` attrs, and blurs the auto-focused close button so the calm default state is shown.
-- Open/close uses `@starting-style` + `transition-behavior: allow-discrete` for a soft fade-and-scale entrance; backdrop is `var(--ink)` at 78% with `backdrop-filter: blur(6px)`.
-- Close control is editorial: a thin SVG cross + "Close" mono-caps label (icon-only below 420px). No pill, no tap highlight on mobile (`-webkit-tap-highlight-color: transparent` + `touch-action: manipulation`). Click-outside-figure also closes.
-- Respects `prefers-reduced-motion` and `env(safe-area-inset-*)`.
+**Slug.** Derived from filename — renaming a file changes the URL (no explicit `slug` field yet; §11).
 
 ---
 
 ## 7. Pages overview
 
-- `/` — homepage. Lead (featured first, else latest essay/photo/walk) + side column (4 cross-kind) + 3-col tier + conditional contact sheet + currently-on-the-desk strip + tag cloud
-- `/archive/` — full archive with kind filter + list/grid views. URL query `?kind=essay|photo|...` pre-selects a filter. *Caveat:* the grid toggle currently shows only photo posts; see Backlog §11 "Archive view-mode" for the planned cleanup
-- `/posts/<slug>/` — individual post (layout dispatched by `type`). Photo / walk / fragment posts include the photo-viewer lightbox dialog
-- `/desk/` — media index: sectioned by kind, status-grouped within. Filter bar (All / Books / Films / Shows / Albums / Tracks) + sort dropdown (Default by status / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first). *Caveat:* the sort control is a native `<select>` and renders in the host OS style — see Backlog §11 "Custom sort dropdown"
-- `/desk/<slug>/` — media entry detail: big cover, metadata, log timeline (if any), full review body (if any)
-- `/tags/<tag>/` — auto-generated per-tag listing
-- `/about/` — colophon: bio, typography, ethos, equipment, contact
-- `/404` — soft "page not found" written in the publication's voice
+- **`/`** — homepage: lead (the `featured` post, else latest essay/photo/walk) + 4-item cross-kind side column + 3-col tier + conditional contact sheet (recent photo thumbnails) + "currently on the desk" strip + tag cloud.
+- **`/archive/`** — full archive as a single `.toc` list. Client-side **kind filter** (All/Essays/Photographs/Walks/Fragments/Notes) and **numbered pagination, 10/page** (see §8). `?kind=essay|photo|…` preselects a filter.
+- **`/posts/<slug>/`** — individual post; layout chosen by `type`. Photo/walk/fragment posts include the photo-viewer lightbox.
+- **`/desk/`** — media index, sectioned by kind, status-grouped within. Filter bar + custom sort dropdown (By status (default) / Recently updated / A→Z / Rating ▼ / Most revisited / Earliest first) + **per-status-group pagination** (see §8).
+- **`/desk/<slug>/`** — media detail: cover, metadata, log timeline (if any), review body (if any).
+- **`/tags/<tag>/`** — auto-generated, **paginated** (10/page) per-tag listing + featured entry + adjacent tags.
+- **`/about/`** — colophon (bio, typography, ethos, equipment, contact, RSS).
+- **`/404`** — soft "page not found" in the publication's voice.
+- **`/feed.xml`** — RSS (drafts filtered, newest-first, HTML stripped from titles/excerpts, tags as `<category>`). Declares `/feed.xsl` so a human opening it in a browser sees a styled page; feed readers consume the raw XML.
 
 ---
 
-## 8. Components worth knowing
+## 8. Pagination (built — how it works)
 
-- **`<Video>`** — `src` prop. If YouTube/Vimeo URL → renders iframe via `youtube-nocookie.com` / `player.vimeo.com`. Otherwise renders native `<video>` with controls. Phone-responsive via aspect-ratio container.
-- **`<MediaCard>`** — per-kind visual (book spine, 2:3 poster, 1:1 album square, track row). Adds `data-*` attributes for client-side filter/sort on the desk page.
-- **`<SiteNav>`** — desktop = inline link row. Mobile = "Menu" hamburger button + dropdown.
-- **Photo viewer (no component file)** — the lightbox is just markup baked into `PhotoLayout` / `WalkLayout` / `FragmentLayout` plus styles in `global.css` and the click wiring in `public/script.js`. There is intentionally no Astro component for it because each post type spreads the triggers across many `<figure>` blocks; centralizing would only add an indirection.
+All three listing surfaces use the **same client-side numbered pager**: Google-style controls `‹ 1 2 … N ›` with ellipsis windowing, **10 items per page**, no URL/page reload, no-JS-degrades-to-everything-visible. Shared styles: `.pager`, `.pager-btn`, `.pager-ellipsis` in `global.css`. Each page change smooth-scrolls back to the top of its list.
 
----
+- **Archive** (`archive.astro`, inline script): one pager over the **filtered** row set. Changing the kind filter resets to page 1. Hidden rows use the existing `.archive-row.is-hidden` class.
+- **Tags** (`tags/[tag].astro`, inline script): one pager over the entries list; only appears when the tag has more than 10 entries.
+- **Desk** (`desk.astro`, inline script): pagination is attached **per status sub-group** (`.status-pager` after each `.media-grid`) — so "Books → Reading now" and "Books → Finished" page independently and the status categories stay separate. Page state is held in a `Map` keyed by the grid element. When the **Sort dropdown** is used, a kind collapses into one flat sorted list (all cards moved into the first grid, status labels hidden) and that single grid's pager drives the whole kind; switching back to "By status (default)" restores the per-status pagers. Empty status groups hide themselves.
 
-## 9. Mobile responsiveness
-
-Breakpoints used throughout:
-- `900px` — homepage lead+side collapse to single column
-- `800px` — most multi-column page layouts collapse
-- `720px` — masthead secondary blocks hide, site nav becomes hamburger, page padding tightens
-- `600px` — desk poster/square grids drop to 2 columns
-- `420px` — extra tightening for narrow phones
-
-**Known pitfall**: inline-styled `grid-column` items don't collapse without explicit media queries. Any new editorial-grid layout needs to add its own mobile rules.
+> Design decision worth knowing: there is intentionally **no category-level (kind-level) pager** in the default grouped view, because a kind holds *status groups*, not a flat card list. A single kind-level pager only appears when sorting flattens the kind. (This was a deliberate answer to "respect Finished vs Up next.")
 
 ---
 
-## 10. Build / deploy
+## 9. Design system
+
+Defined in `src/styles/global.css`.
+
+**Type:** Display = Instrument Serif · Body = Newsreader · Sans/UI = Geist · Mono = JetBrains Mono.
+
+**Palettes (4):** `newsprint` (oxblood/warm — default) · `archive` (blue-grey/stone) · `tumblr` (terracotta/cream) · `mono` (black-on-bone). **Themes:** `day` / `night` (gallery charcoal + amber + grain). Toggled in the nav, persisted via `localStorage` (`pp-theme`, `pp-palette`); initial state set inline early to avoid FOUC.
+
+**Grid:** 12-column `.editorial-grid`. Most page layouts use inline `grid-column: X / span Y`.
+> **Pitfall (recurring source of mobile bugs):** inline `grid-column` items do **not** auto-collapse on mobile — each layout needs its own `@media (max-width: 720px)` override. Recently fixed instances: EssayLayout "Filed Under / Next" block and the PhotoLayout `.roll-note-grid` (both were squeezing into a narrow column on phones). When you add a new editorial-grid block, add the mobile rule too.
+
+**Sticky footer:** `body` is a flex column, `min-height:100vh`, `body > main { flex:1 0 auto }`. **Every top-level page must wrap its content in `<main>`** or the footer pinning breaks.
+
+**Photo-viewer lightbox** (Photographs / Walks / Fragments only): each of those three layouts renders one `<dialog class="photo-viewer">` at the end of `<main>`; clickable images are `<button class="photo-viewer-trigger" data-full-src/alt/caption/ix>`. `public/script.js` wires triggers → `showModal()`, fills the dialog img/figcaption, blurs the close button. Soft fade-and-scale via `@starting-style` + `allow-discrete`; editorial close control; respects `prefers-reduced-motion` and safe-area insets; click-outside closes. **The dialog markup is duplicated in all three layouts — change all three together** (styles/JS are shared).
+
+---
+
+## 10. Mobile breakpoints
+
+`900px` homepage lead+side collapse · `800px` most multi-column layouts collapse · `720px` masthead secondary blocks hide, nav → hamburger, padding tightens, editorial-grid blocks should collapse · `600px` desk poster/square grids → 2 cols · `420px` extra tightening.
+
+---
+
+## 11. Build / deploy
 
 ```bash
 npm install
-npm run dev       # http://localhost:4321 — hot reload
+npm run dev       # http://localhost:4321 (hot reload)
 npm run build     # → dist/
-npm run preview   # serves the built dist/ — needs a rebuild after each change
+npm run preview   # serves dist/ (rebuild after each change)
 ```
 
-Deploy target is any static host. Cloudflare Pages and Vercel both auto-build on `git push` from the GitHub repo.
-
-Git is at https://github.com/praiseprince/blog. Tagged `v1.0.0`. **Do not** add Claude attribution to commits or PRs (per repository convention — see `~/.claude/projects/-Users-june-Desktop-blog/memory/`).
+Static output; deploy to any static host (Cloudflare Pages / Vercel / Netlify auto-build on push). Current build: **931 pages**, `dist/` ≈ **49 MB — of which ~40 MB is unoptimized images** (see §5 and the backlog). Convention: **no AI/Claude attribution in commits or PRs.**
 
 ---
 
-## 11. Backlog (planned, not built)
+## 12. Backlog
 
-### Pagination / "growing collection" problem (author-flagged 2026-05-28)
+### ⚠️ Image co-location + optimization — HIGH PRIORITY (real problem now)
+Real photos exist and they're heavy (§5): multi-MB raw JPEGs in `public/`, copied verbatim, ~40 MB of the 49 MB build. Fix:
+- Move photo files out of `public/` into `src/` (e.g. `src/assets/` or co-located under the post).
+- Change the `figure` schema's `src` to Astro's `image()` helper and render via `<Image>` / `getImage()` so you get automatic resize, WebP/AVIF, and responsive `srcset`.
+- Add `loading="lazy"` to the large photo figures in PhotoLayout/WalkLayout/FragmentLayout while you're there.
+- Leave external media covers (tmdb/openlibrary/Apple/Spotify) as-is.
+This is the single highest-impact change available.
 
-The Archive and Desk both render every entry on a single page. That works at today's volume. It will not at the volume the author actually expects to hit — books and films especially, where "finished" piles up over years.
+### Keystatic CMS integration (author-requested)
+**Vision:** stop editing the codebase — open a web app on any device, write Markdown, hit save, content commits to git, site auto-deploys. Keystatic is Astro-native, file-backed, free, mobile-usable, and its schema mirrors the existing Zod collections.
+Rough plan: install `@keystatic/core @keystatic/astro` (+ `@astrojs/react`), switch output to support the admin route, write `keystatic.config.ts` mapping each Zod field to a Keystatic field (`z.discriminatedUnion` → `fields.conditional` for media), add the `/keystatic` admin + API routes. Register custom rich-text blocks (Video, Gallery, Pullquote, Marginalia) so authoring inserts typed widgets, not raw tags. Migrating HTML-in-frontmatter to Markdown partially solves itself once the rich-text editor is in.
 
-Pain points:
-- **Desk**: a single `kind-section` (e.g. Films) with 50+ entries becomes a wall. Status-groups (Watching / Finished / Stalled / Up next / Set aside) shard it a bit, but a multi-year "Finished" group still scrolls forever.
-- **Archive**: same shape — one long `.toc` list will become unwieldy past ~100 posts.
-- The author has **explicitly said** the desk version of this matters more than the archive version.
+### Guest contributions ("Letters from Friends" — name TBD)
+Friends send content; the author posts it under the friend's name. **This is still loosely defined** — the open question (§13) bundles three things that haven't been decided: what exactly counts as a guest contribution, what the section is called (Correspondences · Other postcards · Hand-delivered · Dispatches), and whether guest posts look visually distinct or identical to the author's. Sketch of an eventual implementation once the shape is decided: add an `author` object to the post schema (absent → Praise Prince; present → guest: `{name, bio, link?, photo?}`); a listing page under the chosen name; guest posts surfaced on the homepage with a "Letter from X" eyebrow; auto-collected via a tag.
 
-Options (from least to most invasive, none implemented yet):
-
-1. **Year-grouped collapsible sub-sections inside each status-group.** E.g. under Films → Finished, the entries collapse into `▸ 2026 (14)`, `▸ 2025 (28)`, `▸ 2024 (19)`. Default-expanded for the current year. Editorial, no URL state needed, keeps client-side filter/sort working.
-2. **"Show recent N + show all" toggle.** Default-render the 12 most recent in each status-group; reveal the rest on click. Fastest to ship; least useful for browsing the back catalogue.
-3. **Pagination with `?page=N` per kind-section.** Most "correct" but the desk's whole charm is the at-a-glance picture of what someone's reading/watching now — paginating breaks that.
-4. **Per-kind dedicated pages** (`/desk/books/`, `/desk/films/`) with their own pagination, and `/desk/` becomes a curated snapshot (recent in each, plus "see all books"). Probably the right long-term shape — closer to how a literal desk works (one strip for current, the rest archived).
-
-Recommendation when this is actually implemented: option **1 for both** (collapsible year-groups), plus option **4** as a follow-up if the desk index page itself gets too tall. Year-grouping respects the existing status-group structure, doesn't need server-side state, and the editorial frame already implies chronological browsing.
-
-Do not build this yet — flagged here so the next person who touches the desk doesn't re-design without knowing it's coming.
-
-
-
-### Keystatic CMS integration (priority — author asked for this)
-
-**The vision:** stop touching the codebase after the design is locked. Open a web app on any device, write Markdown in a rich editor, hit save — content commits to git, site auto-deploys.
-
-**Why Keystatic:** Astro-native, file-backed (writes Markdown to the repo), free, has both local and cloud-hosted admin UIs. Schema mirrors the existing Zod content collections, so per-type forms are generated automatically. Mobile-usable in any browser.
-
-**What integration looks like (rough plan, not yet built):**
-
-1. Install: `npm install @keystatic/core @keystatic/astro`
-2. Add to `astro.config.mjs`:
-   ```js
-   import keystatic from '@keystatic/astro';
-   import react from '@astrojs/react';
-   export default defineConfig({
-     integrations: [react(), keystatic()],
-     output: 'hybrid',  // needs SSR for the admin route
-   });
-   ```
-3. Create `keystatic.config.ts` declaring collections. Each Zod field maps to a Keystatic field type:
-   - `z.string()` → `fields.text()`
-   - `z.coerce.date()` → `fields.date()`
-   - `z.enum([...])` → `fields.select({ options: [...] })`
-   - `z.array(...)` → `fields.array(...)`
-   - `z.object(...)` → `fields.object({...})`
-   - `z.discriminatedUnion(...)` → `fields.conditional(...)` (for media collection)
-   - Markdown body → `fields.markdoc()` or `fields.document()` (rich-text)
-4. Add admin route: `src/pages/keystatic/[...params].astro`
-5. Add API route: `src/pages/api/keystatic/[...params].ts`
-
-**Layout primitives in the rich-text editor:**
-Keystatic's `document` / `markdoc` fields let you register **custom components** that appear as insertable blocks in the editor. For this project that means:
-- `Video` block — for embedding self-hosted or YouTube/Vimeo videos in any post body
-- `Gallery` block — for image grids
-- `Pullquote` block — for editorial pull-quotes
-- `Marginalia` block — for technical notes' side rail
-
-Each block is defined in `keystatic.config.ts` with its own fields, and renders in the live editor as a typed widget (not raw markup). The author clicks "+ Video" and gets a form, not a `<Video src="..." />` tag.
-
-**Tradeoff with WordPress/Wix experience:**
-- WordPress: edit → save → live in 0s (runtime server + database).
-- Astro + Keystatic: edit → commit → automated rebuild → live in ~20-30s.
-- The lag exists because the site is statically generated. With Cloudflare/Vercel webhooks, the rebuild is automated and free.
-
-**What to defer until after Keystatic is wired:**
-- Migration of HTML-in-frontmatter to Markdown-in-frontmatter. The rich-text widget produces clean Markdown by default, so the migration partially solves itself.
-
-### Guest contributions section ("Letters from Friends" — needs naming)
-
-Friends send the author content; author posts on their behalf, with friend's name as author. Naming candidates (author to pick):
-- **Correspondences** — old-fashioned, intellectually warm, matches the publication's voice
-- **Other postcards** — fits the "Postcards from Far Away" framing
-- **Hand-delivered** — implies the friend brought it over
-- **Dispatches** — more journalistic, less personal
-
-Recommended implementation (when ready):
-- Add `author` field to post schema. If absent → site owner (Praise Prince). If present → guest contribution.
-- Author object: `{ name, bio (one line), link? (website), photo? }`
-- New page `/correspondences/` (or chosen name) lists posts with non-default authors
-- Guest posts surface on the homepage with a "Letter from X" eyebrow
-- A tag `#correspondence` auto-collects them
-- Open question for the author: do guest posts have their own visual treatment (different palette? margin note saying "guest"?) or do they look identical to author's posts?
-
-### Photo gallery
-
-Open question. Currently `/archive/?kind=photo` (grid view) shows the first 4 images per photo post — sort of works.
-
-A dedicated `/gallery/` page would show **all** images across all photo posts, in a single wall, with captions, possibly filterable by year/tag/roll. Different in spirit from the editorial photo posts (which are about a story — a roll, a place, a moment). A gallery is about the collected eye over time.
-
-Worth adding, probably after Keystatic. Defer for now.
-
-### Image co-location + optimization
-
-Currently all images are external picsum placeholders. When real images come in:
-- Co-locate under `src/content/posts/<slug>/images/` (or similar)
-- Add `image()` to schema for automatic Astro optimization (responsive srcsets, webp, lazy loading)
-- Update the Figure / cover / gallery rendering to use Astro's `<Image>` component
-
-### Other deferred items
-
-- Slug stability (`slug` field separate from filename)
+### Smaller deferred items
+- Slug stability (explicit `slug` field separate from filename)
 - Auto-derive next/previous post from date order (remove manual `nextHref`/`nextLabel`)
-- Discriminated union for the posts schema (proper per-type field validation)
+- Surface media tags on `/tags/<tag>/` pages
 - Sitemap
-- Strip HTML from frontmatter strings → use Markdown + inline renderer
+- Strip HTML from frontmatter → Markdown + inline renderer
 
 ### Recently completed (no longer backlog)
-
-- **Photo-viewer lightbox** for Photographs / Walks / Fragments — `<dialog>` with `@starting-style` fade-and-scale, editorial close control, mobile tap-highlight removed, click-outside-to-close.
-- **Sticky footer** — `body` is a flex column with `min-height: 100vh` so the colophon pins to the viewport bottom on short pages (Archive, etc.) and sits naturally below content on tall pages.
-- **Favicon** — replaced the inline SVG with 32 / 192 / 512 PNGs + a 180×180 apple-touch-icon, generated from `favicon reference.png` (which was removed after wiring).
-- **Archive List/Grid toggle removed** — the grid view only ever showed photo posts, so the label was misleading. The toggle, the `.archive-grid` markup, the `is-list-view` / `is-grid-view` classes, and the `view-btn` JS are gone. The archive is now a single list; the Photographs filter chip is the photo-only path.
-- **Custom sort dropdown on /desk/** — replaced the native `<select>` (which inherited the host OS UI) with a button + popover styled like the filter chips. Keyboard: ↓/↑ moves, Enter selects, Esc / Tab / click-outside closes. Selected option marked with an oxblood dot.
-- **RSS feed** — `@astrojs/rss` powers `/feed.xml` (`src/pages/feed.xml.js`). Filters drafts, sorted newest-first, strips HTML from titles/excerpts, includes tags as `<category>`. Surfaced in three places: `<link rel="alternate">` in `<head>` for feed-reader auto-discovery, an "RSS feed" entry on the About page's Elsewhere list, and a `Feed · About →` link in the colophon (footer). The colophon component (`src/components/Colophon.astro`) is the source of truth for that footer link.
-- **Pretty XSL view for `/feed.xml`** — the feed declares `stylesheet: '/feed.xsl'`, and `public/feed.xsl` is a self-contained XSLT 1.0 stylesheet that turns the raw XML into a styled page when a human opens it in a browser. Feed readers ignore the stylesheet and consume the XML directly. The XSL uses inline CSS that mirrors the site's tokens (Newsreader/Instrument Serif/Geist/JetBrains Mono, paper/ink/accent palette, day/night via `prefers-color-scheme`). Note: the XSL is *standalone* — it doesn't share `localStorage` theme state with the main site, only the OS preference.
-
----
-
-## 12. Open questions for the author
-
-1. **Naming for the guest section** — Correspondences? Other postcards? Hand-delivered?
-2. **Gallery** — separate page, or extended `/archive/?kind=photo` view?
-3. **Featured-image strategy on homepage** — currently the lead = featured (if any), else latest essay/photo/walk. Should the "featured strip" show MORE than just the lead, as 3-4 visual cards above the editorial grid?
-4. **Guest contributions visual treatment** — same as author posts, or visually distinct?
-5. **Image handling timeline** — start co-locating now, or wait until Keystatic is wired (so its upload widget handles the file placement)?
+- **Pagination** — numbered, 10/page, on Archive (filtered), Desk (per status group, with sort-flatten → one pager per kind), and Tag pages. Shared `.pager` styles. Replaced an earlier "Show more" approach. (See §8.)
+- **Media cover lazy-loading** — `loading="lazy" decoding="async"` on all `MediaCard` images.
+- **Mobile grid fixes** — EssayLayout "Filed Under / Next" and PhotoLayout roll-note now collapse to one column under 720px (were squeezed on phones).
+- **Schema cleanup** — `featuredOrder` removed; `showOnHome` added; homepage throws on more than one `featured: true`.
+- **Custom sort dropdown on /desk/** — replaced the native `<select>` with a styled button + popover (keyboard accessible; oxblood dot on the selected option).
+- **RSS feed + pretty XSL** — `/feed.xml` via `@astrojs/rss`, with a standalone `public/feed.xsl` for human viewing. Linked from `<head>`, the About page, and the colophon (`Colophon.astro` is the source of truth for that footer link).
+- **Photo-viewer lightbox**, **sticky footer**, **PNG favicons + apple-touch-icon**, **archive List/Grid toggle removed**, **404 page** — all shipped.
 
 ---
 
-## 13. Conventions / quirks
+## 13. Open questions for the author
 
-- Author byline: "Praise Prince" or "P.P." — keep, do NOT replace these even when renaming masthead/title strings
-- Site name (masthead nameplate): "Postcards from Far Away" — italic on "Postcards"
-- Page `<title>` tags strip HTML automatically (helper in `BaseLayout.astro`)
-- Theme/palette state is persisted in `localStorage` (`pp-theme`, `pp-palette`)
-- No analytics, no email capture, no newsletter form — by design
-- Every top-level page must wrap content in `<main>` — the sticky-footer flex selector is `body > main`. A page rendered without one will lose the footer pinning.
-- The photo-viewer `<dialog>` is duplicated in three layouts (Photo / Walk / Fragment). When changing its markup, update all three. Styles and JS are shared.
+Only two remain open (gallery and homepage-featured-image strategy are both resolved — no gallery is planned, and the featured/lead model is settled):
+
+1. **Guest contributions** — the whole shape is undecided: what exactly counts as a guest contribution, what the section is named (Correspondences · Other postcards · Hand-delivered · Dispatches), and whether guest posts get a distinct visual treatment or look identical to the author's. Treat these as one decision (see §12).
+2. **Image handling timeline** — start co-locating + optimizing photos now (§5/§12), or wait until Keystatic is wired so its upload widget handles file placement? The performance cost of waiting is real (multi-MB images shipping today), so this leans toward "do it now," but it's the author's call.
 
 ---
 
-## 14. Quick start for new contributors
+## 14. Conventions / quirks (do not break these)
+
+- Byline is "Praise Prince" / "P.P." — keep even when renaming masthead/title strings.
+- Masthead nameplate: "Postcards from Far Away" (italic on "Postcards").
+- Page `<title>` strips HTML automatically (helper in `BaseLayout.astro`).
+- Theme/palette persisted in `localStorage` (`pp-theme`, `pp-palette`).
+- No analytics, no email capture, no newsletter — by design.
+- Every top-level page must wrap content in `<main>` (sticky-footer selector is `body > main`).
+- The photo-viewer `<dialog>` is duplicated in three layouts — edit all three.
+- Inline `grid-column` blocks need explicit mobile media queries (§9 pitfall).
+
+---
+
+## 15. Quick start
 
 ```bash
-git clone https://github.com/praiseprince/blog
-cd blog
-npm install
-npm run dev
-# Open http://localhost:4321
+npm install && npm run dev   # http://localhost:4321
 ```
 
-To add a new post: drop a `.md` file into `src/content/posts/`, fill the typed frontmatter, save. The build picks it up.
-
-To add a new media entry: drop a `.md` into `src/content/media/`. The `kind:` field determines which form fields are required.
-
-To add a tag: just write it in any post's `tags:` array — page auto-generates.
-
-To work on the design: edit `src/styles/global.css` for global tokens; edit individual layouts/pages for per-route styling.
-
----
-
-_Last updated: 2026-05-28. Ping the author (or update this file) when the project meaningfully diverges from what's described here._
+- **New post:** drop a `.md` into `src/content/posts/`, fill the typed frontmatter. Build picks it up.
+- **New media entry:** drop a `.md` into `src/content/media/`; `kind:` determines required fields.
+- **New tag:** just write it in a post's `tags:` — its page auto-generates.
+- **Design work:** `src/styles/global.css` for tokens; individual layouts/pages for per-route styling.
+- **Adding photos:** read §5 first — do not drop multi-MB JPEGs into `public/` without reading the optimization note.

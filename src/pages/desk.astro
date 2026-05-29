@@ -111,6 +111,7 @@ const sectionGridClass: Record<MediaKind, string> = {
               <div class={`media-grid ${sectionGridClass[kind]}`}>
                 {list.map(item => <MediaCard item={item} />)}
               </div>
+              <nav class="pager status-pager" aria-label="Pagination" hidden></nav>
             </div>
           ))}
         </section>
@@ -144,6 +145,71 @@ const sectionGridClass: Record<MediaKind, string> = {
         if (!grid.id) grid.id = 'og-grid-' + idx;
         card.dataset.originalParent = grid.id;
       });
+
+      // ─── Numbered pagination, per status group ───
+      // Each status sub-grid (Reading now, Finished, …) paginates on its own at
+      // 10 per page. When the Sort dropdown flattens a kind, all its cards land
+      // in the first grid, so that one pager drives the whole sorted list.
+      const PER_PAGE = 10;
+      const pagerPages = new Map(); // grid element -> current page
+
+      // Google-style numbered controls: ‹ 1 … 4 5 6 … 20 ›
+      function renderControls(mount, current, pages, go) {
+        mount.innerHTML = '';
+        mount.hidden = pages <= 1;
+        if (pages <= 1) return;
+        const add = (label, p, o) => {
+          o = o || {};
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pager-btn' + (o.current ? ' is-current' : '') + (o.nav ? ' pager-nav' : '');
+          b.textContent = label;
+          if (o.disabled) b.disabled = true;
+          else if (!o.current) b.addEventListener('click', () => go(p));
+          if (o.label) b.setAttribute('aria-label', o.label);
+          mount.appendChild(b);
+        };
+        const ell = () => {
+          const s = document.createElement('span');
+          s.className = 'pager-ellipsis';
+          s.textContent = '…';
+          mount.appendChild(s);
+        };
+        add('‹', current - 1, { nav: true, disabled: current === 1, label: 'Previous page' });
+        const want = new Set([1, pages, current, current - 1, current + 1]);
+        const list = [...want].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+        let prev = 0;
+        list.forEach(n => {
+          if (n - prev > 1) ell();
+          add(String(n), n, { current: n === current });
+          prev = n;
+        });
+        add('›', current + 1, { nav: true, disabled: current === pages, label: 'Next page' });
+      }
+
+      function pageGroup(group) {
+        const grid = group.querySelector('.media-grid');
+        const mount = group.querySelector('.status-pager');
+        if (!grid || !mount) return;
+        const cards = Array.from(grid.querySelectorAll('.media-card'));
+        const pages = Math.max(1, Math.ceil(cards.length / PER_PAGE));
+        let page = pagerPages.get(grid) || 1;
+        if (page > pages) page = pages;
+        pagerPages.set(grid, page);
+        const start = (page - 1) * PER_PAGE;
+        const end = start + PER_PAGE;
+        cards.forEach((c, i) => { c.style.display = (i >= start && i < end) ? '' : 'none'; });
+        renderControls(mount, page, pages, p => {
+          pagerPages.set(grid, p);
+          pageGroup(group);
+          const anchor = group.closest('.kind-section') || group;
+          anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+      function pageAllGroups() {
+        document.querySelectorAll('.status-group').forEach(pageGroup);
+      }
+      pageAllGroups();
 
       const sortMenu = document.getElementById('desk-sort');
       const sortTrigger = sortMenu.querySelector('.sort-trigger');
@@ -182,11 +248,8 @@ const sectionGridClass: Record<MediaKind, string> = {
               if (og && card.parentElement !== og) og.appendChild(card);
             });
             statusGroups.forEach(g => {
-              g.style.display = '';
               const label = g.querySelector('.status-label');
               if (label) label.style.display = '';
-              // Hide group only if it has no cards
-              if (g.querySelectorAll('.media-card').length === 0) g.style.display = 'none';
             });
           } else {
             // Flatten: hide status labels, move all cards into the first grid
@@ -194,14 +257,19 @@ const sectionGridClass: Record<MediaKind, string> = {
             if (!firstGrid) return;
             const sorted = [...cards].sort(comparator(key));
             sorted.forEach(card => firstGrid.appendChild(card));
-            statusGroups.forEach((g, i) => {
+            statusGroups.forEach(g => {
               const label = g.querySelector('.status-label');
               if (label) label.style.display = 'none';
-              // Hide all status-groups after the first (they're now empty)
-              if (i > 0) g.style.display = 'none';
-              else g.style.display = '';
             });
           }
+          // Reset each sub-grid to page 1, hide now-empty groups, and re-paginate
+          statusGroups.forEach(g => {
+            const grid = g.querySelector('.media-grid');
+            const hasCards = grid && grid.querySelector('.media-card');
+            g.style.display = hasCards ? '' : 'none';
+            if (grid) pagerPages.set(grid, 1);
+            pageGroup(g);
+          });
         });
       }
 

@@ -100,7 +100,7 @@ const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'nu
     {data.rollNote && (
       <aside class="column" style="margin-top: 96px;">
         <hr class="rule rule-ink" />
-        <div style="display: grid; grid-template-columns: 140px 1fr; gap: 28px; margin-top: 28px; align-items: start;">
+        <div class="roll-note-grid" style="display: grid; grid-template-columns: 140px 1fr; gap: 28px; margin-top: 28px; align-items: start;">
           <div class="smallcaps" style="color: var(--ink-fade); padding-top: 4px;">A note on the roll</div>
           <div style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={data.rollNote} />
         </div>
@@ -130,6 +130,7 @@ const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'nu
   <style>
     @media (max-width: 720px) {
       .editorial-grid figure { grid-column: 1 / -1 !important; }
+      .roll-note-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
     }
   </style>
 </BaseLayout>

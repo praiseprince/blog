@@ -14,8 +14,6 @@ cover:
   ix: "00"
   caption: "The cat pretending the plants are there for shade and not for decoration."
 tags: [photographs, cat, travel]
-featured: true
-featuredOrder: 3
 gallery:
   - src: "/images/blog-add/20220822-dsc-0029-monkey.jpg"
     alt: "A young monkey sitting on a tree branch in dense green shade."
