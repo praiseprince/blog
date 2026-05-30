@@ -138,9 +138,11 @@ const friends = defineCollection({
   }),
 });
 
+// Status is kind-specific (set on each schema below), so it lives outside the
+// shared base. The "queued" slug is shared across kinds but labelled per-kind
+// ("In queue" for books/films, "Up next" for shows/albums) in src/lib/media.ts.
 const mediaBase = {
   title: z.string(),
-  status: z.enum(['consuming', 'finished', 'stalled', 'queued', 'abandoned']),
   rating: z.number().min(1).max(5).optional(),
   note: z.string(),
   tags: z.array(z.string()).default([]),
@@ -157,6 +159,7 @@ const mediaBase = {
 
 const bookSchema = z.object({
   kind: z.literal('book'),
+  status: z.enum(['reading', 'read', 'queued']),
   ...mediaBase,
   author: z.string(),
   year: z.string().optional(),
@@ -171,6 +174,7 @@ const bookSchema = z.object({
 
 const filmSchema = z.object({
   kind: z.literal('film'),
+  status: z.enum(['watched', 'queued']),
   ...mediaBase,
   director: z.string(),
   year: z.string(),
@@ -180,6 +184,7 @@ const filmSchema = z.object({
 
 const showSchema = z.object({
   kind: z.literal('show'),
+  status: z.enum(['watching', 'watched', 'queued']),
   ...mediaBase,
   creator: z.string(),
   year: z.string(),
@@ -190,6 +195,7 @@ const showSchema = z.object({
 
 const albumSchema = z.object({
   kind: z.literal('album'),
+  status: z.enum(['listened', 'queued']),
   ...mediaBase,
   artist: z.string(),
   year: z.string(),
@@ -199,6 +205,7 @@ const albumSchema = z.object({
 
 const trackSchema = z.object({
   kind: z.literal('track'),
+  status: z.enum(['repeat']),
   ...mediaBase,
   artist: z.string(),
   album: z.string().optional(),

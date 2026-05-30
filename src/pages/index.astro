@@ -118,18 +118,12 @@ const photoThumbs = await Promise.all((recentPhoto?.data.gallery?.slice(0, 6) ??
   }),
 })));
 
-// CURRENTLY ON THE DESK = up to 4 active media, varied kinds, kind-first then fill
+// CURRENTLY ON THE DESK = the 4 most recently updated items, any kind/status.
 const allMedia = await getAllMedia();
-const deskActive: Media[] = [];
-const seenKinds = new Set<string>();
-for (const m of allMedia.filter(m => m.data.status === 'consuming')) {
-  if (!seenKinds.has(m.data.kind)) { deskActive.push(m); seenKinds.add(m.data.kind); }
-  if (deskActive.length === 4) break;
-}
-for (const m of allMedia.filter(m => m.data.status === 'consuming')) {
-  if (deskActive.length === 4) break;
-  if (!deskActive.includes(m)) deskActive.push(m);
-}
+const deskRecency = (m: Media) => (m.data.lastAt ?? m.data.firstAt)?.getTime() ?? 0;
+const deskActive = [...allMedia]
+  .sort((a, b) => deskRecency(b) - deskRecency(a))
+  .slice(0, 4);
 
 // LAST UPDATE = max date across all posts and media (lastAt fallback)
 const allDateMs: number[] = [

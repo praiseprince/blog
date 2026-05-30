@@ -14,17 +14,19 @@ export const SECTION_LABEL: Record<MediaKind, string> = {
   track: 'Songs',
 };
 
-// Labels: kind-specific "consuming" verb (Reading / Watching / etc.),
-// uniform everywhere else so the taxonomy reads cleanly across kinds.
+// Each kind has its own status set (enforced by the schema). The shared
+// "queued" slug reads as "In queue" for books/films and "Up next" for
+// shows/albums — hence the per-kind label map rather than a flat one.
 export const STATUS_LABEL: Record<MediaKind, Partial<Record<MediaStatus, string>>> = {
-  book:  { consuming: 'Reading now',  finished: 'Finished', stalled: 'Stalled', queued: 'Up next', abandoned: 'Set aside' },
-  film:  { consuming: 'Watching',     finished: 'Finished', stalled: 'Stalled', queued: 'Up next', abandoned: 'Set aside' },
-  show:  { consuming: 'Watching now', finished: 'Finished', stalled: 'Stalled', queued: 'Up next', abandoned: 'Set aside' },
-  album: { consuming: 'In rotation',  finished: 'Finished', stalled: 'Stalled', queued: 'Up next', abandoned: 'Set aside' },
-  track: { consuming: 'On repeat',    finished: 'Finished', stalled: 'Stalled', queued: 'Up next', abandoned: 'Set aside' },
+  book:  { reading: 'Reading',   read: 'Read',       queued: 'In queue' },
+  film:  { watched: 'Watched',                       queued: 'In queue' },
+  show:  { watching: 'Watching', watched: 'Watched', queued: 'Up next' },
+  album: { listened: 'Listened',                     queued: 'Up next' },
+  track: { repeat: 'On repeat' },
 };
 
-const STATUS_ORDER: MediaStatus[] = ['consuming', 'finished', 'stalled', 'queued', 'abandoned'];
+// Global display/sort order: in-progress first, then done, then queued.
+const STATUS_ORDER: MediaStatus[] = ['reading', 'watching', 'repeat', 'read', 'watched', 'listened', 'queued'];
 
 export async function getAllMedia(): Promise<Media[]> {
   const all = await getCollection('media');
