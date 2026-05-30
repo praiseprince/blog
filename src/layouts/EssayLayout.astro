@@ -7,11 +7,17 @@ import { getSiteConfig, pageTitle } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
-  entry: CollectionEntry<'posts'>;
+  entry: CollectionEntry<'posts'> | CollectionEntry<'friends'>;
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  activeNav?: 'archive' | 'friends';
 }
-const { entry } = Astro.props;
+const { entry, author, authorLink, sourceLabel, activeNav = 'archive' } = Astro.props;
 const { data } = entry;
 const site = getSiteConfig();
+const byline = author ?? site.authorShort;
+const authorBio = (data as { authorBio?: string }).authorBio;
 const filedDate = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 const coverImage = data.cover
   ? await getPhotoImage(data.cover.src, {
@@ -24,18 +30,20 @@ const coverImage = data.cover
 <BaseLayout
   title={pageTitle(data.title)}
   description={data.excerpt}
-  activeNav="archive"
+  activeNav={activeNav}
   showReadProgress
   screenLabel="Essay"
-  mastheadRight={`Essay · ${data.readTime ?? '12 min'}`}
+  mastheadRight={sourceLabel ? `${sourceLabel} · Essay` : `Essay · ${data.readTime ?? '12 min'}`}
 >
   <main class="page">
     <article class="column" style="padding-top: clamp(40px, 7vw, 88px);">
       {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
       <h1 class="display fade-in-2" style="font-size: clamp(2.6rem, 6vw, 4.6rem); margin-top: 18px;" set:html={data.title} />
       <p class="meta fade-in-3" style="margin-top: 24px;">
-        Filed {filedDate}{data.location ? ` · ${data.location}` : ''}{data.wordCount ? ` · ${data.wordCount.toLocaleString()} words` : ''}
+        Filed {filedDate}{data.location ? ` · ${data.location}` : ''}{!sourceLabel && data.wordCount ? ` · ${data.wordCount.toLocaleString()} words` : ''}
       </p>
+      {sourceLabel && <p class="eyebrow fade-in-3" style="margin-top: 12px; color: var(--accent);">{sourceLabel}</p>}
+      {authorBio && <p class="caption fade-in-3" style="margin-top: 12px; max-width: 52ch;" set:html={authorBio} />}
       <div class="tick-rule fade-in-3" style="margin-top: 32px;"></div>
     </article>
 
@@ -64,7 +72,7 @@ const coverImage = data.cover
     <article class="column prose fade-in-4" style="margin-top: 72px;">
       {data.lede && <p class="lede dropcap-none" set:html={data.lede} />}
       <slot />
-      <p style="text-align: center; margin-top: 56px;" class="meta">— {site.authorShort}</p>
+      <p style="text-align: center; margin-top: 56px;" class="meta">— {byline}</p>
     </article>
 
     <aside class="column" style="margin-top: 96px;">
@@ -73,7 +81,7 @@ const coverImage = data.cover
         <div style="grid-column: span 4;">
           <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
           <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
-            {data.tags.map(t => <Tag name={t} />)}
+            {data.tags.map(t => <Tag name={t} static={!!sourceLabel} />)}
           </div>
         </div>
         {data.cited && data.cited.length > 0 && (

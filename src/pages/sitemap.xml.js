@@ -1,5 +1,6 @@
 import { getAllMedia, mediaUrl } from '../lib/media';
 import { getAllPosts, getAllTags, postUrl } from '../lib/posts';
+import { getAllFriends, friendUrl } from '../lib/friends';
 import { readSiteMarkdown } from '../lib/siteMarkdown';
 import { getSiteUrl } from '../lib/siteUrl.js';
 
@@ -34,7 +35,9 @@ function urlEntry({ loc, lastmod }, site) {
 export async function GET(context) {
   const site = context.site ?? new URL(getSiteUrl());
   const about = readSiteMarkdown('about.md');
+  const friendsTemplate = readSiteMarkdown('friends-template.md');
   const posts = await getAllPosts();
+  const friends = await getAllFriends();
   const media = await getAllMedia();
   const tags = await getAllTags();
   const siteLastmod = dateOnly(latestDate([
@@ -42,15 +45,22 @@ export async function GET(context) {
     ...media.map(item => item.data.lastAt ?? item.data.firstAt),
   ]));
   const mediaLastmod = dateOnly(latestDate(media.map(item => item.data.lastAt ?? item.data.firstAt)));
+  const friendsLastmod = dateOnly(latestDate(friends.map(f => f.data.date)));
 
   const entries = [
     { loc: '/', lastmod: siteLastmod },
     { loc: '/archive/', lastmod: siteLastmod },
     { loc: '/desk/', lastmod: mediaLastmod },
+    { loc: '/friends/', lastmod: friendsLastmod },
+    { loc: '/friends/how-to-send-a-post/', lastmod: dateOnly(friendsTemplate.data.date ? new Date(friendsTemplate.data.date) : undefined) },
     { loc: '/about/', lastmod: about.data.lastmod },
     ...posts.map(post => ({
       loc: postUrl(post),
       lastmod: dateOnly(post.data.date),
+    })),
+    ...friends.map(f => ({
+      loc: friendUrl(f),
+      lastmod: dateOnly(f.data.date),
     })),
     ...media.map(item => ({
       loc: mediaUrl(item),

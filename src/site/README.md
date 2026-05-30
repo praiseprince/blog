@@ -27,3 +27,12 @@ Frontmatter image fields that are resolved (by `src/lib/photoImages.ts`):
 **One source file → two outputs, automatically:** small responsive WebP variants for page display, plus the **original file served as-is — full resolution, not optimized** (emitted to `/_astro/<name>.<hash>.<ext>`), used as the click-to-view / download target. So the page stays light, but clicking a photo opens the full, unoptimized original. You never keep a second copy.
 
 **Why the `/images/...` token (not a relative path):** it is location-independent, so tooling can emit it without knowing the post file's depth. It is the recommended form for both hand-authoring and generated content. A relative path (`![](../../assets/images/<file>)`) only works as a fallback for an image written directly in body prose — which this convention avoids, because the `/images/...` token is **not** rewritten inside body text and would 404 there.
+
+## Desk media covers (`src/content/media/`)
+
+Desk entries (`book`, `film`, `show`, `album`, `track`) use a separate, simpler image path from posts: the `cover` field holds a **plain image URL** (typically a remote one such as a TMDB poster, a Spotify cover, or an Open Library book cover) that is rendered as-is — it does **not** go through the `/images/` optimization pipeline above.
+
+- **Films, shows, albums, tracks** always show their `cover` image.
+- **Books** show a typographic **spine** (the `spine` text, coloured by `tone: "1"–"4"`) by default. Setting an optional `cover` on a book overrides the spine and shows the cover thumbnail instead — so books can use either look. The `spine`/`tone` fields are kept as the fallback for any book without a cover.
+
+This applies everywhere a cover/spine appears: the desk list, the desk detail page, and the homepage "Currently on the desk" strip.

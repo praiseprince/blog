@@ -1,0 +1,380 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getAllFriends, friendUrl, groupByAuthor, kindLabel, shortDate } from '../lib/friends';
+import { readSiteMarkdown } from '../lib/siteMarkdown';
+import { pageTitle } from '../lib/siteConfig';
+import { frontmatter as templateMeta } from '../site/friends-template.md';
+
+// The submission template lives outside the friends collection (at
+// src/site/friends-template.md, served from /friends/how-to-send-a-post/) so it
+// can't be removed by content edits. It's pinned in its own callout below and
+// never appears in the list, counts, or pagination.
+const TEMPLATE_HREF = '/friends/how-to-send-a-post/';
+const friends = await getAllFriends();
+const copy = readSiteMarkdown('friends.md').data;
+
+const realFriends = friends;
+const total = realFriends.length;
+const counts = {
+  essay:     realFriends.filter(p => p.data.type === 'essay').length,
+  photo:     realFriends.filter(p => p.data.type === 'photo').length,
+  walk:      realFriends.filter(p => p.data.type === 'walk').length,
+  fragment:  realFriends.filter(p => p.data.type === 'fragment').length,
+  technical: realFriends.filter(p => p.data.type === 'technical').length,
+};
+const authorGroups = groupByAuthor(friends);
+const authorCount = authorGroups.length;
+
+const headline = copy.headline ?? 'The friends’ <em>room.</em>';
+const eyebrow = copy.eyebrow ?? 'Guest writing';
+const intro = copy.intro ?? '';
+const emptyState = copy.emptyState ?? '';
+---
+<BaseLayout
+  title={pageTitle(copy.pageTitle ?? 'Friends')}
+  activeNav="friends"
+  screenLabel="Friends"
+  mastheadRight={copy.mastheadRight ?? 'Friends · guest writing'}
+>
+  <Fragment slot="head">
+    <style is:inline>
+      .filter-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 12px 0; }
+      .filter-bar button {
+        font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+        background: none; border: 1px solid var(--rule); color: var(--ink-soft);
+        padding: 6px 10px; cursor: pointer; transition: all .2s; white-space: nowrap;
+        flex-shrink: 0;
+      }
+      .filter-bar button:hover { color: var(--ink); border-color: var(--ink); }
+      .filter-bar button.is-active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+      .filter-bar .filter-sep { flex: 0 0 1px; align-self: stretch; background: var(--rule); margin: 4px 6px; }
+      .filter-bar button[data-view] { border-color: var(--accent); color: var(--accent); }
+      .filter-bar button[data-view].is-active { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+      .archive-row { opacity: 1; transition: opacity .3s; }
+      .archive-row.is-hidden { display: none; }
+
+      /* Pinned submission-template callout */
+      .template-callout {
+        display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px;
+        border: 1px solid var(--accent); padding: 16px 20px; margin: 28px 0 0;
+        text-decoration: none; color: var(--ink); transition: background .2s;
+      }
+      .template-callout:hover { background: var(--paper-deep); }
+      .template-callout .tc-label {
+        font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em;
+        text-transform: uppercase; color: var(--accent); white-space: nowrap;
+      }
+      .template-callout .tc-title {
+        font-family: var(--font-display); font-style: italic; font-size: 1.25rem; line-height: 1.1;
+      }
+      .template-callout .tc-go {
+        font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+        text-transform: uppercase; color: var(--ink-soft); white-space: nowrap;
+      }
+
+      .author-group { margin-bottom: 40px; }
+      .author-head {
+        font-family: var(--font-display); font-weight: 400; font-style: italic;
+        font-size: 1.5rem; margin: 0 0 4px;
+      }
+      .author-head .count {
+        font-family: var(--font-mono); font-style: normal; font-size: 11px;
+        letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-fade);
+      }
+      .author-group hr { margin: 0 0 12px; }
+
+      /* Per-author (layer 2) pager: subordinate — left-aligned, smaller, and
+         labelled so it clearly belongs to the author group above it. */
+      .author-entry-pager {
+        justify-content: flex-start;
+        margin: 14px 0 0;
+        gap: 5px;
+      }
+      .author-entry-pager::before {
+        content: 'More from this author';
+        align-self: center;
+        margin-right: 10px;
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-fade);
+      }
+      .author-entry-pager .pager-btn {
+        min-width: 28px;
+        padding: 6px 8px;
+        font-size: 10px;
+      }
+
+      /* Whole-page (layer 1) author pager: a page-level control — separated by a
+         strong rule and an accent label so it can't be mistaken for an author's
+         own pager. */
+      #author-page-pager {
+        margin-top: 44px;
+        padding-top: 22px;
+        border-top: 1px solid var(--ink);
+      }
+      #author-page-pager::before {
+        content: 'Authors — page';
+        width: 100%;
+        text-align: center;
+        margin-bottom: 14px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      @media (max-width: 720px) {
+        .filter-bar {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          margin: 0 -16px;
+          padding: 12px 16px;
+          gap: 8px;
+          -webkit-overflow-scrolling: touch;
+          width: calc(100% + 32px);
+          max-width: none;
+        }
+        .filter-bar::-webkit-scrollbar { display: none; }
+        .filter-bar::after { content: ''; flex: 0 0 4px; }
+        .template-callout { grid-template-columns: 1fr; gap: 8px; }
+        .template-callout .tc-go { display: none; }
+      }
+    </style>
+  </Fragment>
+
+  <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
+    <section style="display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end;">
+      <div>
+        <div class="eyebrow fade-in">{eyebrow}</div>
+        <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 5.5vw, 4.6rem); margin: 14px 0 0; line-height: 1;" set:html={headline} />
+      </div>
+      <div class="fade-in-3 meta" style="text-align: right; line-height: 1.7;">
+        {total} {total === 1 ? 'entry' : 'entries'} · {authorCount} {authorCount === 1 ? 'friend' : 'friends'}<br/>
+        <span style="color: var(--ink-fade);">Newest first</span>
+      </div>
+    </section>
+
+    {intro && <p class="caption fade-in-3" style="max-width: 60ch; margin: 28px 0 0;" set:html={intro} />}
+
+    <a class="template-callout fade-in-3" href={TEMPLATE_HREF}>
+      <span class="tc-label">Start here</span>
+      <span class="tc-title" set:html={templateMeta.title} />
+      <span class="tc-go">How to send a post →</span>
+    </a>
+
+    <hr class="rule rule-ink" style="margin: 32px 0 16px;" />
+
+    <div class="filter-bar" role="tablist">
+      <button class="is-active" data-kind="all">All — {total}</button>
+      {counts.essay > 0 && <button data-kind="essay">Essays — {counts.essay}</button>}
+      {counts.photo > 0 && <button data-kind="photo">Photographs — {counts.photo}</button>}
+      {counts.walk > 0 && <button data-kind="walk">Walks — {counts.walk}</button>}
+      {counts.fragment > 0 && <button data-kind="fragment">Fragments — {counts.fragment}</button>}
+      {counts.technical > 0 && <button data-kind="technical">Notes — {counts.technical}</button>}
+      {authorCount > 0 && <span class="filter-sep"></span>}
+      {authorCount > 0 && <button data-view="authors">Authors — {authorCount}</button>}
+    </div>
+
+    <hr class="rule" style="margin: 0 0 24px;" />
+
+    <div id="flat-view">
+      <ul class="toc">
+        {realFriends.map((p, i) => (
+          <li class="archive-row" data-kind={p.data.type} data-author={p.data.author}>
+            <span class="num">{String(total - i).padStart(3, '0')}</span>
+            <a href={friendUrl(p)} class="title" set:html={p.data.title} />
+            <span class="kind">{kindLabel(p.data.type)}</span>
+            <span class="date">{shortDate(p.data.date)}</span>
+          </li>
+        ))}
+      </ul>
+      <nav class="pager" id="friends-pager" aria-label="Friends pagination" hidden></nav>
+    </div>
+
+    <div id="author-view" hidden>
+      {authorGroups.map(g => (
+        <section class="author-group">
+          <h2 class="author-head">{g.author} <span class="count">— {g.entries.length} {g.entries.length === 1 ? 'entry' : 'entries'}</span></h2>
+          <hr class="rule" />
+          <ul class="toc">
+            {g.entries.map((p, i) => (
+              <li class="author-row">
+                <span class="num">{String(g.entries.length - i).padStart(2, '0')}</span>
+                <a href={friendUrl(p)} class="title" set:html={p.data.title} />
+                <span class="kind">{kindLabel(p.data.type)}</span>
+                <span class="date">{shortDate(p.data.date)}</span>
+              </li>
+            ))}
+          </ul>
+          <nav class="pager author-entry-pager" aria-label="Author entries pagination" hidden></nav>
+        </section>
+      ))}
+      <nav class="pager" id="author-page-pager" aria-label="Authors pagination" hidden></nav>
+    </div>
+
+    {authorCount === 0 && emptyState && (
+      <p class="caption" id="empty-note" style="max-width: 52ch; margin-top: 32px; color: var(--ink-soft); font-style: italic;" set:html={emptyState} />
+    )}
+  </main>
+
+  <script is:inline>
+    (function(){
+      const PER_PAGE = 10;          // flat list, per page
+      const AUTHORS_PER_PAGE = 5;   // author groups per page
+      const ENTRIES_PER_AUTHOR = 6; // entries per author group, per page
+
+      const flatView = document.getElementById('flat-view');
+      const authorView = document.getElementById('author-view');
+      const rows = Array.from(flatView.querySelectorAll('.archive-row'));
+      const listTop = flatView.querySelector('.toc');
+      const pagerMount = document.getElementById('friends-pager');
+      const groups = authorView ? Array.from(authorView.querySelectorAll('.author-group')) : [];
+      const authorPager = document.getElementById('author-page-pager');
+      const groupEntryPage = new WeakMap();
+      let currentKind = 'all';
+      let mode = 'flat'; // 'flat' | 'authors'
+      let page = 1;
+      let authorPage = 1;
+
+      // Shared Google-style numbered control: ‹ 1 … 4 5 6 … 20 ›
+      function renderControls(mount, current, pages, go) {
+        if (!mount) return;
+        mount.innerHTML = '';
+        mount.hidden = pages <= 1;
+        if (pages <= 1) return;
+        const add = (label, p, o) => {
+          o = o || {};
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'pager-btn' + (o.current ? ' is-current' : '') + (o.nav ? ' pager-nav' : '');
+          b.textContent = label;
+          if (o.disabled || o.current) b.disabled = !!o.disabled;
+          if (o.disabled) b.disabled = true;
+          else if (!o.current) b.addEventListener('click', () => go(p));
+          if (o.label) b.setAttribute('aria-label', o.label);
+          mount.appendChild(b);
+        };
+        const ell = () => {
+          const s = document.createElement('span');
+          s.className = 'pager-ellipsis';
+          s.textContent = '…';
+          mount.appendChild(s);
+        };
+        add('‹', current - 1, { nav: true, disabled: current === 1, label: 'Previous page' });
+        const want = new Set([1, pages, current, current - 1, current + 1]);
+        const list = [...want].filter(n => n >= 1 && n <= pages).sort((a, b) => a - b);
+        let prev = 0;
+        list.forEach(n => {
+          if (n - prev > 1) ell();
+          add(String(n), n, { current: n === current });
+          prev = n;
+        });
+        add('›', current + 1, { nav: true, disabled: current === pages, label: 'Next page' });
+      }
+
+      // --- Flat list -------------------------------------------------------
+      function render() {
+        const matched = rows.filter(r => currentKind === 'all' || r.dataset.kind === currentKind);
+        const pages = Math.max(1, Math.ceil(matched.length / PER_PAGE));
+        if (page > pages) page = pages;
+        const start = (page - 1) * PER_PAGE;
+        const end = start + PER_PAGE;
+        rows.forEach(r => r.classList.add('is-hidden'));
+        matched.slice(start, end).forEach(r => r.classList.remove('is-hidden'));
+        renderControls(pagerMount, page, pages, p => {
+          page = p;
+          render();
+          if (listTop) listTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      // --- Author view: two layers of pagination --------------------------
+      // Layer 2: entries within a single author group.
+      function renderGroupEntries(group) {
+        const entryRows = Array.from(group.querySelectorAll('.author-row'));
+        const pager = group.querySelector('.author-entry-pager');
+        let p = groupEntryPage.get(group) || 1;
+        const pages = Math.max(1, Math.ceil(entryRows.length / ENTRIES_PER_AUTHOR));
+        if (p > pages) p = pages;
+        groupEntryPage.set(group, p);
+        const start = (p - 1) * ENTRIES_PER_AUTHOR;
+        const end = start + ENTRIES_PER_AUTHOR;
+        entryRows.forEach((r, i) => { r.style.display = (i >= start && i < end) ? '' : 'none'; });
+        renderControls(pager, p, pages, np => {
+          groupEntryPage.set(group, np);
+          renderGroupEntries(group);
+          group.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      // Layer 1: which author groups are shown on this page.
+      function renderAuthorView() {
+        const pages = Math.max(1, Math.ceil(groups.length / AUTHORS_PER_PAGE));
+        if (authorPage > pages) authorPage = pages;
+        const start = (authorPage - 1) * AUTHORS_PER_PAGE;
+        const end = start + AUTHORS_PER_PAGE;
+        groups.forEach((g, i) => {
+          const visible = i >= start && i < end;
+          g.style.display = visible ? '' : 'none';
+          if (visible) renderGroupEntries(g);
+        });
+        renderControls(authorPager, authorPage, pages, np => {
+          authorPage = np;
+          renderAuthorView();
+          authorView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+      }
+
+      function setKind(kind) {
+        mode = 'flat';
+        currentKind = kind;
+        page = 1;
+        flatView.hidden = false;
+        if (authorView) authorView.hidden = true;
+        document.querySelectorAll('.filter-bar [data-view]').forEach(b => b.classList.remove('is-active'));
+        document.querySelectorAll('.filter-bar [data-kind]').forEach(b => b.classList.remove('is-active'));
+        const btn = document.querySelector('.filter-bar [data-kind="' + kind + '"]');
+        if (btn) btn.classList.add('is-active');
+        render();
+      }
+
+      function setAuthors() {
+        if (!authorView) return;
+        mode = 'authors';
+        authorPage = 1;
+        flatView.hidden = true;
+        authorView.hidden = false;
+        document.querySelectorAll('.filter-bar [data-kind]').forEach(b => b.classList.remove('is-active'));
+        const btn = document.querySelector('.filter-bar [data-view="authors"]');
+        if (btn) btn.classList.add('is-active');
+        renderAuthorView();
+      }
+
+      document.querySelectorAll('.filter-bar [data-kind]').forEach(btn => {
+        btn.addEventListener('click', () => setKind(btn.dataset.kind));
+      });
+      const authorsBtn = document.querySelector('.filter-bar [data-view="authors"]');
+      if (authorsBtn) authorsBtn.addEventListener('click', () => {
+        mode === 'authors' ? setKind('all') : setAuthors();
+      });
+
+      const params = new URLSearchParams(location.search);
+      if (params.get('view') === 'authors' && authorView) {
+        setAuthors();
+        render();
+      } else {
+        const preset = params.get('kind');
+        if (preset && document.querySelector('.filter-bar [data-kind="' + preset + '"]')) {
+          setKind(preset);
+        } else {
+          render();
+        }
+      }
+    })();
+  </script>
+</BaseLayout>

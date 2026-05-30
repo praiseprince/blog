@@ -7,7 +7,7 @@ const KIND_LABEL: Record<Post['data']['type'], string> = {
   photo: 'Photograph',
   walk: 'Walk',
   fragment: 'Fragment',
-  technical: 'Note · Eng.',
+  technical: 'Note',
 };
 
 export async function getAllPosts(): Promise<Post[]> {

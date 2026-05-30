@@ -607,6 +607,8 @@ a:hover .thumb img, .thumb:hover img { transform: scale(1.03); }
 }
 .tag::before { content: '#'; color: var(--accent); }
 .tag:hover { color: var(--ink); border-color: var(--ink); }
+.tag-static { cursor: default; }
+.tag-static:hover { color: var(--ink-soft); border-color: var(--rule); }
 
 /* ─── TOC / contents list ─── */
 .toc { list-style: none; padding: 0; margin: 0; }

@@ -28,6 +28,8 @@ instagramLabel: "praiseprince_"
 instagramHref: "https://www.instagram.com/praiseprince_/"
 githubLabel: "praiseprince"
 githubHref: "https://github.com/praiseprince"
+spotifyLabel: "Spotify"
+spotifyHref: "https://open.spotify.com/user/m92dg0oy5pwr3x74z20rvlipi?si=905f072d0c1d4ed6"
 ---
 
 ## Lede

@@ -1,5 +1,6 @@
 import rss from '@astrojs/rss';
 import { getAllPosts } from '../lib/posts';
+import { getAllFriends, friendUrl, isTemplate } from '../lib/friends';
 import { getSiteConfig } from '../lib/siteConfig';
 
 function stripHtml(s) {
@@ -26,14 +27,35 @@ function escapeXml(value) {
 export async function GET(context) {
   const site = getSiteConfig();
   const posts = await getAllPosts();
-  const items = posts
-    .map(p => ({
-      title: stripHtml(p.data.title),
-      link: `/posts/${p.id.replace(/\.(md|mdx)$/, '')}/`,
-      pubDate: p.data.date,
-      description: stripHtml(p.data.excerpt ?? ''),
-      categories: p.data.tags ?? [],
-    }));
+  // Friend posts join the feed too. The template (order:0) is excluded unless it
+  // intentionally opts in via `showInFeed: true`.
+  const friends = (await getAllFriends())
+    .filter(f => !isTemplate(f) || f.data.showInFeed);
+
+  const postItems = posts.map(p => ({
+    title: stripHtml(p.data.title),
+    link: `/posts/${p.id.replace(/\.(md|mdx)$/, '')}/`,
+    pubDate: p.data.date,
+    description: stripHtml(p.data.excerpt ?? ''),
+    categories: p.data.tags ?? [],
+    author: site.authorName,
+  }));
+
+  const friendItems = friends.map(f => {
+    const by = stripHtml(f.data.author);
+    const excerpt = stripHtml(f.data.excerpt ?? '');
+    return {
+      title: stripHtml(f.data.title),
+      link: friendUrl(f),
+      pubDate: f.data.date,
+      description: `By ${by}${excerpt ? ` — ${excerpt}` : ''}`,
+      categories: ['friends', ...(f.data.tags ?? [])],
+      author: by,
+    };
+  });
+
+  const items = [...postItems, ...friendItems]
+    .sort((a, b) => b.pubDate.getTime() - a.pubDate.getTime());
 
   return rss({
     title: site.siteTitle,

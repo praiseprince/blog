@@ -2,15 +2,21 @@
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import PhotoViewer from '../components/PhotoViewer.astro';
+import FriendByline from '../components/FriendByline.astro';
 import type { CollectionEntry } from 'astro:content';
 import { pageTitle } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
-  entry: CollectionEntry<'posts'>;
+  entry: CollectionEntry<'posts'> | CollectionEntry<'friends'>;
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  activeNav?: 'archive' | 'friends';
 }
-const { entry } = Astro.props;
+const { entry, author, authorLink, sourceLabel, activeNav = 'archive' } = Astro.props;
 const { data } = entry;
+const authorBio = (data as { authorBio?: string }).authorBio;
 const dateStr = data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 const coverImage = data.cover
   ? await getPhotoImage(data.cover.src, { widths: [720, 960, 1280, 1600, 2200], loading: 'eager' })
@@ -23,9 +29,9 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
 <BaseLayout
   title={pageTitle(data.title)}
   description={data.excerpt}
-  activeNav="archive"
+  activeNav={activeNav}
   screenLabel="Photo"
-  mastheadRight={`Photographs${data.roll ? ` · Roll №${data.roll}` : ''}`}
+  mastheadRight={sourceLabel ? `${sourceLabel} · Photographs` : `Photographs${data.roll ? ` · Roll №${data.roll}` : ''}`}
 >
   <main class="page">
     <section style="position: relative; padding: clamp(40px, 6vw, 80px) 0 0;">
@@ -34,6 +40,7 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
           {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
           <h1 class="display fade-in-2" style="font-size: clamp(2.8rem, 7vw, 5.6rem); margin: 16px 0 0;" set:html={data.title} />
           {data.excerpt && <p class="caption fade-in-3" style="margin-top: 24px; max-width: 36ch;" set:html={data.excerpt} />}
+          <FriendByline author={author} authorLink={authorLink} sourceLabel={sourceLabel} authorBio={authorBio} />
         </div>
         <div style="grid-column: 9 / span 4; text-align: right;" class="meta fade-in-3">
           {data.location ?? ''}<br/>
@@ -107,15 +114,22 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
       </section>
     )}
 
-    {data.rollNote && (
+    {(data.rollNote || data.tags.length > 0 || data.nextHref) && (
       <aside class="column" style="margin-top: 96px;">
         <hr class="rule rule-ink" />
-        <div class="roll-note-grid" style="display: grid; grid-template-columns: 140px 1fr; gap: 28px; margin-top: 28px; align-items: start;">
-          <div class="smallcaps" style="color: var(--ink-fade); padding-top: 4px;">A note on the roll</div>
-          <div style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={data.rollNote} />
-        </div>
-        <div style="margin-top: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
-          {data.tags.map(t => <Tag name={t} />)}
+        {data.rollNote && (
+          <div class="roll-note-grid" style="display: grid; grid-template-columns: 140px 1fr; gap: 28px; margin-top: 28px; align-items: start;">
+            <div class="smallcaps" style="color: var(--ink-fade); padding-top: 4px;">A note on the roll</div>
+            <div style="font-family: var(--font-body); font-size: 17px; line-height: 1.6;" set:html={data.rollNote} />
+          </div>
+        )}
+        <div class="photo-footer" style="margin-top: 32px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {data.tags.map(t => <Tag name={t} static={!!sourceLabel} />)}
+          </div>
+          {data.nextHref && (
+            <a class="arrow" href={data.nextHref}>{data.nextLabel ?? 'Next entry'}</a>
+          )}
         </div>
       </aside>
     )}
@@ -136,6 +150,7 @@ const gallery = await Promise.all((data.gallery ?? []).map(async figure => ({
         margin-top: 20px;
       }
       .roll-note-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+      .photo-footer { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </BaseLayout>

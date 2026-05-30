@@ -1,6 +1,6 @@
 ---
 interface Props {
-  active?: 'index' | 'archive' | 'desk' | 'about';
+  active?: 'index' | 'archive' | 'desk' | 'friends' | 'about';
 }
 const { active } = Astro.props;
 
@@ -8,6 +8,7 @@ const links: Array<{ key: NonNullable<Props['active']>; href: string; label: str
   { key: 'index',   href: '/',         label: 'Index' },
   { key: 'archive', href: '/archive/', label: 'Archive' },
   { key: 'desk',    href: '/desk/',    label: 'Desk' },
+  { key: 'friends', href: '/friends/', label: 'Friends' },
 ];
 ---
 <nav class="sitenav">

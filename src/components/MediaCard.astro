@@ -46,7 +46,9 @@ const reread = data.consumptionCount && data.consumptionCount > 1
 {data.kind === 'book' ? (
   <a class={`media-card book tone-${data.tone}`} href={url} {...dataAttrs}>
     <div class="media-cover-box cover-book">
-      <div class="spine" set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
+      {data.cover
+        ? <img src={data.cover} alt={data.title.replace(/<[^>]+>/g, '')} loading="lazy" decoding="async" />
+        : <div class="spine" set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />}
     </div>
     <div class="body">
       <h3 set:html={data.title} />

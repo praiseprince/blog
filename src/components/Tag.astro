@@ -1,5 +1,10 @@
 ---
-interface Props { name: string }
-const { name } = Astro.props;
+// `static` renders a non-clickable chip — used where the tag has no destination
+// page (e.g. friend posts, which are deliberately kept out of the main /tags/
+// index, so linking there would 404).
+interface Props { name: string; static?: boolean }
+const { name, static: isStatic = false } = Astro.props;
 ---
-<a class="tag" href={`/tags/${name}/`}>{name}</a>
+{isStatic
+  ? <span class="tag tag-static">{name}</span>
+  : <a class="tag" href={`/tags/${name}/`}>{name}</a>}

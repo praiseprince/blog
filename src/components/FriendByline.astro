@@ -1,0 +1,28 @@
+---
+// Subtle guest-author byline shared by the friend-facing post layouts.
+// Renders nothing for normal (non-friend) posts, where sourceLabel is undefined.
+interface Props {
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  authorBio?: string;
+  align?: 'left' | 'right' | 'center';
+  // Layouts that already sign off with "— <author>" (essay, technical) pass
+  // showAuthor={false} so the name is not repeated here.
+  showAuthor?: boolean;
+}
+const { author, authorLink, sourceLabel, authorBio, align = 'left', showAuthor = true } = Astro.props;
+---
+{sourceLabel && (
+  <div class="friend-byline fade-in-3" style={`text-align: ${align}; margin-top: 20px;`}>
+    <span class="eyebrow" style="color: var(--accent);">{sourceLabel}</span>
+    {showAuthor && (
+      <p class="meta" style="margin-top: 8px;">
+        By {authorLink
+          ? <a href={authorLink} style="border-bottom: 1px solid var(--accent);">{author}</a>
+          : author}
+      </p>
+    )}
+    {authorBio && <p class="caption" style={`margin-top: 8px; max-width: 48ch;${align === 'center' ? ' margin-left: auto; margin-right: auto;' : ''}`} set:html={authorBio} />}
+  </div>
+)}

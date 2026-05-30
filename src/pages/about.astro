@@ -8,6 +8,33 @@ const lede = markdownParagraphs(about.sections.lede)[0] ?? '';
 const bioParagraphs = markdownParagraphs(about.sections.bio);
 const codeParagraphs = markdownParagraphs(about.sections.code);
 const quote = markdownParagraphs(about.sections.quote)[0] ?? '';
+const elsewhereLinks = [
+  about.data.email && {
+    label: 'Email',
+    href: `mailto:${about.data.email}`,
+    text: about.data.email,
+  },
+  about.data.instagramHref && {
+    label: 'Instagram',
+    href: about.data.instagramHref,
+    text: about.data.instagramLabel ?? about.data.instagramHref,
+  },
+  about.data.githubHref && {
+    label: 'GitHub',
+    href: about.data.githubHref,
+    text: about.data.githubLabel ?? about.data.githubHref,
+  },
+  about.data.spotifyHref && {
+    label: 'Spotify',
+    href: about.data.spotifyHref,
+    text: about.data.spotifyLabel ?? 'Spotify',
+  },
+  {
+    label: 'RSS feed',
+    href: '/feed.xml',
+    text: '/feed.xml',
+  },
+].filter(Boolean);
 ---
 <BaseLayout
   title={pageTitle(about.data.pageTitle ?? 'About this place')}
@@ -84,10 +111,9 @@ const quote = markdownParagraphs(about.sections.quote)[0] ?? '';
         <div class="smallcaps" style="color: var(--ink-fade);">Elsewhere</div>
         <hr class="rule" style="margin: 12px 0 16px;" />
         <ul style="list-style: none; padding: 0; margin: 0; font-family: var(--font-body); font-size: 16px; line-height: 1.9;">
-          <li>Email — <a href={`mailto:${about.data.email}`} style="border-bottom: 1px solid var(--accent);">{about.data.email}</a></li>
-          <li>Instagram — <a href={about.data.instagramHref} style="border-bottom: 1px solid var(--accent);">{about.data.instagramLabel}</a></li>
-          <li>GitHub — <a href={about.data.githubHref} style="border-bottom: 1px solid var(--accent);">{about.data.githubLabel}</a></li>
-          <li>RSS feed — <a href="/feed.xml" style="border-bottom: 1px solid var(--accent);">/feed.xml</a></li>
+          {elsewhereLinks.map(link => (
+            <li>{link.label} — <a href={link.href} style="border-bottom: 1px solid var(--accent);">{link.text}</a></li>
+          ))}
         </ul>
       </div>
 

@@ -3,15 +3,21 @@ import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import Video from '../components/Video.astro';
 import PhotoViewer from '../components/PhotoViewer.astro';
+import FriendByline from '../components/FriendByline.astro';
 import type { CollectionEntry } from 'astro:content';
 import { pageTitle } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
-  entry: CollectionEntry<'posts'>;
+  entry: CollectionEntry<'posts'> | CollectionEntry<'friends'>;
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  activeNav?: 'archive' | 'friends';
 }
-const { entry } = Astro.props;
+const { entry, author, authorLink, sourceLabel, activeNav = 'archive' } = Astro.props;
 const { data } = entry;
+const authorBio = (data as { authorBio?: string }).authorBio;
 const m = data.walkMeta ?? {};
 const timeline = await Promise.all((data.timeline ?? []).map(async item => ({
   item,
@@ -29,16 +35,17 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
 <BaseLayout
   title={pageTitle(data.title)}
   description={data.excerpt}
-  activeNav="archive"
+  activeNav={activeNav}
   showReadProgress
   screenLabel="Walk"
-  mastheadRight={data.issueLabel ?? 'Walks'}
+  mastheadRight={sourceLabel ? `${sourceLabel} · Walk` : (data.issueLabel ?? 'Walks')}
 >
   <main class="page" style="padding-top: clamp(40px, 7vw, 88px);">
     <section class="editorial-grid" style="align-items: end;">
       <div style="grid-column: 1 / span 7;">
         {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
         <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 6vw, 4.6rem); margin: 16px 0 0; line-height: 0.98;" set:html={data.title} />
+        <FriendByline author={author} authorLink={authorLink} sourceLabel={sourceLabel} authorBio={authorBio} />
       </div>
       <div style="grid-column: 9 / span 4;" class="fade-in-3">
         <div class="meta" style="line-height: 1.7;">
@@ -182,7 +189,7 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
         <div style="grid-column: span 6;">
           <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
           <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
-            {data.tags.map(t => <Tag name={t} />)}
+            {data.tags.map(t => <Tag name={t} static={!!sourceLabel} />)}
           </div>
         </div>
         {data.nextHref && (

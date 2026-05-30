@@ -1,0 +1,61 @@
+---
+import { render } from 'astro:content';
+import EssayLayout from '../../layouts/EssayLayout.astro';
+import PhotoLayout from '../../layouts/PhotoLayout.astro';
+import WalkLayout from '../../layouts/WalkLayout.astro';
+import FragmentLayout from '../../layouts/FragmentLayout.astro';
+import TechnicalLayout from '../../layouts/TechnicalLayout.astro';
+import { getAllFriends, friendUrl } from '../../lib/friends';
+
+export async function getStaticPaths() {
+  const friends = await getAllFriends(); // template first, then newest-first
+  return friends.map((entry, i) => ({
+    params: { slug: entry.id.replace(/\.(md|mdx)$/, '') },
+    // "Next" walks the friends order: the following entry in the archive list.
+    props: { entry, nextPost: friends[i + 1] ?? null },
+  }));
+}
+
+const { entry, nextPost } = Astro.props;
+const { Content } = await render(entry);
+const type = entry.data.type;
+
+// Friend entries reuse the post layouts; the byline + label are passed in so
+// the layout shows "By <author>" and a subtle "Friend writing" kicker.
+const SOURCE_LABEL = 'Friend writing';
+const nav = nextPost
+  ? { nextHref: friendUrl(nextPost), nextLabel: `Next — ${nextPost.data.title.replace(/<[^>]+>/g, '')}` }
+  : { nextHref: undefined, nextLabel: undefined };
+const navEntry = { ...entry, data: { ...entry.data, ...nav } };
+const byline = {
+  author: entry.data.author,
+  authorLink: entry.data.authorLink,
+  sourceLabel: SOURCE_LABEL,
+  activeNav: 'friends' as const,
+};
+---
+{type === 'essay' && (
+  <EssayLayout entry={navEntry} {...byline}>
+    <Content />
+  </EssayLayout>
+)}
+{type === 'photo' && (
+  <PhotoLayout entry={navEntry} {...byline}>
+    <Content />
+  </PhotoLayout>
+)}
+{type === 'walk' && (
+  <WalkLayout entry={navEntry} {...byline}>
+    <Content />
+  </WalkLayout>
+)}
+{type === 'fragment' && (
+  <FragmentLayout entry={navEntry} {...byline}>
+    <Content />
+  </FragmentLayout>
+)}
+{type === 'technical' && (
+  <TechnicalLayout entry={navEntry} {...byline}>
+    <Content />
+  </TechnicalLayout>
+)}

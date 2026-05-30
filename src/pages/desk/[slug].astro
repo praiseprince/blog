@@ -46,8 +46,8 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
     <a href="/desk/" class="meta" style="display: inline-block; margin-bottom: 24px;">← The desk</a>
 
     <section class="editorial-grid entry-head" style="align-items: start;">
-      <div class={data.kind === 'book' ? 'cover-col-book' : 'cover-col-image'} style="grid-column: 1 / span 4;">
-        {data.kind === 'book' ? (
+      <div class={data.kind === 'book' && !data.cover ? 'cover-col-book' : 'cover-col-image'} style="grid-column: 1 / span 4;">
+        {data.kind === 'book' && !data.cover ? (
           <div class={`big-spine tone-${data.tone}`}>
             <span set:html={(data.spine ?? data.title).replace(/\n/g, '<br/>')} />
           </div>
@@ -89,7 +89,7 @@ const log = (data.log ?? []).slice().sort((a, b) => b.date.getTime() - a.date.ge
 
         {data.tags.length > 0 && (
           <div class="entry-tags">
-            {data.tags.map(t => <Tag name={t} />)}
+            {data.tags.map(t => <Tag name={t} static />)}
           </div>
         )}
       </div>

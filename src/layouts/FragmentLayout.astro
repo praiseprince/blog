@@ -2,15 +2,21 @@
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import PhotoViewer from '../components/PhotoViewer.astro';
+import FriendByline from '../components/FriendByline.astro';
 import type { CollectionEntry } from 'astro:content';
 import { pageTitle } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
-  entry: CollectionEntry<'posts'>;
+  entry: CollectionEntry<'posts'> | CollectionEntry<'friends'>;
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  activeNav?: 'archive' | 'friends';
 }
-const { entry } = Astro.props;
+const { entry, author, authorLink, sourceLabel, activeNav = 'archive' } = Astro.props;
 const { data } = entry;
+const authorBio = (data as { authorBio?: string }).authorBio;
 const fragLabel = data.fragmentNumber ? `Fragments №${data.fragmentNumber}` : 'Fragments';
 const items = await Promise.all((data.items ?? []).map(async item => ({
   item,
@@ -28,15 +34,16 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
 <BaseLayout
   title={pageTitle(data.title)}
   description={data.excerpt}
-  activeNav="archive"
+  activeNav={activeNav}
   screenLabel="Fragments"
-  mastheadRight={fragLabel}
+  mastheadRight={sourceLabel ? `${sourceLabel} · Fragments` : fragLabel}
 >
   <main class="page" style="padding-top: clamp(40px, 7vw, 80px);">
     <section style="text-align: center;">
       {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
       <h1 class="display fade-in-2" style="font-size: clamp(2.4rem, 6.5vw, 5rem); margin: 16px 0 0; line-height: 1;" set:html={data.title} />
       {data.intro && <p class="caption fade-in-3" style="margin: 18px auto 0; max-width: 48ch;" set:html={data.intro} />}
+      <FriendByline author={author} authorLink={authorLink} sourceLabel={sourceLabel} authorBio={authorBio} align="center" />
     </section>
 
     <hr class="rule rule-ink" style="margin: 56px 0;" />
@@ -151,7 +158,7 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
 
     <aside style="margin-top: 28px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 24px;">
       <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-        {data.tags.map(t => <Tag name={t} />)}
+        {data.tags.map(t => <Tag name={t} static={!!sourceLabel} />)}
       </div>
       {data.nextHref && (
         <a class="arrow" href={data.nextHref}>{data.nextLabel ?? 'Next entry'}</a>
@@ -165,6 +172,12 @@ const imageStyle = (fit?: 'cover' | 'contain', position?: string) => [
       /* Header: left-align to match the body items (centered only on desktop) */
       main > section[style*="text-align: center"] { text-align: left !important; }
       main > section[style*="text-align: center"] .caption {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      /* Friend byline: left-align with the rest of the header on mobile */
+      main > section[style*="text-align: center"] .friend-byline { text-align: left !important; }
+      main > section[style*="text-align: center"] .friend-byline .caption {
         margin-left: 0 !important;
         margin-right: 0 !important;
       }

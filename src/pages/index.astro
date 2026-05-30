@@ -2,54 +2,92 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 import { getAllPosts, postUrl, kindLabel, getAllTags, type Post } from '../lib/posts';
+import { getAllFriends, friendUrl, isTemplate, type Friend } from '../lib/friends';
 import { getAllMedia, mediaUrl, type Media } from '../lib/media';
 import { readSiteMarkdown } from '../lib/siteMarkdown';
 import { getSiteConfig } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 // HOMEPAGE logic:
-// 1. `src/site/home.md` controls the manual cover/lead.
-// 2. Latest lists are chronological and include essay/photo/walk by default.
-//    Fragments + technical notes can opt in with `showOnHome: true`.
+// 1. `src/site/home.md` controls the manual cover/lead. The ref accepts
+//    `post:slug`, `friend:slug`, or a bare slug (defaults to a main post).
+// 2. "Latest, all kinds" is chronological across main posts AND friend posts.
+//    Main posts default to essay/photo/walk (fragments/technical opt in with
+//    `showOnHome`); every (non-template) friend post is eligible regardless of
+//    kind.
 const HOME_DEFAULT_KINDS = ['essay', 'photo', 'walk'] as const;
 const site = getSiteConfig();
 const home = readSiteMarkdown('home.md');
 const posts = await getAllPosts();
+const friends = (await getAllFriends()).filter(f => !isTemplate(f));
 
-function normalizePostRef(ref = '') {
+type Entry = Post | Friend;
+interface HomeItem {
+  entry: Entry;
+  isFriend: boolean;
+  url: string;
+  author: string;
+  data: Entry['data'];
+}
+function toItem(entry: Entry, isFriend: boolean): HomeItem {
+  return {
+    entry,
+    isFriend,
+    url: isFriend ? friendUrl(entry as Friend) : postUrl(entry as Post),
+    author: isFriend ? (entry as Friend).data.author : site.authorShort,
+    data: entry.data,
+  };
+}
+
+function normalizeSlug(ref = '') {
   return ref
     .trim()
-    .replace(/^\/?posts\//, '')
+    .replace(/^\/?(posts|friends)\//, '')
     .replace(/\/$/, '')
     .replace(/\.(md|mdx)$/, '');
+}
+
+// Resolve `coverPost` to a main post or a friend post.
+function resolveCover(ref = ''): HomeItem | undefined {
+  const raw = ref.trim();
+  if (!raw) return undefined;
+  const match = raw.match(/^(post|friend):(.+)$/);
+  const kind = match ? match[1] : 'post';
+  const slug = normalizeSlug(match ? match[2] : raw);
+  if (kind === 'friend') {
+    const f = friends.find(x => normalizeSlug(x.id) === slug);
+    return f ? toItem(f, true) : undefined;
+  }
+  const p = posts.find(x => normalizeSlug(x.id) === slug);
+  return p ? toItem(p, false) : undefined;
 }
 
 const appearsOnHome = (post: Post) =>
   (HOME_DEFAULT_KINDS as readonly string[]).includes(post.data.type) || post.data.showOnHome;
 
-const coverPostRef = normalizePostRef(home.data.coverPost);
-const configuredLead = coverPostRef
-  ? posts.find(post => normalizePostRef(post.id) === coverPostRef)
-  : undefined;
-
-if (coverPostRef && !configuredLead) {
-  throw new Error(`src/site/home.md points coverPost at "${home.data.coverPost}", but no published post with that slug exists.`);
+const configuredLead = home.data.coverPost ? resolveCover(home.data.coverPost) : undefined;
+if (home.data.coverPost && !configuredLead) {
+  throw new Error(`src/site/home.md points coverPost at "${home.data.coverPost}", but no published post/friend with that slug exists.`);
 }
 
-const lead: Post | undefined =
-  configuredLead
-  ?? posts.find(appearsOnHome)
-  ?? posts[0];
+const postItems = posts.filter(appearsOnHome).map(p => toItem(p, false));
+const friendItems = friends.map(f => toItem(f, true));
+const combined = [...postItems, ...friendItems]
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 
-function leadImage(post: Post | undefined) {
-  if (!post) return null;
-  if (post.data.cover) return post.data.cover;
-  if (post.data.type === 'walk' && post.data.timeline) {
-    const t = post.data.timeline.find(x => x.image);
+const lead: HomeItem | undefined =
+  configuredLead ?? combined[0] ?? (posts[0] ? toItem(posts[0], false) : undefined);
+
+function leadImage(item: HomeItem | undefined) {
+  if (!item) return null;
+  const post = item.data;
+  if (post.cover) return post.cover;
+  if (post.type === 'walk' && post.timeline) {
+    const t = post.timeline.find(x => x.image);
     if (t) return { src: t.image!, alt: '', caption: t.caption, ix: t.ix };
   }
-  if (post.data.type === 'photo' && post.data.gallery && post.data.gallery.length > 0) {
-    const g = post.data.gallery[0];
+  if (post.type === 'photo' && post.gallery && post.gallery.length > 0) {
+    const g = post.gallery[0];
     return { src: g.src, alt: g.alt ?? '', caption: g.caption, ix: g.ix };
   }
   return null;
@@ -63,15 +101,12 @@ const leadCoverImage = leadCover
     })
   : null;
 
-// SIDE COLUMN = latest eligible posts, excluding the lead
-const latestHomePosts = posts.filter(p => p.id !== lead?.id && appearsOnHome(p));
-const sidePosts: Post[] = latestHomePosts.slice(0, 4);
+// SIDE COLUMN = latest eligible items (posts + friends), excluding the lead
+const rest = combined.filter(i => i.url !== lead?.url);
+const sidePosts: HomeItem[] = rest.slice(0, 4);
 
-// 3-COL TIER = next 3 eligible posts after the side column
-const usedIds = new Set([lead?.id, ...sidePosts.map(p => p.id)]);
-const secondTier: Post[] = posts
-  .filter(p => !usedIds.has(p.id) && appearsOnHome(p))
-  .slice(0, 3);
+// 3-COL TIER = next 3 eligible items after the side column
+const secondTier: HomeItem[] = rest.slice(4, 7);
 
 // LATEST PHOTOS = uniform thumbnail grid from the most recent photo post's gallery
 const recentPhoto = posts.slice(0, 6).find(p => p.data.type === 'photo');
@@ -128,18 +163,18 @@ const leadKindNoun =
     <section class="h01-grid">
       {lead && (
         <article class="h01-lead fade-in">
-          <div class="eyebrow">{lead.data.eyebrow ?? `Issue's lead · ${kindLabel(lead.data.type)}`}</div>
-          <a href={postUrl(lead)}>
+          <div class="eyebrow">{lead.isFriend ? `Friend writing · ${kindLabel(lead.data.type)}` : (lead.data.eyebrow ?? `Issue's lead · ${kindLabel(lead.data.type)}`)}</div>
+          <a href={lead.url}>
             <h1 class="h01-lead-headline" set:html={`${lead.data.title}<span style="color: var(--accent);">.</span>`} />
           </a>
 
           <div style="display: grid; grid-template-columns: auto 1fr; gap: 28px; align-items: end; margin-top: 24px;">
-            <div class="meta">By {site.authorShort}<br/>{lead.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{lead.data.readTime ? ` · ${lead.data.readTime}` : ''}</div>
+            <div class="meta">By {lead.author}<br/>{lead.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}{lead.data.readTime ? ` · ${lead.data.readTime}` : ''}</div>
             {lead.data.excerpt && <p class="caption" style="max-width: 60ch; margin: 0;" set:html={lead.data.excerpt} />}
           </div>
 
           {leadCover && (
-            <a href={postUrl(lead)} style="display: block; margin-top: 32px;">
+            <a href={lead.url} style="display: block; margin-top: 32px;">
               <figure>
                 <img {...(leadCoverImage?.attrs ?? { src: leadCover.src })} alt={leadCover.alt ?? ''} />
                 {(leadCover.caption || leadCover.ix) && (
@@ -152,14 +187,15 @@ const leadKindNoun =
             </a>
           )}
 
-          <a class="arrow" href={postUrl(lead)} style="margin-top: 24px;">Continue to the {leadKindNoun}</a>
+          <a class="arrow" href={lead.url} style="margin-top: 24px;">Continue to the {leadKindNoun}</a>
         </article>
       )}
 
       <aside class="h01-side fade-in-2">
         <div class="eyebrow" style="color: var(--accent);">Latest, all kinds</div>
         <hr class="rule" style="margin: 12px 0 16px;" />
-        {sidePosts.map((p, idx) => {
+        {sidePosts.map((item, idx) => {
+          const p = item;
           const isLast = idx === sidePosts.length - 1;
           const isFirst = idx === 0;
           const base = 'display: block;';
@@ -170,9 +206,10 @@ const leadKindNoun =
               : `${base} padding: 20px 0; border-bottom: 1px solid var(--rule);`;
           const fragStyle = p.data.type === 'fragment' ? 'font-style: italic; color: var(--ink-soft);' : '';
           return (
-            <a href={postUrl(p)} style={styleStr}>
-              <div class="meta" style="margin-bottom: 6px;">{kindLabel(p.data.type)} · {p.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+            <a href={p.url} style={styleStr}>
+              <div class="meta" style="margin-bottom: 6px;">{p.isFriend ? 'Friend writing · ' : ''}{kindLabel(p.data.type)} · {p.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
               <h3 class="display" style={`font-family: var(--font-display); font-weight: 400; ${fragStyle} font-size: 1.6rem; line-height: 1.1; margin: 0;`} set:html={p.data.title} />
+              {p.isFriend && <div class="meta" style="margin-top: 6px; color: var(--accent);">By {p.author}</div>}
               {p.data.excerpt && <p class="caption" style="margin-top: 10px;" set:html={p.data.excerpt} />}
             </a>
           );
@@ -186,12 +223,12 @@ const leadKindNoun =
         <div class="h01-three">
           {secondTier.map(p => (
             <div>
-              <div class="meta" style="margin-bottom: 6px; color: var(--accent);">{kindLabel(p.data.type)}</div>
-              <a href={postUrl(p)}>
+              <div class="meta" style="margin-bottom: 6px; color: var(--accent);">{p.isFriend ? `Friend writing · ${kindLabel(p.data.type)}` : kindLabel(p.data.type)}</div>
+              <a href={p.url}>
                 <h3 class="display" style="font-family: var(--font-display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; margin: 0 0 12px;" set:html={p.data.title} />
               </a>
               {p.data.excerpt && <p style="font-family: var(--font-body); font-size: 15px; line-height: 1.6; color: var(--ink-soft); margin: 0 0 12px;" set:html={p.data.excerpt} />}
-              <div class="meta">{kindLabel(p.data.type)}{p.data.readTime ? ` · ${p.data.readTime}` : ''}</div>
+              <div class="meta">{p.isFriend ? `By ${p.author}` : `${kindLabel(p.data.type)}${p.data.readTime ? ` · ${p.data.readTime}` : ''}`}</div>
             </div>
           ))}
         </div>
@@ -234,7 +271,7 @@ const leadKindNoun =
           {deskActive.map(m => (
             <a href={mediaUrl(m)} class={`desk-tile desk-tile-${m.data.kind}`}>
               <div class="desk-tile-frame">
-                {m.data.kind === 'book' ? (
+                {m.data.kind === 'book' && !m.data.cover ? (
                   <div class={`tile-spine tone-${m.data.tone}`} set:html={(m.data.spine ?? m.data.title).replace(/\n/g, '<br/>')} />
                 ) : (
                   m.data.cover && <img src={m.data.cover} alt={m.data.title.replace(/<[^>]+>/g, '')} />

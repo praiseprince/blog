@@ -1,0 +1,23 @@
+---
+// The friend submission guide. Deliberately NOT a content-collection entry —
+// it lives at src/site/friends-template.md and renders through this fixed
+// route, so bulk operations on src/content/friends/ can never remove it.
+import EssayLayout from '../../layouts/EssayLayout.astro';
+import { Content, frontmatter } from '../../site/friends-template.md';
+
+// EssayLayout reads a content-entry-shaped `entry.data`; build one from the
+// markdown frontmatter (coercing the date the way the collection schema would).
+const entry = {
+  id: 'how-to-send-a-post',
+  data: { ...frontmatter, date: new Date(frontmatter.date) },
+};
+---
+<EssayLayout
+  entry={entry}
+  author={frontmatter.author}
+  authorLink={frontmatter.authorLink}
+  sourceLabel="Friend writing"
+  activeNav="friends"
+>
+  <Content />
+</EssayLayout>

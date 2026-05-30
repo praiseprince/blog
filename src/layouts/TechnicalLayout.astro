@@ -1,16 +1,24 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Tag from '../components/Tag.astro';
+import FriendByline from '../components/FriendByline.astro';
+import PhotoViewer from '../components/PhotoViewer.astro';
 import type { CollectionEntry } from 'astro:content';
 import { getSiteConfig, pageTitle } from '../lib/siteConfig';
 import { getPhotoImage } from '../lib/photoImages';
 
 interface Props {
-  entry: CollectionEntry<'posts'>;
+  entry: CollectionEntry<'posts'> | CollectionEntry<'friends'>;
+  author?: string;
+  authorLink?: string;
+  sourceLabel?: string;
+  activeNav?: 'archive' | 'friends';
 }
-const { entry } = Astro.props;
+const { entry, author, authorLink, sourceLabel, activeNav = 'archive' } = Astro.props;
 const { data } = entry;
 const site = getSiteConfig();
+const byline = author ?? site.authorShort;
+const authorBio = (data as { authorBio?: string }).authorBio;
 const tm = data.techMeta ?? {};
 const marginalia = await Promise.all((data.marginalia ?? []).map(async item => ({
   item,
@@ -25,10 +33,10 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
 <BaseLayout
   title={pageTitle(data.title)}
   description={data.excerpt}
-  activeNav="archive"
+  activeNav={activeNav}
   showReadProgress
   screenLabel="Technical"
-  mastheadRight="Notes · Engineering"
+  mastheadRight={sourceLabel ? `${sourceLabel} · Notes` : 'Notes'}
 >
   <Fragment slot="head">
     <style is:inline>
@@ -69,12 +77,12 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
       <div style="grid-column: 1 / span 8;">
         {data.eyebrow && <div class="eyebrow fade-in">{data.eyebrow}</div>}
         <h1 class="display fade-in-2" style="font-size: clamp(2.2rem, 5.5vw, 4.4rem); margin: 16px 0 0; line-height: 1;" set:html={data.title} />
+        <FriendByline author={author} authorLink={authorLink} sourceLabel={sourceLabel} authorBio={authorBio} showAuthor={false} />
       </div>
       <div style="grid-column: 10 / span 3; text-align: right;" class="fade-in-3">
         {tm.stamp && <span class="stamp">{tm.stamp}</span>}
         <div class="meta" style="margin-top: 12px; line-height: 1.7;">
           {tm.readTime && <>{tm.readTime}<br/></>}
-          {tm.lang && <>{tm.lang}<br/></>}
           {tm.lastEdit && <>Last edit: {tm.lastEdit}</>}
         </div>
       </div>
@@ -86,7 +94,7 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
       <div style="grid-column: 1 / span 8;">
         {data.lede && <p class="lede" style="font-family: var(--font-display); font-style: italic; font-size: 1.5em; line-height: 1.35; color: var(--ink-soft); margin: 0 0 1.4em;" set:html={data.lede} />}
         <slot />
-        <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— {site.authorShort}</p>
+        <p style="text-align: right; color: var(--ink-fade); margin-top: 48px;" class="meta">— {byline}</p>
       </div>
 
       {marginalia.length > 0 && (
@@ -116,7 +124,16 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
             // figure
             return (
               <figure>
-                <div class="thumb" style="aspect-ratio: 1/1;"><img {...(image?.attrs ?? { src: m.image ?? '' })} alt="" /></div>
+                <button
+                  class="photo-viewer-trigger"
+                  type="button"
+                  data-full-src={image?.fullSrc ?? m.image}
+                  data-full-caption={m.caption}
+                  data-full-ix={m.ix}
+                  aria-label="View full image"
+                >
+                  <div class="thumb" style="aspect-ratio: 1/1;"><img {...(image?.attrs ?? { src: m.image ?? '' })} alt="" /></div>
+                </button>
                 {(m.caption || m.ix) && (
                   <figcaption>
                     {m.ix && <span class="ix">{m.ix}</span>}
@@ -136,7 +153,7 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
       <div style="grid-column: span 6;">
         <div class="smallcaps" style="color: var(--ink-fade);">Filed Under</div>
         <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px;">
-          {data.tags.map(t => <Tag name={t} />)}
+          {data.tags.map(t => <Tag name={t} static={!!sourceLabel} />)}
         </div>
       </div>
       {data.nextHref && (
@@ -145,6 +162,8 @@ const marginalia = await Promise.all((data.marginalia ?? []).map(async item => (
         </div>
       )}
     </aside>
+
+    <PhotoViewer />
   </main>
 
   <style>

@@ -13,9 +13,9 @@ const figure = z.object({
   colstart: z.number().optional(),
 });
 
-const posts = defineCollection({
-  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
-  schema: z.object({
+// Shared post fields — reused verbatim by the friends collection so guest
+// entries render through the exact same layouts as the main posts.
+const postFields = {
     title: z.string(),
     type: z.enum(['essay', 'photo', 'walk', 'fragment', 'technical']),
     date: z.coerce.date(),
@@ -99,7 +99,6 @@ const posts = defineCollection({
     // Technical
     techMeta: z.object({
       readTime: z.string().optional(),
-      lang: z.string().optional(),
       lastEdit: z.string().optional(),
       stamp: z.string().optional(),
     }).optional(),
@@ -113,6 +112,29 @@ const posts = defineCollection({
       ix: z.string().optional(),
       label: z.string().optional(),
     })).optional(),
+} as const;
+
+const posts = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/posts' }),
+  schema: z.object(postFields),
+});
+
+// Friends: a separate guest archive. Same post types/shape as `posts`, plus a
+// required per-file author and a few guest-only knobs. The order:0 entry is the
+// submission template and always sorts first in /friends/.
+const friends = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/friends' }),
+  schema: z.object({
+    ...postFields,
+    author: z.string(),
+    authorLink: z.string().optional(),
+    authorBio: z.string().optional(),
+    // Sort key for the friends archive. Lower sorts first; the template is 0.
+    // Unset entries fall back to 100 and then sort newest-first within that.
+    order: z.number().optional(),
+    pinned: z.boolean().default(false),
+    // The template (order:0) is excluded from RSS unless this opts it back in.
+    showInFeed: z.boolean().default(false),
   }),
 });
 
@@ -140,6 +162,9 @@ const bookSchema = z.object({
   year: z.string().optional(),
   pages: z.number().optional(),
   currentPage: z.number().optional(),
+  // Books render a typographic `spine` (styled by `tone`) by default. If an
+  // optional `cover` (image URL, from mediaBase) is set, the cover thumbnail is
+  // shown instead — matching how films/shows/albums/tracks display covers.
   spine: z.string().optional(),
   tone: z.enum(['1', '2', '3', '4']).default('1'),
 });
@@ -188,4 +213,4 @@ const media = defineCollection({
   ]),
 });
 
-export const collections = { posts, media };
+export const collections = { posts, friends, media };
